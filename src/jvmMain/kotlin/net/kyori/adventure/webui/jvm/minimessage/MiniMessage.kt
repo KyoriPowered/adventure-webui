@@ -15,6 +15,7 @@ import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.webui.URL_API
 import net.kyori.adventure.webui.URL_MINI_TO_HTML
 import net.kyori.adventure.webui.jvm.appendComponent
+import net.kyori.adventure.webui.jvm.getConfigString
 import net.kyori.adventure.webui.jvm.minimessage.hook.CLICK_EVENT_RENDER_HOOK
 import net.kyori.adventure.webui.jvm.minimessage.hook.COMPONENT_CLASS_RENDER_HOOK
 import net.kyori.adventure.webui.jvm.minimessage.hook.HOVER_EVENT_RENDER_HOOK
@@ -42,7 +43,7 @@ public fun Application.minimessage() {
         static("") {
             resources("web")
             resource(
-                "js/main.js", environment.config.property("ktor.config.jsScriptFile").getString())
+                "js/main.js", getConfigString("jsScriptFile"))
             defaultResource("web/index.html")
         }
 
