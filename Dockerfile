@@ -2,7 +2,7 @@ FROM adoptopenjdk/openjdk11:debian-slim
 
 WORKDIR /app
 
-COPY build/distributions/mcc-viewer.tar /app/
+COPY build/distributions/adventure-webui.tar /app/
 RUN tar -xvf /app/adventure-webui.tar
 RUN rm /app/adventure-webui.tar
 
