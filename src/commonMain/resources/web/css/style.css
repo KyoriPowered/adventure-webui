@@ -1,0 +1,185 @@
+/* font shit */
+* {
+    font-size: 20px;
+}
+.mc-font {
+    font-family: "Minecraft", monospace;
+}
+.mono-font {
+    font-family: monospace, monospace;
+}
+@font-face {
+    font-family: "Minecraft";
+    src: url("../font/1_Minecraft-Regular.woff") format("woff");
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: "Minecraft";
+    src: url("../font/2_Minecraft-Italic.woff") format("woff");
+    font-weight: normal;
+    font-style: italic;
+}
+@font-face {
+    font-family: "Minecraft";
+    src: url("../font/3_Minecraft-Bold.woff") format("woff");
+    font-weight: bold;
+    font-style: normal;
+}
+@font-face {
+    font-family: "Minecraft";
+    src: url("../font/4_Minecraft-BoldItalic.woff") format("woff");
+    font-weight: bold;
+    font-style: italic;
+}
+/* hover */
+.hover {
+    position: absolute;
+    background-color: white;
+    border: black;
+    visibility: hidden;
+    z-index: +1;
+    bottom: 100%;
+    left: 50%;
+    border-radius: 5px;
+    box-shadow: 1px 1px 5px 0 #000000;
+    padding: 2px;
+    cursor: initial;
+    color: black;
+}
+.hover-source {
+    position: relative;
+    cursor: pointer;
+}
+.hover-source:hover .hover {
+    visibility: visible;
+}
+/* output pane */
+#output-pane {
+    background-image: url("../img/grass.png");
+    background-size: cover;
+}
+#output-pane.mode-chat-open, #output-pane.mode-chat-closed {
+    background-position: bottom left;
+    display: flex;
+    align-items: flex-end;
+}
+#output-pane.mode-chat-open {
+    flex-direction: column-reverse;
+    align-items: flex-start;
+}
+#output-pane:not(.mode-chat-open) > #chat-entry-box {
+    display: none;
+}
+#output-pane.mode-chat-open > #chat-entry-box {
+    background-color: rgba(0, 0, 0, 0.4);
+    margin: 5px;
+    height: 34px;
+    width: calc(100% - 10px);
+    color: white;
+    line-height: 32px;
+    font-size: 32px;
+    padding-left: 5px;
+}
+#output-pane.mode-hologram {
+    background-position: center center;
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    align-content: center;
+}
+#output-pane.mode-lore {
+    background-position: center center;
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    align-content: center;
+}
+/* output pre */
+#output-pre {
+    margin-bottom: 4px;
+    color: white;
+    background-color: rgba(1, 1, 1, 0.4);
+}
+#output-pre span {
+    font-size: 28px;
+    line-height: 28px;
+}
+#output-pre.mode-chat-open, #output-pre.mode-chat-closed {
+    padding: 0 5px;
+    width: 55%;
+    left: 36px;
+    right: 36px;
+    overflow-x: hidden;
+    overflow-wrap: break-word;
+    white-space: break-spaces;
+    line-height: 19px;
+    display: inline-flex;
+    flex-direction: column;
+}
+#output-pre.mode-chat-open {
+    max-height: 573px; /* 20 lines */
+    margin-bottom: 74px;
+}
+#output-pre.mode-chat-closed {
+    max-height: 282px; /* 10 lines */
+    overflow-y: hidden;
+    margin-bottom: 118px;
+}
+#output-pre.mode-chat-open > div:first-child, #output-pre.mode-chat-closed > div:first-child {
+    padding-top: 3px;
+}
+#output-pre.mode-hologram {
+    display: inline-flex;
+    padding: 5px 10px;
+    flex-direction: column;
+    align-items: center;
+    line-height: 25px;
+    text-align: center;
+    background-color: rgba(1, 1, 1, 0);
+}
+#output-pre.mode-hologram > div {
+    background-color: rgba(1, 1, 1, 0.4);
+    padding: 4px 7px 0;
+}
+#output-pre.mode-hologram > div.no-padding {
+    padding: 0;
+}
+#output-pre.mode-lore {
+    background-color: rgba(1, 1, 1, 0.8);
+    border: solid #1b0035;
+    display: inline-flex;
+    padding: 5px;
+    flex-direction: column;
+    line-height: 19px;
+    border-radius: 5px;
+}
+#output-pre.mode-lore > div:first-child:not(:only-child) {
+    padding-bottom: 7px;
+}
+/* other shit */
+.is-horizontal {
+    align-items: center;
+}
+#main-container {
+    padding: 0 32px;
+    width: 100%;
+}
+.gone {
+    display: none;
+}
+body {
+    background-color: #E6E6E6;
+}
+html {
+    overflow-y: hidden;
+}
+.hero {
+    padding-bottom: 15px;
+}
+
+.notification {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+}

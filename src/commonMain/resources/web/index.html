@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>MiniMessageViewer</title>
+    <!--suppress HtmlUnknownTarget --> <script src="js/main.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css"
+          integrity="sha256-UDtbUHqpVVfXmdJcQVU/bfDEr9xldf3Dbd0ShD0Uf/Y=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"
+          integrity="sha256-X7rrn44l1+AUO65h1LGALBbOc5C5bOstSYsNlv9MhT8=" crossorigin="anonymous">
+    <link type="text/css" rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/js/all.min.js"
+            integrity="sha256-u11/XQI2A6mpXa0j1p0l0UpO3ZuiMTInGUqaT2K9ZWQ=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bulma-toast@2.3.1/dist/bulma-toast.min.js"
+            integrity="sha256-S9DjwN1WDDoq2jChOYfPxbSYY4A30/U6oknr7khzsO0=" crossorigin="anonymous"></script>
+  </head>
+  <body>
+    <header class="navbar is-light is-clipped">
+      <div class="navbar-brand">
+        <a class="navbar-item" id="home-link">
+          <h1 class="title mc-font">MiniMessage Viewer</h1>
+        </a>
+        <a id="burger-menu" class="navbar-burger" role="button">
+          <span></span>
+          <span></span>
+          <span></span>
+        </a>
+      </div>
+
+      <div id="navbar-menu" class="navbar-menu">
+        <div class="navbar-start">
+          <div class="navbar-item">
+            <div class="buttons mc-font">
+              <button class="button mc-mode" data-mode="CHAT_CLOSED">Chat (Closed)</button>
+              <button class="button mc-mode" data-mode="CHAT_OPEN">Chat (Open)</button>
+              <button class="button mc-mode" data-mode="LORE">Lore</button>
+              <button class="button mc-mode" data-mode="HOLOGRAM">Hologram</button>
+            </div>
+          </div>
+        </div>
+        <div class="navbar-end">
+          <div class="navbar-item">
+            <div class="buttons">
+              <button class="button" id="copy-button">
+                <span class="icon is-small"><i class="fas fa-copy"></i></span>
+              </button>
+              <button class="button" id="share-button">
+                <span class="icon is-small"><i class="fas fa-share-alt"></i></span>
+              </button>
+              <a class="button" target="_blank" href="https://docs.adventure.kyori.net/minimessage.html">
+                <span class="icon is-small"><i class="fas fa-book"></i></span>
+              </a>
+              <a class="button settings-button">
+                <span class="icon is-small"><i class="fas fa-cog"></i></span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section class="hero is-fullheight-with-navbar">
+      <div id="main-container" class="container is-flex is-flex-direction-column mb-1">
+        <div class="columns mb-1">
+          <!-- INPUT -->
+          <div class="column is-full mt-1 pb-0">
+            <label for="input">Input: </label>
+            <textarea id="input" class="textarea has-fixed-size mono-font" rows="4" placeholder="<blue>Hello <red>World!" spellcheck="false"></textarea>
+          </div>
+        </div>
+
+        <div class="columns output-column is-flex-grow-1 is-flex-shrink-0">
+          <!-- OUTPUT -->
+          <div class="column is-full is-flex is-flex-direction-column">
+            <label for="output-pane">Output: </label>
+            <div id="output-pane" class="is-flex-grow-1 is-flex-shrink-0">
+              <div id="chat-entry-box">_</div>
+              <pre id="output-pre" class="mc-font"></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SETTINGS -->
+    <div id="settings-box" class="modal">
+      <div class="modal-background settings-button"></div>
+      <div class="modal-card">
+        <header class="modal-card-head">
+          <p class="modal-card-title">Settings</p>
+          <button class="delete settings-button"></button>
+        </header>
+        <section class="modal-card-body">
+          <div class="field is-horizontal">
+            <div class="field-label">
+              <label class="label" for="setting-background">Background</label>
+            </div>
+            <div class="field-body">
+              <div class="control">
+                <div class="select">
+                  <select id="setting-background">
+                    <option value="desert">Desert</option>
+                    <option value="grass" selected>Grass</option>
+                    <option value="stone">Stone</option>
+                    <option value="water">Water</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <footer class="modal-card-foot"></footer>
+      </div>
+    </div>
+  </body>
+</html>
