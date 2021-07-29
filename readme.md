@@ -15,6 +15,7 @@ This will create a server running at `https://localhost:8080`.
 
 For production usage, simply remove the development flag from the run task.
 Alternatively, the `distrubution` tasks can be used to create or install archives that contain scripts to run the server.
+A [Dockerfile](Dockerfile) has also been provided which can be used to create a Docker image.
 
 ### Contributing
 
