@@ -35,15 +35,14 @@ public fun Application.minimessage() {
         component(COMPONENT_CLASS_RENDER_HOOK)
         component(TEXT_COLOR_RENDER_HOOK)
         component(TEXT_DECORATION_RENDER_HOOK)
-        component(TEXT_RENDER_HOOK)
+        component(TEXT_RENDER_HOOK, 500) // content needs to be set last
     }
 
     routing {
         // define static path to resources
         static("") {
             resources("web")
-            resource(
-                "js/main.js", getConfigString("jsScriptFile"))
+            resource("js/main.js", getConfigString("jsScriptFile"))
             defaultResource("web/index.html")
         }
 

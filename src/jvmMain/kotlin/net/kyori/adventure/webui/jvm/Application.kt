@@ -15,4 +15,5 @@ public fun Application.main() {
 }
 
 /** Reads a string value from the `config` block in `application.conf`. */
-public fun Application.getConfigString(key: String): String = environment.config.property("ktor.config.$key").getString()
+public fun Application.getConfigString(key: String): String =
+    environment.config.property("ktor.config.$key").getString()

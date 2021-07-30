@@ -84,9 +84,12 @@ public val TEXT_DECORATION_RENDER_HOOK: ComponentRenderHook = { component ->
 }
 
 /** A render hook for text components. */
-public val TEXT_RENDER_HOOK: ComponentRenderHook = { component ->
+public val TEXT_RENDER_HOOK: ComponentRenderHook = result@{ component ->
     if (component is TextComponent) {
         text(component.content())
+
+        // you can't manipulate the dom after setting the content of a tag, thanks kotlinx.html
+        return@result false
     }
 
     true
