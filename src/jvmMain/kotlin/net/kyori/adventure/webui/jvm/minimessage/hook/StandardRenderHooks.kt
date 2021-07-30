@@ -46,9 +46,19 @@ public val COMPONENT_CLASS_RENDER_HOOK: ComponentRenderHook = { _ ->
     true
 }
 
-/** A render hook for text coloring. */
+/** A render hook for text coloring and shadow. */
 public val TEXT_COLOR_RENDER_HOOK: ComponentRenderHook = { component ->
-    component.color()?.let { color -> addStyle("color: ${color.asHexString()}") }
+    component.color()?.let { color ->
+        addStyle("color: ${color.asHexString()}")
+
+        val hsv = color.asHSV()
+        val h = (hsv.h() * 360.0f).toInt()
+        val s = (hsv.s() * 100.0f).toInt()
+        val l = ((hsv.v() * 100.0f) / 4f).toInt()
+
+        // text shadows use hsl with lightness divided by 4 and floored
+        addStyle("text-shadow: 3px 3px hsl($h, $s%, $l%)")
+    }
 
     true
 }
