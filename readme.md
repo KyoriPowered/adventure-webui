@@ -1,6 +1,6 @@
 # adventure-webui
 
-[![MIT License](https://img.shields.io/badge/license-MIT-blue)](license.txt)
+![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/KyoriPowered/adventure-webui/build/main) [![MIT License](https://img.shields.io/badge/license-MIT-blue)](license.txt)
 
 A web interface for [MiniMessage](https://github.com/KyoriPowered/adventure-text-minimessage).
 
