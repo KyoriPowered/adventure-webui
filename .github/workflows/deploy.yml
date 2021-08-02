@@ -22,7 +22,7 @@ jobs:
           distribution: "adopt"
           java-version: "11"
       - name: "build for deployment"
-        run: "./gradlew distrubution"
+        run: "./gradlew distTar"
       - name: "setup ssh"
         uses: webfactory/ssh-agent@v0.5.2
         with:
