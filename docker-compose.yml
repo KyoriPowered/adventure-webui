@@ -16,6 +16,8 @@ services:
       - "traefik.http.routers.adventure-webui.tls.certresolver=default"
       - "traefik.http.routers.adventure-webui.tls.domains[0].main=benndorf.dev"
       - "traefik.http.routers.adventure-webui.tls.domains[0].sans=*.benndorf.dev"
+      - "traefik.http.routers.adventure-webui.tls.domains[1].main=webui.adventure.kyori.net"
+      - "traefik.http.routers.adventure-webui.tls.domains[1].sans=*.adventure.kyori.net"
     networks:
       - web
 
