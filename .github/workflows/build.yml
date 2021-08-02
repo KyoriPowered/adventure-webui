@@ -7,10 +7,6 @@ on:
       - "!main"
   workflow_dispatch:
 
-concurrency:
-  group: ${{ github.ref }}-build
-  cancel-in-progress: true
-
 jobs:
   build:
     # Only run on PRs if the source branch is on someone else's repo
