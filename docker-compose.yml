@@ -1,7 +1,7 @@
 version: '3.7'
 
 services:
-  app:
+  webui:
     image: registry.gitlab.com/kyori/adventure-webui/webui:latest
     build:
       context: .
@@ -18,3 +18,8 @@ services:
       - "traefik.http.routers.adventure-webui.tls.domains[0].sans=*.benndorf.dev"
     networks:
       - web
+
+networks:
+  web:
+    name: traefik-overlay
+    external: true
