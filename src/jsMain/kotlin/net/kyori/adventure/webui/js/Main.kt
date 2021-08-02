@@ -122,7 +122,7 @@ public fun main() {
             }
 
             // CLIPBOARD
-            document.getElementById("share-button")!!.addEventListener(
+            document.getElementById("link-share-button")!!.addEventListener(
                 "click",
                 {
                     window.navigator.clipboard.writeText(
