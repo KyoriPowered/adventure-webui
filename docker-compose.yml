@@ -2,7 +2,7 @@ version: '3.7'
 
 services:
   webui:
-    image: ghcr.io/kyori/adventure-webui/webui:latest
+    image: ghcr.io/kyoripowered/adventure-webui/webui:latest
     build:
       context: .
       dockerfile: Dockerfile
