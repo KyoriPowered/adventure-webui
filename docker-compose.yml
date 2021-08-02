@@ -1,0 +1,20 @@
+version: '3.7'
+
+services:
+  app:
+    image: registry.gitlab.com/kyori/adventure-webui/webui:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.adventure-webui.loadbalancer.server.port=8080"
+      - "traefik.http.routers.adventure-webui.rule=Host(`webui.adventure.kyori.net`) || Host(`adventure-webui.benndorf.dev`)"
+      - "traefik.http.routers.adventure-webui.entrypoints=web-secure"
+      - "traefik.http.routers.adventure-webui.tls=true"
+      - "traefik.http.routers.adventure-webui.tls.options=default"
+      - "traefik.http.routers.adventure-webui.tls.certresolver=default"
+      - "traefik.http.routers.adventure-webui.tls.domains[0].main=benndorf.dev"
+      - "traefik.http.routers.adventure-webui.tls.domains[0].sans=*.benndorf.dev"
+    networks:
+      - web
