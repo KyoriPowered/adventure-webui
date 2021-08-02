@@ -4,9 +4,11 @@
 
 A web interface for [MiniMessage](https://github.com/KyoriPowered/adventure-text-minimessage).
 
+You can access it here: https://webui.adventure.kyori.net/
+
 ---
 
-### Usage
+### Development Usage
 
 This project uses a Kotlin Multiplatform stack with three areas; a Kotlin/JS front-end, a Kotlin/JVM server, and a pure Kotlin common source set.
 
