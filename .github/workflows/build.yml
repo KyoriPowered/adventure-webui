@@ -1,6 +1,11 @@
 name: "build"
 
-on: ["pull_request", "push", "workflow_dispatch"]
+on:
+  pull_request:
+  push:
+    branches:
+      - "!main"
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.ref }}-build
@@ -24,22 +29,3 @@ jobs:
           java-version: "11"
       - name: "build"
         run: "./gradlew build"
-      - name: "setup ssh"
-        uses: webfactory/ssh-agent@v0.5.2
-        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-        with:
-          ssh-private-key: ${{ secrets.DOCKER_HOST_SSH_KEY }}
-      - name: "login to ghcr"
-        uses: docker/login-action@v1
-        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: "deploy docker"
-        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-        run: |
-          echo ${{ secrets.DOCKER_HOST_SSH_SIG }} > ~/.ssh/known_hosts
-          docker-compose build
-          docker-compose push
-          DOCKER_HOST="${{ secrets.DOCKER_HOST }}" docker stack deploy --with-registry-auth --compose-file=docker-compose.yml adventure-webui
