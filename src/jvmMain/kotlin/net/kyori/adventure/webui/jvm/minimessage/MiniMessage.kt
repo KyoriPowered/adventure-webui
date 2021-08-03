@@ -1,16 +1,15 @@
 package net.kyori.adventure.webui.jvm.minimessage
 
 import io.ktor.application.Application
-import io.ktor.application.call
+import io.ktor.http.cio.websocket.Frame
+import io.ktor.http.cio.websocket.readText
 import io.ktor.http.content.defaultResource
 import io.ktor.http.content.resource
 import io.ktor.http.content.resources
 import io.ktor.http.content.static
-import io.ktor.request.receiveText
-import io.ktor.response.respondTextWriter
-import io.ktor.routing.post
 import io.ktor.routing.route
 import io.ktor.routing.routing
+import io.ktor.websocket.webSocket
 import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.webui.URL_API
 import net.kyori.adventure.webui.URL_MINI_TO_HTML
@@ -48,18 +47,24 @@ public fun Application.minimessage() {
 
         // set up other routing
         route(URL_API) {
-            post(URL_MINI_TO_HTML) {
-                call.respondTextWriter {
-                    call
-                        .receiveText()
-                        .split("\n")
-                        .map { line -> HookManager.render(line) }
-                        .map { line -> MiniMessage.get().deserialize(line) }
-                        .map { component -> HookManager.render(component) }
-                        .forEach { component ->
-                            appendComponent(component)
-                            append("\n")
-                        }
+            webSocket(URL_MINI_TO_HTML) {
+                for (frame in incoming) {
+                    if (frame is Frame.Text) {
+                        val result = StringBuilder()
+
+                        frame
+                            .readText()
+                            .split("\n")
+                            .map { line -> HookManager.render(line) }
+                            .map { line -> MiniMessage.get().deserialize(line) }
+                            .map { component -> HookManager.render(component) }
+                            .forEach { component ->
+                                result.appendComponent(component)
+                                result.append("\n")
+                            }
+
+                        outgoing.send(Frame.Text(result.toString()))
+                    }
                 }
             }
         }

@@ -41,6 +41,12 @@ kotlin {
     }
 
     sourceSets {
+        val jsMain by getting {
+            dependencies {
+                implementation(libs.ktor.client.websockets)
+            }
+        }
+
         val jvmMain by getting {
             dependencies {
                 implementation(libs.bundles.ktor.server)
