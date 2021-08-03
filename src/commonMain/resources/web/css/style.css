@@ -13,24 +13,28 @@
     src: url("../font/1_Minecraft-Regular.woff") format("woff");
     font-weight: normal;
     font-style: normal;
+    font-display: swap;
 }
 @font-face {
     font-family: "Minecraft";
     src: url("../font/2_Minecraft-Italic.woff") format("woff");
     font-weight: normal;
     font-style: italic;
+    font-display: swap;
 }
 @font-face {
     font-family: "Minecraft";
     src: url("../font/3_Minecraft-Bold.woff") format("woff");
     font-weight: bold;
     font-style: normal;
+    font-display: swap;
 }
 @font-face {
     font-family: "Minecraft";
     src: url("../font/4_Minecraft-BoldItalic.woff") format("woff");
     font-weight: bold;
     font-style: italic;
+    font-display: swap;
 }
 /* hover */
 .hover {
