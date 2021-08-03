@@ -169,7 +169,7 @@ public fun main() {
             settingBackground.addEventListener(
                 "change",
                 {
-                    outputPane.style.backgroundImage = "url(\"img/${settingBackground.value}.png\")"
+                    outputPane.style.backgroundImage = "url(\"img/${settingBackground.value}.jpg\")"
                 })
 
             // EVENTS
