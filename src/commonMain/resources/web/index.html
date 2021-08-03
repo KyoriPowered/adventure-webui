@@ -2,6 +2,8 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="A web interface for MiniMessage.">
     <title>MiniMessageViewer</title>
     <!--suppress HtmlUnknownTarget --> <script src="js/main.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css"
@@ -41,16 +43,18 @@
         <div class="navbar-end">
           <div class="navbar-item">
             <div class="buttons">
-              <button class="button" id="copy-button">
+              <button class="button" id="copy-button" aria-label="Copy">
                 <span class="icon is-small"><i class="fas fa-copy"></i></span>
               </button>
-              <button class="button" id="link-share-button">
+              <button class="button" id="link-share-button" aria-label="Share">
                 <span class="icon is-small"><i class="fas fa-share-alt"></i></span>
               </button>
-              <a class="button" target="_blank" href="https://docs.adventure.kyori.net/minimessage.html">
+              <a class="button" target="_blank" href="https://docs.adventure.kyori.net/minimessage.html"
+                 aria-label="Documentation" rel="noopener">
                 <span class="icon is-small"><i class="fas fa-book"></i></span>
               </a>
-              <a class="button" target="_blank" href="https://github.com/KyoriPowered/adventure-webui">
+              <a class="button" target="_blank" href="https://github.com/KyoriPowered/adventure-webui"
+                 aria-label="Source" rel="noopener">
                 <span class="icon is-small"><i class="fab fa-github"></i></span>
               </a>
               <a class="button settings-button">
