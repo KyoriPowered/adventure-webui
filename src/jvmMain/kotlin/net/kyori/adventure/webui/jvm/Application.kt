@@ -29,10 +29,10 @@ public fun Application.main() {
     install(CachingHeaders) {
         options { outgoingContent ->
             when (outgoingContent.contentType?.withoutParameters()) {
-                ContentType.Text.CSS, ContentType.Text.JavaScript ->
-                    CachingOptions(CacheControl.MaxAge(maxAgeSeconds = 3600))
-                ContentType.Image.Any, ContentType.Application.FontWoff ->
-                    CachingOptions(CacheControl.MaxAge(maxAgeSeconds = 86400))
+                ContentType.Image.JPEG, ContentType.parse("application/x-font-woff") ->
+                    CachingOptions(CacheControl.MaxAge(maxAgeSeconds = 31536000))
+                ContentType.Text.CSS, ContentType.Application.JavaScript ->
+                    CachingOptions(CacheControl.MaxAge(maxAgeSeconds = 31536000))
                 else -> null
             }
         }
