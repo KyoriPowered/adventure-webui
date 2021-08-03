@@ -9,18 +9,14 @@ import io.ktor.features.deflate
 import io.ktor.features.gzip
 import io.ktor.http.CacheControl
 import io.ktor.http.ContentType
+import io.ktor.http.cio.websocket.pingPeriod
+import io.ktor.http.cio.websocket.timeout
 import io.ktor.http.content.CachingOptions
 import io.ktor.routing.routing
+import io.ktor.websocket.WebSockets
+import java.time.Duration
 
 public fun Application.main() {
-    // routing
-    routing {
-        // enable trace routing if in dev mode
-        if (developmentMode) {
-            trace { route -> log.debug(route.buildText()) }
-        }
-    }
-
     install(Compression) {
         gzip()
         deflate()
@@ -35,6 +31,18 @@ public fun Application.main() {
                     CachingOptions(CacheControl.MaxAge(maxAgeSeconds = 31536000))
                 else -> null
             }
+        }
+    }
+
+    install(WebSockets) {
+        pingPeriod = Duration.ofSeconds(15)
+        timeout = Duration.ofSeconds(5)
+    }
+
+    routing {
+        // enable trace routing if in dev mode
+        if (developmentMode) {
+            trace { route -> log.debug(route.buildText()) }
         }
     }
 }

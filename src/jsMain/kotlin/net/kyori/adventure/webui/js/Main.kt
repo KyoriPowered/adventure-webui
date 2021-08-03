@@ -18,14 +18,12 @@ import org.w3c.dom.HTMLPreElement
 import org.w3c.dom.HTMLSelectElement
 import org.w3c.dom.HTMLSpanElement
 import org.w3c.dom.HTMLTextAreaElement
+import org.w3c.dom.WebSocket
 import org.w3c.dom.asList
 import org.w3c.dom.clipboard.ClipboardEvent
 import org.w3c.dom.events.EventTarget
 import org.w3c.dom.get
 import org.w3c.dom.url.URLSearchParams
-import org.w3c.fetch.NO_CACHE
-import org.w3c.fetch.RequestCache
-import org.w3c.fetch.RequestInit
 
 private val homeUrl: String by lazy { window.location.href.split('?')[0] }
 private lateinit var currentMode: Mode
@@ -33,45 +31,24 @@ private lateinit var currentMode: Mode
 private const val PARAM_INPUT: String = "input"
 private const val PARAM_MODE: String = "mode"
 
-private var needsUpdate: Boolean = false
+private lateinit var webSocket: WebSocket
 
 public fun main() {
     document.addEventListener(
         "DOMContentLoaded",
         {
+            // WEBSOCKET
+            webSocket =
+                if (window.location.hostname == "localhost" ||
+                    window.location.hostname == "127.0.0.1") {
+                    WebSocket("ws://${window.location.host}$URL_API$URL_MINI_TO_HTML")
+                } else {
+                    WebSocket("wss://${window.location.host}$URL_API$URL_MINI_TO_HTML")
+                }
+            webSocket.onopen = { onWebsocketReady() }
+
             // CORRECT HOME LINK
             document.getElementById("home-link")!!.unsafeCast<HTMLAnchorElement>().href = homeUrl
-
-            // SHARING
-            val inputBox = document.getElementById("input")!!.unsafeCast<HTMLTextAreaElement>()
-            val urlParams = URLSearchParams(window.location.search)
-            val outputPre = document.getElementById("output-pre")!!.unsafeCast<HTMLPreElement>()
-            val outputPane = document.getElementById("output-pane")!!.unsafeCast<HTMLDivElement>()
-
-            currentMode = Mode.fromString(urlParams.get(PARAM_MODE))
-            outputPre.classList.add(currentMode.className)
-            outputPane.classList.add(currentMode.className)
-
-            urlParams.get(PARAM_INPUT)?.also { inputString ->
-                val text = decodeURIComponent(inputString)
-                inputBox.value = text
-                needsUpdate = true
-                println("SHARED: $text")
-                parse()
-            }
-
-            // INPUT
-            val input = document.getElementById("input")!!.unsafeCast<HTMLTextAreaElement>()
-            input.addEventListener("keyup", { needsUpdate = true })
-            input.addEventListener("change", { needsUpdate = true })
-            input.addEventListener(
-                "paste",
-                { event ->
-                    event.preventDefault()
-                    val paste = event.unsafeCast<ClipboardEvent>().clipboardData!!.getData("text")
-                    document.execCommand("insertText", false, paste.replace("\\n", "\n"))
-                })
-            window.setInterval({ parse() }, 50)
 
             // OBFUSCATION
             window.setInterval({ obfuscateAll() }, 10)
@@ -86,6 +63,14 @@ public fun main() {
             document.getElementsByClassName("settings-button").asList().forEach { element ->
                 element.addEventListener("click", { settingsBox!!.classList.toggle("is-active") })
             }
+
+            // MODES
+            val outputPre = document.getElementById("output-pre")!!.unsafeCast<HTMLPreElement>()
+            val outputPane = document.getElementById("output-pane")!!.unsafeCast<HTMLDivElement>()
+            val urlParams = URLSearchParams(window.location.search)
+            currentMode = Mode.fromString(urlParams.get(PARAM_MODE))
+            outputPre.classList.add(currentMode.className)
+            outputPane.classList.add(currentMode.className)
 
             val modeButtons =
                 document.getElementsByClassName("mc-mode").asList().unsafeCast<List<HTMLElement>>()
@@ -122,6 +107,7 @@ public fun main() {
             }
 
             // CLIPBOARD
+            val input = document.getElementById("input")!!.unsafeCast<HTMLTextAreaElement>()
             document.getElementById("link-share-button")!!.addEventListener(
                 "click",
                 {
@@ -185,6 +171,48 @@ public fun main() {
                     }
                 })
         })
+}
+
+private fun onWebsocketReady() {
+    // SHARING
+    val inputBox = document.getElementById("input")!!.unsafeCast<HTMLTextAreaElement>()
+    val urlParams = URLSearchParams(window.location.search)
+
+    urlParams.get(PARAM_INPUT)?.also { inputString ->
+        val text = decodeURIComponent(inputString)
+        inputBox.value = text
+        println("SHARED: $text")
+        parse()
+    }
+
+    // INPUT
+    val input = document.getElementById("input")!!.unsafeCast<HTMLTextAreaElement>()
+    input.addEventListener("keyup", { parse() })
+    input.addEventListener("change", { parse() })
+    input.addEventListener(
+        "paste",
+        { event ->
+            event.preventDefault()
+            val paste = event.unsafeCast<ClipboardEvent>().clipboardData!!.getData("text")
+            document.execCommand("insertText", false, paste.replace("\\n", "\n"))
+        })
+    val output = document.getElementById("output-pre")!!
+    webSocket.onmessage =
+        { messageEvent ->
+            val data = messageEvent.data
+            if (data is String) {
+                output.textContent = ""
+
+                val div = document.createElement("div")
+                div.innerHTML = data
+                output.append(div)
+
+                // reset scroll to bottom (like how chat works)
+                if (currentMode == Mode.CHAT_OPEN || currentMode == Mode.CHAT_CLOSED) {
+                    output.scrollTop = output.scrollHeight.toDouble()
+                }
+            }
+        }
 }
 
 private fun checkEvents(target: EventTarget?, typesToCheck: Collection<EventType>) {
@@ -266,47 +294,13 @@ private fun obfuscate(input: String): String {
 }
 
 private fun parse() {
-    if (needsUpdate) {
-        val input = document.getElementById("input")!!.unsafeCast<HTMLTextAreaElement>()
-        val output = document.getElementById("output-pre")!!
-        val lines = input.value.split("\n", "\\n")
-        val combinedLines =
-            lines.joinToString(separator = "\n") { line ->
-                // we don't want to lose empty lines, so replace them with zero-width space
-                if (line == "") "\u200B" else line
-            }
+    val input = document.getElementById("input")!!.unsafeCast<HTMLTextAreaElement>()
+    val lines = input.value.split("\n", "\\n")
+    val combinedLines =
+        lines.joinToString(separator = "\n") { line ->
+            // we don't want to lose empty lines, so replace them with zero-width space
+            if (line == "") "\u200B" else line
+        }
 
-        window.fetch(
-                "$URL_API$URL_MINI_TO_HTML",
-                RequestInit(
-                    method = "POST",
-                    cache = RequestCache.NO_CACHE,
-                    headers = mapOf(Pair("Content-Type", "text/plain")),
-                    body = combinedLines))
-            .then { response ->
-                response.text().then { content ->
-                    output.textContent = ""
-
-                    content.split("\n").forEachIndexed { index, line ->
-                        // skip blank lines
-                        if (line.isNotBlank()) {
-                            val div = document.createElement("div")
-
-                            if (lines[index] == "") div.classList.add("no-padding")
-
-                            div.innerHTML = line
-                            println("")
-                            output.append(div)
-                        }
-                    }
-
-                    // reset scroll to bottom (like how chat works)
-                    if (currentMode == Mode.CHAT_OPEN || currentMode == Mode.CHAT_CLOSED) {
-                        output.scrollTop = output.scrollHeight.toDouble()
-                    }
-
-                    needsUpdate = false
-                }
-            }
-    }
+    webSocket.send(combinedLines)
 }
