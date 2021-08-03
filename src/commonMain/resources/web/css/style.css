@@ -56,7 +56,7 @@
 }
 /* output pane */
 #output-pane {
-    background-image: url("../img/grass.png");
+    background-image: url("../img/grass.jpg");
     background-size: cover;
 }
 #output-pane.mode-chat-open, #output-pane.mode-chat-closed {
