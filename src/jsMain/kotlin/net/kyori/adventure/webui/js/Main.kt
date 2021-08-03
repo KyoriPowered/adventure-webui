@@ -269,7 +269,7 @@ private fun parse() {
     if (needsUpdate) {
         val input = document.getElementById("input")!!.unsafeCast<HTMLTextAreaElement>()
         val output = document.getElementById("output-pre")!!
-        val lines = input.value.split("\n")
+        val lines = input.value.split("\n", "\\n")
         val combinedLines =
             lines.joinToString(separator = "\n") { line ->
                 // we don't want to lose empty lines, so replace them with zero-width space
