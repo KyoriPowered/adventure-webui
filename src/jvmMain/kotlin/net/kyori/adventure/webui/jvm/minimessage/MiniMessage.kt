@@ -41,8 +41,11 @@ public fun Application.minimessage() {
         // define static path to resources
         static("") {
             resources("web")
-            resource("js/main.js", getConfigString("jsScriptFile"))
             defaultResource("web/index.html")
+
+            val script = getConfigString("jsScriptFile")
+            resource("js/main.js", script)
+            resource("js/$script.map", "$script.map")
         }
 
         // set up other routing
