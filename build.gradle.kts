@@ -42,6 +42,10 @@ kotlin {
 
     sourceSets {
         val jvmMain by getting {
+            languageSettings {
+                useExperimentalAnnotation("kotlin.RequiresOptIn")
+            }
+
             dependencies {
                 implementation(libs.bundles.ktor.server)
 

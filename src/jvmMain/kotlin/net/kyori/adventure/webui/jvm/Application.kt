@@ -9,6 +9,8 @@ import io.ktor.features.deflate
 import io.ktor.features.gzip
 import io.ktor.http.CacheControl
 import io.ktor.http.ContentType
+import io.ktor.http.cio.websocket.ExperimentalWebSocketExtensionApi
+import io.ktor.http.cio.websocket.WebSocketDeflateExtension
 import io.ktor.http.cio.websocket.pingPeriod
 import io.ktor.http.cio.websocket.timeout
 import io.ktor.http.content.CachingOptions
@@ -16,6 +18,7 @@ import io.ktor.routing.routing
 import io.ktor.websocket.WebSockets
 import java.time.Duration
 
+@OptIn(ExperimentalWebSocketExtensionApi::class)
 public fun Application.main() {
     install(Compression) {
         gzip()
@@ -37,6 +40,8 @@ public fun Application.main() {
     install(WebSockets) {
         pingPeriod = Duration.ofSeconds(15)
         timeout = Duration.ofSeconds(5)
+
+        extensions { install(WebSocketDeflateExtension) }
     }
 
     routing {
