@@ -10,7 +10,9 @@ import io.ktor.http.content.static
 import io.ktor.routing.route
 import io.ktor.routing.routing
 import io.ktor.websocket.webSocket
+import kotlinx.serialization.encodeToString
 import net.kyori.adventure.text.minimessage.MiniMessage
+import net.kyori.adventure.webui.Serializers
 import net.kyori.adventure.webui.URL_API
 import net.kyori.adventure.webui.URL_MINI_TO_HTML
 import net.kyori.adventure.webui.jvm.appendComponent
@@ -23,6 +25,10 @@ import net.kyori.adventure.webui.jvm.minimessage.hook.INSERTION_RENDER_HOOK
 import net.kyori.adventure.webui.jvm.minimessage.hook.TEXT_COLOR_RENDER_HOOK
 import net.kyori.adventure.webui.jvm.minimessage.hook.TEXT_DECORATION_RENDER_HOOK
 import net.kyori.adventure.webui.jvm.minimessage.hook.TEXT_RENDER_HOOK
+import net.kyori.adventure.webui.tryDecodeFromString
+import net.kyori.adventure.webui.websocket.Call
+import net.kyori.adventure.webui.websocket.ParseResult
+import net.kyori.adventure.webui.websocket.Response
 
 /** Entry-point for MiniMessage Viewer. */
 public fun Application.minimessage() {
@@ -53,20 +59,33 @@ public fun Application.minimessage() {
             webSocket(URL_MINI_TO_HTML) {
                 for (frame in incoming) {
                     if (frame is Frame.Text) {
-                        val result = StringBuilder()
+                        val call = Serializers.json.tryDecodeFromString<Call>(frame.readText())
 
-                        frame
-                            .readText()
-                            .split("\n")
-                            .map { line -> HookManager.render(line) }
-                            .map { line -> MiniMessage.get().deserialize(line) }
-                            .map { component -> HookManager.render(component) }
-                            .forEach { component ->
-                                result.appendComponent(component)
-                                result.append("\n")
-                            }
+                        if (call?.miniMessage != null) {
+                            val response =
+                                try {
+                                    val result = StringBuilder()
 
-                        outgoing.send(Frame.Text(result.toString()))
+                                    call
+                                        .miniMessage
+                                        .split("\n")
+                                        .map { line -> HookManager.render(line) }
+                                        .map { line -> MiniMessage.get().deserialize(line) }
+                                        .map { component -> HookManager.render(component) }
+                                        .forEach { component ->
+                                            result.appendComponent(component)
+                                            result.append("\n")
+                                        }
+
+                                    Response(ParseResult(true, result.toString()))
+                                } catch (e: Exception) {
+                                    Response(
+                                        ParseResult(
+                                            false, errorMessage = e.message ?: "Unknown error!"))
+                                }
+
+                            outgoing.send(Frame.Text(Serializers.json.encodeToString(response)))
+                        }
                     }
                 }
             }
