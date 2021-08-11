@@ -48,12 +48,6 @@ kotlin {
             }
         }
 
-        val jsMain by getting {
-            dependencies {
-                implementation(libs.ktor.client.websockets)
-            }
-        }
-
         val jvmMain by getting {
             languageSettings {
                 useExperimentalAnnotation("kotlin.RequiresOptIn")
