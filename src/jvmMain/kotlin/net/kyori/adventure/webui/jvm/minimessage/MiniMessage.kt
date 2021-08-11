@@ -10,7 +10,6 @@ import io.ktor.http.content.static
 import io.ktor.routing.route
 import io.ktor.routing.routing
 import io.ktor.websocket.webSocket
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.webui.Serializers
@@ -26,6 +25,7 @@ import net.kyori.adventure.webui.jvm.minimessage.hook.INSERTION_RENDER_HOOK
 import net.kyori.adventure.webui.jvm.minimessage.hook.TEXT_COLOR_RENDER_HOOK
 import net.kyori.adventure.webui.jvm.minimessage.hook.TEXT_DECORATION_RENDER_HOOK
 import net.kyori.adventure.webui.jvm.minimessage.hook.TEXT_RENDER_HOOK
+import net.kyori.adventure.webui.tryDecodeFromString
 import net.kyori.adventure.webui.websocket.Call
 import net.kyori.adventure.webui.websocket.ParseResult
 import net.kyori.adventure.webui.websocket.Response
@@ -59,9 +59,9 @@ public fun Application.minimessage() {
             webSocket(URL_MINI_TO_HTML) {
                 for (frame in incoming) {
                     if (frame is Frame.Text) {
-                        val call = Serializers.json.decodeFromString<Call>(frame.readText())
+                        val call = Serializers.json.tryDecodeFromString<Call>(frame.readText())
 
-                        if (call.miniMessage != null) {
+                        if (call?.miniMessage != null) {
                             val response =
                                 try {
                                     val result = StringBuilder()
