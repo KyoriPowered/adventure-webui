@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
 plugins {
     application
     kotlin("multiplatform") version "1.5.21"
+    kotlin("plugin.serialization") version "1.5.21"
     id("com.diffplug.spotless") version "5.14.2"
 }
 
@@ -41,6 +42,18 @@ kotlin {
     }
 
     sourceSets {
+        val commonMain by getting {
+            dependencies {
+                implementation(libs.kotlinx.serialization.json)
+            }
+        }
+
+        val jsMain by getting {
+            dependencies {
+                implementation(libs.ktor.client.websockets)
+            }
+        }
+
         val jvmMain by getting {
             languageSettings {
                 useExperimentalAnnotation("kotlin.RequiresOptIn")

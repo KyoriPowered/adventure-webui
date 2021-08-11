@@ -4,12 +4,17 @@ import kotlin.js.json
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.dom.hasClass
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
 import net.kyori.adventure.webui.COMPONENT_CLASS
 import net.kyori.adventure.webui.DATA_CLICK_EVENT_ACTION
 import net.kyori.adventure.webui.DATA_CLICK_EVENT_VALUE
 import net.kyori.adventure.webui.DATA_INSERTION
+import net.kyori.adventure.webui.Serializers
 import net.kyori.adventure.webui.URL_API
 import net.kyori.adventure.webui.URL_MINI_TO_HTML
+import net.kyori.adventure.webui.websocket.Call
+import net.kyori.adventure.webui.websocket.Response
 import org.w3c.dom.Element
 import org.w3c.dom.HTMLAnchorElement
 import org.w3c.dom.HTMLDivElement
@@ -201,15 +206,23 @@ private fun onWebsocketReady() {
         { messageEvent ->
             val data = messageEvent.data
             if (data is String) {
-                output.textContent = ""
+                val response = Serializers.json.decodeFromString<Response>(data)
 
-                val div = document.createElement("div")
-                div.innerHTML = data
-                output.append(div)
+                response.parseResult?.let { result ->
+                    if (result.success && result.dom != null) {
+                        output.textContent = ""
 
-                // reset scroll to bottom (like how chat works)
-                if (currentMode == Mode.CHAT_OPEN || currentMode == Mode.CHAT_CLOSED) {
-                    output.scrollTop = output.scrollHeight.toDouble()
+                        val div = document.createElement("div")
+                        div.innerHTML = result.dom
+                        output.append(div)
+
+                        // reset scroll to bottom (like how chat works)
+                        if (currentMode == Mode.CHAT_OPEN || currentMode == Mode.CHAT_CLOSED) {
+                            output.scrollTop = output.scrollHeight.toDouble()
+                        }
+                    } else if (!result.success && result.errorMessage != null) {
+                        console.error("A parse error occurred: ${result.errorMessage}")
+                    }
                 }
             }
         }
@@ -302,5 +315,5 @@ private fun parse() {
             if (line == "") "\u200B" else line
         }
 
-    webSocket.send(combinedLines)
+    webSocket.send(Serializers.json.encodeToString(Call(combinedLines)))
 }
