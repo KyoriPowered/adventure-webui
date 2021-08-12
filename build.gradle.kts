@@ -1,8 +1,10 @@
+import net.kyori.indra.git.IndraGitExtension
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
 
 plugins {
     application
     id("com.diffplug.spotless")
+    id("net.kyori.indra.git")
     id("org.jetbrains.kotlin.multiplatform")
     id("org.jetbrains.kotlin.plugin.serialization")
 }
@@ -90,6 +92,7 @@ tasks.getByName<Jar>("jvmJar") {
 
     dependsOn(tasks.getByName("check"), webpackTask)
     from(File(webpackTask.destinationDirectory, webpackTask.outputFileName))
+    rootProject.extensions.findByType<IndraGitExtension>()!!.applyVcsInformationToManifest(manifest)
 }
 
 tasks.getByName<JavaExec>("run") {
