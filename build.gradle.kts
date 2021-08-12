@@ -2,9 +2,9 @@ import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
 
 plugins {
     application
-    kotlin("multiplatform") version "1.5.21"
-    kotlin("plugin.serialization") version "1.5.21"
-    id("com.diffplug.spotless") version "5.14.2"
+    id("com.diffplug.spotless")
+    id("org.jetbrains.kotlin.multiplatform")
+    id("org.jetbrains.kotlin.plugin.serialization")
 }
 
 spotless {
