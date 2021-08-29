@@ -108,6 +108,9 @@ public fun main() {
                                 outputPane.classList.remove(mode.className)
                             }
                         }
+
+                        // re-parse to remove the horrible server list header line hack
+                        parse()
                     })
             }
 
@@ -308,29 +311,32 @@ private fun obfuscate(input: String): String {
 
 @OptIn(ExperimentalStdlibApi::class)
 private fun parse() {
-    val input = document.getElementById("input")!!.unsafeCast<HTMLTextAreaElement>()
-    val lines =
-        input.value.split("\n", "\\n").let { list ->
-            // some modes can only render a certain amount of lines
-            when (currentMode) {
-                Mode.CHAT_CLOSED -> list.safeSubList(0, 10)
-                Mode.SERVER_LIST ->
-                    buildList(3) {
-                        add(
-                            "My Server                                                <gray>0<dark_gray>/</dark_gray>20")
-                        addAll(list.safeSubList(0, 2))
-                    }
-                else -> list
+    // don't do anything if we're not initialised yet
+    if (::webSocket.isInitialized) {
+        val input = document.getElementById("input")!!.unsafeCast<HTMLTextAreaElement>()
+        val lines =
+            input.value.split("\n", "\\n").let { list ->
+                // some modes can only render a certain amount of lines
+                when (currentMode) {
+                    Mode.CHAT_CLOSED -> list.safeSubList(0, 10)
+                    Mode.SERVER_LIST ->
+                        buildList(3) {
+                            add(
+                                "KyoriCraft                                                 <gray>0<dark_gray>/</dark_gray>20")
+                            addAll(list.safeSubList(0, 2))
+                        }
+                    else -> list
+                }
             }
-        }
 
-    val combinedLines =
-        lines.joinToString(separator = "\n") { line ->
-            // we don't want to lose empty lines, so replace them with zero-width space
-            if (line == "") "\u200B" else line
-        }
+        val combinedLines =
+            lines.joinToString(separator = "\n") { line ->
+                // we don't want to lose empty lines, so replace them with zero-width space
+                if (line == "") "\u200B" else line
+            }
 
-    webSocket.send(Serializers.json.encodeToString(Call(combinedLines)))
+        webSocket.send(Serializers.json.encodeToString(Call(combinedLines)))
+    }
 }
 
 private inline fun <reified T> List<T>.safeSubList(startIndex: Int, endIndex: Int): List<T> =

@@ -63,6 +63,9 @@
     background-image: url("../img/grass.jpg");
     background-size: cover;
 }
+#output-pane #server-list-icon {
+    display: none;
+}
 #output-pane.mode-chat-open, #output-pane.mode-chat-closed {
     background-position: bottom left;
     display: flex;
@@ -106,6 +109,9 @@
     display: flex;
     align-content: center;
     justify-content: center;
+}
+#output-pane.mode-server-list #server-list-icon {
+    display: block;
 }
 /* output pre */
 #output-pre {
@@ -179,6 +185,7 @@
     align-items: center;
     line-height: 25px;
     background: none;
+    padding-left: 10px;
 }
 #output-pre.mode-server-list span {
     font-size: 20px;
@@ -208,4 +215,7 @@ html {
     display: flex;
     align-items: center;
     flex-direction: column;
+}
+#server-list-image {
+    width: 65px;
 }
