@@ -44,6 +44,12 @@ kotlin {
     }
 
     sourceSets {
+        all {
+            languageSettings {
+                useExperimentalAnnotation("kotlin.RequiresOptIn")
+            }
+        }
+
         val commonMain by getting {
             dependencies {
                 implementation(libs.kotlinx.serialization.json)
@@ -51,10 +57,6 @@ kotlin {
         }
 
         val jvmMain by getting {
-            languageSettings {
-                useExperimentalAnnotation("kotlin.RequiresOptIn")
-            }
-
             dependencies {
                 implementation(libs.bundles.ktor.server)
 

@@ -306,9 +306,24 @@ private fun obfuscate(input: String): String {
     return input.toCharArray().map { if (it != ' ') allowedChars.random() else it }.concatToString()
 }
 
+@OptIn(ExperimentalStdlibApi::class)
 private fun parse() {
     val input = document.getElementById("input")!!.unsafeCast<HTMLTextAreaElement>()
-    val lines = input.value.split("\n", "\\n")
+    val lines =
+        input.value.split("\n", "\\n").let { list ->
+            // some modes can only render a certain amount of lines
+            when (currentMode) {
+                Mode.CHAT_CLOSED -> list.safeSubList(0, 10)
+                Mode.SERVER_LIST ->
+                    buildList(3) {
+                        add(
+                            "My Server                                                <gray>0<dark_gray>/</dark_gray>20")
+                        addAll(list.safeSubList(0, 2))
+                    }
+                else -> list
+            }
+        }
+
     val combinedLines =
         lines.joinToString(separator = "\n") { line ->
             // we don't want to lose empty lines, so replace them with zero-width space
@@ -317,3 +332,6 @@ private fun parse() {
 
     webSocket.send(Serializers.json.encodeToString(Call(combinedLines)))
 }
+
+private inline fun <reified T> List<T>.safeSubList(startIndex: Int, endIndex: Int): List<T> =
+    if (endIndex > size) this else this.subList(startIndex, endIndex)

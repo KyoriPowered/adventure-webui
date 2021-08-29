@@ -6,6 +6,7 @@ public enum class Mode {
     CHAT_CLOSED,
     LORE,
     HOLOGRAM,
+    SERVER_LIST,
     ;
 
     /** The mode as a HTML class. */

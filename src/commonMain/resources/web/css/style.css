@@ -99,6 +99,14 @@
     justify-content: center;
     align-content: center;
 }
+#output-pane.mode-server-list {
+    background-image: url("../img/server_list_background.jpg");
+    background-size: auto;
+    align-items: center;
+    display: flex;
+    align-content: center;
+    justify-content: center;
+}
 /* output pre */
 #output-pre {
     margin-bottom: 4px;
@@ -164,6 +172,17 @@
 }
 #output-pre.mode-lore > div:first-child:not(:only-child) {
     padding-bottom: 7px;
+}
+#output-pre.mode-server-list {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 25px;
+    background: none;
+}
+#output-pre.mode-server-list span {
+    font-size: 20px;
+    line-height: 20px;
 }
 /* other shit */
 .is-horizontal {
