@@ -1,20 +1,26 @@
 package net.kyori.adventure.webui.jvm.minimessage
 
 import io.ktor.application.Application
+import io.ktor.application.call
 import io.ktor.http.cio.websocket.Frame
 import io.ktor.http.cio.websocket.readText
 import io.ktor.http.content.defaultResource
 import io.ktor.http.content.resource
 import io.ktor.http.content.resources
 import io.ktor.http.content.static
+import io.ktor.request.receiveText
+import io.ktor.response.respondText
+import io.ktor.routing.post
 import io.ktor.routing.route
 import io.ktor.routing.routing
 import io.ktor.websocket.webSocket
 import kotlinx.serialization.encodeToString
 import net.kyori.adventure.text.minimessage.MiniMessage
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 import net.kyori.adventure.webui.Serializers
 import net.kyori.adventure.webui.URL_API
 import net.kyori.adventure.webui.URL_MINI_TO_HTML
+import net.kyori.adventure.webui.URL_MINI_TO_JSON
 import net.kyori.adventure.webui.jvm.appendComponent
 import net.kyori.adventure.webui.jvm.getConfigString
 import net.kyori.adventure.webui.jvm.minimessage.hook.CLICK_EVENT_RENDER_HOOK
@@ -88,6 +94,14 @@ public fun Application.minimessage() {
                         }
                     }
                 }
+            }
+
+            post(URL_MINI_TO_JSON) {
+                val input =
+                    Serializers.json.tryDecodeFromString<Call>(call.receiveText())?.miniMessage
+                        ?: return@post
+                call.respondText(
+                    GsonComponentSerializer.gson().serialize(MiniMessage.get().deserialize(input)))
             }
         }
     }

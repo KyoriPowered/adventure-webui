@@ -61,6 +61,7 @@ kotlin {
                 implementation(libs.bundles.ktor.server)
 
                 implementation(libs.adventure.minimessage)
+                implementation(libs.adventure.text.serializer.gson)
                 implementation(libs.kotlinx.html)
                 implementation(libs.logback.classic)
             }

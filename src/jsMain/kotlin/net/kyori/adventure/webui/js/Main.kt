@@ -12,6 +12,7 @@ import net.kyori.adventure.webui.DATA_INSERTION
 import net.kyori.adventure.webui.Serializers
 import net.kyori.adventure.webui.URL_API
 import net.kyori.adventure.webui.URL_MINI_TO_HTML
+import net.kyori.adventure.webui.URL_MINI_TO_JSON
 import net.kyori.adventure.webui.tryDecodeFromString
 import net.kyori.adventure.webui.websocket.Call
 import net.kyori.adventure.webui.websocket.Response
@@ -29,6 +30,9 @@ import org.w3c.dom.clipboard.ClipboardEvent
 import org.w3c.dom.events.EventTarget
 import org.w3c.dom.get
 import org.w3c.dom.url.URLSearchParams
+import org.w3c.fetch.NO_CACHE
+import org.w3c.fetch.RequestCache
+import org.w3c.fetch.RequestInit
 
 private val homeUrl: String by lazy { window.location.href.split('?')[0] }
 private lateinit var currentMode: Mode
@@ -145,6 +149,34 @@ public fun main() {
                                 "pauseOnHover" to true,
                                 "animate" to json("in" to "fadeIn", "out" to "fadeOut")))
                     }
+                })
+            document.getElementById("export-to-json-button")!!.addEventListener(
+                "click",
+                {
+                    window.fetch(
+                            "$URL_API$URL_MINI_TO_JSON",
+                            RequestInit(
+                                method = "POST",
+                                cache = RequestCache.NO_CACHE,
+                                headers = mapOf(Pair("Content-Type", "text/plain")),
+                                body =
+                                    Serializers.json.encodeToString(
+                                        Call(miniMessage = input.value))))
+                        .then { response ->
+                            response.text().then { text ->
+                                window.navigator.clipboard.writeText(text).then {
+                                    bulmaToast.toast(
+                                        json(
+                                            "message" to "JSON copied to clipboard!",
+                                            "type" to "is-success",
+                                            "position" to "bottom-right",
+                                            "dismissible" to true,
+                                            "pauseOnHover" to true,
+                                            "animate" to
+                                                json("in" to "fadeIn", "out" to "fadeOut")))
+                                }
+                            }
+                        }
                 })
 
             // BURGER MENU
