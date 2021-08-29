@@ -31,7 +31,7 @@ public fun Application.main() {
                 ContentType.Image.JPEG, ContentType.parse("application/x-font-woff") ->
                     CachingOptions(CacheControl.MaxAge(maxAgeSeconds = 31536000))
                 ContentType.Text.CSS, ContentType.Application.JavaScript ->
-                    CachingOptions(CacheControl.MaxAge(maxAgeSeconds = 31536000))
+                    CachingOptions(CacheControl.MaxAge(maxAgeSeconds = 86400))
                 else -> null
             }
         }
