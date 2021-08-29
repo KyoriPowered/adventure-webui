@@ -355,7 +355,8 @@ private fun parse() {
                         buildList(3) {
                             add(
                                 "KyoriCraft                                                 <gray>0<dark_gray>/</dark_gray>20")
-                            addAll(list.safeSubList(0, 2))
+                            add(list.getOrNull(0) ?: "\u200B")
+                            add(list.getOrNull(1) ?: "\u200B")
                         }
                     else -> list
                 }
