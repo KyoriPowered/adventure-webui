@@ -93,6 +93,15 @@ public val TEXT_DECORATION_RENDER_HOOK: ComponentRenderHook = { component ->
     true
 }
 
+/** A render hook for fonts. */
+public val FONT_RENDER_HOOK: ComponentRenderHook = { component ->
+    component.style().font()?.value()?.let { font ->
+        addStyle("font-family: $font, \"Minecraft\", monospace")
+    }
+
+    true
+}
+
 /** A render hook for text components. */
 public val TEXT_RENDER_HOOK: ComponentRenderHook =
     result@{ component ->

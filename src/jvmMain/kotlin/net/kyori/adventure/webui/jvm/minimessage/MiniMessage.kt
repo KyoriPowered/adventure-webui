@@ -25,6 +25,7 @@ import net.kyori.adventure.webui.jvm.appendComponent
 import net.kyori.adventure.webui.jvm.getConfigString
 import net.kyori.adventure.webui.jvm.minimessage.hook.CLICK_EVENT_RENDER_HOOK
 import net.kyori.adventure.webui.jvm.minimessage.hook.COMPONENT_CLASS_RENDER_HOOK
+import net.kyori.adventure.webui.jvm.minimessage.hook.FONT_RENDER_HOOK
 import net.kyori.adventure.webui.jvm.minimessage.hook.HOVER_EVENT_RENDER_HOOK
 import net.kyori.adventure.webui.jvm.minimessage.hook.HookManager
 import net.kyori.adventure.webui.jvm.minimessage.hook.INSERTION_RENDER_HOOK
@@ -46,6 +47,7 @@ public fun Application.minimessage() {
         component(COMPONENT_CLASS_RENDER_HOOK)
         component(TEXT_COLOR_RENDER_HOOK)
         component(TEXT_DECORATION_RENDER_HOOK)
+        component(FONT_RENDER_HOOK)
         component(TEXT_RENDER_HOOK, 500) // content needs to be set last
     }
 
