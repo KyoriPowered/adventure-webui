@@ -26,3 +26,15 @@ public const val URL_MINI_TO_HTML: String = "/mini-to-html"
 
 /** Path for conversion between MiniMessage and JSON. */
 public const val URL_MINI_TO_JSON: String = "/mini-to-json"
+
+/** Path for editor-related API routes. */
+public const val URL_EDITOR: String = "/editor"
+
+/** Path for editor-related input routes. */
+public const val URL_EDITOR_INPUT: String = "/input"
+
+/** Path for editor-related output routes. */
+public const val URL_EDITOR_OUTPUT: String = "/output"
+
+/** Parameter for obtaining editor data. */
+public const val PARAM_EDITOR_TOKEN: String = "token"

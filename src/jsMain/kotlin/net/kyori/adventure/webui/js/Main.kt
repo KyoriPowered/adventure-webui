@@ -1,51 +1,122 @@
 package net.kyori.adventure.webui.js
 
 import kotlin.js.json
+import kotlin.properties.Delegates
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.dom.hasClass
 import kotlinx.serialization.encodeToString
-import net.kyori.adventure.webui.COMPONENT_CLASS
-import net.kyori.adventure.webui.DATA_CLICK_EVENT_ACTION
-import net.kyori.adventure.webui.DATA_CLICK_EVENT_VALUE
-import net.kyori.adventure.webui.DATA_INSERTION
-import net.kyori.adventure.webui.Serializers
-import net.kyori.adventure.webui.URL_API
-import net.kyori.adventure.webui.URL_MINI_TO_HTML
-import net.kyori.adventure.webui.URL_MINI_TO_JSON
-import net.kyori.adventure.webui.tryDecodeFromString
+import net.kyori.adventure.webui.*
+import net.kyori.adventure.webui.editor.EditorInput
 import net.kyori.adventure.webui.websocket.Call
 import net.kyori.adventure.webui.websocket.Response
-import org.w3c.dom.Element
-import org.w3c.dom.HTMLAnchorElement
-import org.w3c.dom.HTMLDivElement
-import org.w3c.dom.HTMLElement
-import org.w3c.dom.HTMLPreElement
-import org.w3c.dom.HTMLSelectElement
-import org.w3c.dom.HTMLSpanElement
-import org.w3c.dom.HTMLTextAreaElement
-import org.w3c.dom.WebSocket
-import org.w3c.dom.asList
+import org.w3c.dom.*
 import org.w3c.dom.clipboard.ClipboardEvent
 import org.w3c.dom.events.EventTarget
-import org.w3c.dom.get
 import org.w3c.dom.url.URLSearchParams
 import org.w3c.fetch.NO_CACHE
 import org.w3c.fetch.RequestCache
 import org.w3c.fetch.RequestInit
 
 private val homeUrl: String by lazy { window.location.href.split('?')[0] }
-private lateinit var currentMode: Mode
+private val urlParams: URLSearchParams by lazy { URLSearchParams(window.location.search) }
 
 private const val PARAM_INPUT: String = "input"
 private const val PARAM_MODE: String = "mode"
 
+private var isInEditorMode by Delegates.notNull<Boolean>()
+private lateinit var editorInput: EditorInput
+
+private lateinit var currentMode: Mode
 private lateinit var webSocket: WebSocket
 
 public fun main() {
     document.addEventListener(
         "DOMContentLoaded",
         {
+            // EDITOR
+            val input = document.getElementById("input")!!.unsafeCast<HTMLTextAreaElement>()
+            val saveButton = document.getElementById("editor-save")!!
+            urlParams.get(PARAM_EDITOR_TOKEN)?.let { token ->
+                isInEditorMode = true
+
+                window.fetch(
+                        "$URL_API$URL_EDITOR$URL_EDITOR_INPUT?$PARAM_EDITOR_TOKEN=$token",
+                        RequestInit("GET"))
+                    .then { response ->
+                        if (!response.ok) {
+                            isInEditorMode = false
+                            bulmaToast.toast(
+                                json(
+                                    "message" to "Could not load editor session!",
+                                    "type" to "is-error",
+                                    "position" to "bottom-right",
+                                    "dismissible" to true,
+                                    "pauseOnHover" to true,
+                                    "animate" to json("in" to "fadeIn", "out" to "fadeOut")))
+                        } else {
+                            response.text().then { text ->
+                                val possibleEditorInput =
+                                    Serializers.json.tryDecodeFromString<EditorInput>(text)
+                                if (possibleEditorInput == null) {
+                                    isInEditorMode = false
+                                    bulmaToast.toast(
+                                        json(
+                                            "message" to "Could not load editor session!",
+                                            "type" to "is-error",
+                                            "position" to "bottom-right",
+                                            "dismissible" to true,
+                                            "pauseOnHover" to true,
+                                            "animate" to
+                                                json("in" to "fadeIn", "out" to "fadeOut")))
+                                } else {
+                                    isInEditorMode = true
+                                    editorInput = possibleEditorInput
+                                    input.value = editorInput.input
+                                    bulmaToast.toast(
+                                        json(
+                                            "message" to
+                                                "Loaded editor session! Press the save icon to generate a command to save the message to ${editorInput.application}.",
+                                            "type" to "is-success",
+                                            "position" to "bottom-right",
+                                            "dismissible" to true,
+                                            "pauseOnHover" to true,
+                                            "animate" to
+                                                json("in" to "fadeIn", "out" to "fadeOut")))
+                                    saveButton.classList.remove("is-hidden")
+                                }
+                            }
+                        }
+                    }
+            }
+            saveButton.addEventListener(
+                "click",
+                {
+                    if (isInEditorMode && ::editorInput.isInitialized) {
+                        window.fetch(
+                                "$URL_API$URL_EDITOR$URL_EDITOR_OUTPUT",
+                                RequestInit("POST", body = input.value.replace("\n", "\\n")))
+                            .then { response ->
+                                response.text().then { token ->
+                                    window.navigator.clipboard.writeText(
+                                            editorInput.command.replace("{token}", token))
+                                        .then {
+                                            bulmaToast.toast(
+                                                json(
+                                                    "message" to
+                                                        "The command to run in-game has been copied to your clipboard!",
+                                                    "type" to "is-success",
+                                                    "position" to "bottom-right",
+                                                    "dismissible" to true,
+                                                    "pauseOnHover" to true,
+                                                    "animate" to
+                                                        json("in" to "fadeIn", "out" to "fadeOut")))
+                                        }
+                                }
+                            }
+                    }
+                })
+
             // WEBSOCKET
             webSocket =
                 if (window.location.hostname == "localhost" ||
@@ -119,7 +190,6 @@ public fun main() {
             }
 
             // CLIPBOARD
-            val input = document.getElementById("input")!!.unsafeCast<HTMLTextAreaElement>()
             document.getElementById("link-share-button")!!.addEventListener(
                 "click",
                 {
@@ -179,6 +249,8 @@ public fun main() {
                         }
                 })
 
+            // EDITOR
+
             // BURGER MENU
             val burgerMenu = document.getElementById("burger-menu")!!
             val navbarMenu = document.getElementById("navbar-menu")!!
@@ -216,14 +288,16 @@ public fun main() {
 private fun onWebsocketReady() {
     // SHARING
     val inputBox = document.getElementById("input")!!.unsafeCast<HTMLTextAreaElement>()
-    val urlParams = URLSearchParams(window.location.search)
 
-    urlParams.get(PARAM_INPUT)?.also { inputString ->
-        val text = decodeURIComponent(inputString)
-        inputBox.value = text
-        println("SHARED: $text")
-        parse()
+    if (!isInEditorMode) {
+        urlParams.get(PARAM_INPUT)?.also { inputString ->
+            val text = decodeURIComponent(inputString)
+            inputBox.value = text
+            println("SHARED: $text")
+        }
     }
+
+    parse()
 
     // INPUT
     val input = document.getElementById("input")!!.unsafeCast<HTMLTextAreaElement>()

@@ -1,38 +1,20 @@
 package net.kyori.adventure.webui.jvm.minimessage
 
-import io.ktor.application.Application
-import io.ktor.application.call
-import io.ktor.http.cio.websocket.Frame
-import io.ktor.http.cio.websocket.readText
-import io.ktor.http.content.defaultResource
-import io.ktor.http.content.resource
-import io.ktor.http.content.resources
-import io.ktor.http.content.static
-import io.ktor.request.receiveText
-import io.ktor.response.respondText
-import io.ktor.routing.post
-import io.ktor.routing.route
-import io.ktor.routing.routing
-import io.ktor.websocket.webSocket
+import io.ktor.application.*
+import io.ktor.http.cio.websocket.*
+import io.ktor.http.content.*
+import io.ktor.request.*
+import io.ktor.response.*
+import io.ktor.routing.*
+import io.ktor.websocket.*
 import kotlinx.serialization.encodeToString
 import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
-import net.kyori.adventure.webui.Serializers
-import net.kyori.adventure.webui.URL_API
-import net.kyori.adventure.webui.URL_MINI_TO_HTML
-import net.kyori.adventure.webui.URL_MINI_TO_JSON
+import net.kyori.adventure.webui.*
 import net.kyori.adventure.webui.jvm.appendComponent
 import net.kyori.adventure.webui.jvm.getConfigString
-import net.kyori.adventure.webui.jvm.minimessage.hook.CLICK_EVENT_RENDER_HOOK
-import net.kyori.adventure.webui.jvm.minimessage.hook.COMPONENT_CLASS_RENDER_HOOK
-import net.kyori.adventure.webui.jvm.minimessage.hook.FONT_RENDER_HOOK
-import net.kyori.adventure.webui.jvm.minimessage.hook.HOVER_EVENT_RENDER_HOOK
-import net.kyori.adventure.webui.jvm.minimessage.hook.HookManager
-import net.kyori.adventure.webui.jvm.minimessage.hook.INSERTION_RENDER_HOOK
-import net.kyori.adventure.webui.jvm.minimessage.hook.TEXT_COLOR_RENDER_HOOK
-import net.kyori.adventure.webui.jvm.minimessage.hook.TEXT_DECORATION_RENDER_HOOK
-import net.kyori.adventure.webui.jvm.minimessage.hook.TEXT_RENDER_HOOK
-import net.kyori.adventure.webui.tryDecodeFromString
+import net.kyori.adventure.webui.jvm.minimessage.editor.installEditor
+import net.kyori.adventure.webui.jvm.minimessage.hook.*
 import net.kyori.adventure.webui.websocket.Call
 import net.kyori.adventure.webui.websocket.ParseResult
 import net.kyori.adventure.webui.websocket.Response
@@ -105,6 +87,8 @@ public fun Application.minimessage() {
                 call.respondText(
                     GsonComponentSerializer.gson().serialize(MiniMessage.get().deserialize(input)))
             }
+
+            route(URL_EDITOR) { installEditor() }
         }
     }
 }

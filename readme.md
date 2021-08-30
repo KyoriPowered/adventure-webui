@@ -1,6 +1,6 @@
 # adventure-webui
 
-![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/KyoriPowered/adventure-webui/build/main) [![MIT License](https://img.shields.io/badge/license-MIT-blue)](license.txt)
+[![MIT License](https://img.shields.io/badge/license-MIT-blue)](license.txt)
 
 A web interface for [MiniMessage](https://github.com/KyoriPowered/adventure-text-minimessage).
 
@@ -8,9 +8,15 @@ You can access it here: https://webui.adventure.kyori.net/
 
 ---
 
-### Development Usage
+### API
 
-This project uses a Kotlin Multiplatform stack with three areas; a Kotlin/JS front-end, a Kotlin/JVM server, and a pure Kotlin common source set.
+This project contains a developer API which can be used to create a simple "editor" system.
+This system allows you to post a MiniMessage string to the server and provides a token which an end user can use to edit the string.
+The result can easily be saved back again, allowing for a smooth editing experience.
+
+For more information, see [the wiki](https://github.com/KyoriPowered/adventure-webui/wiki/Editor-API).
+
+### Deployment
 
 To run the server, type `./gradlew run -PisDevelopment`.
 This will create a server running at `https://localhost:8080`.
@@ -28,9 +34,5 @@ We appreciate contributions of any type. For any new features or typo-fix/style 
 This project is based on MiniDigger's [MiniMessageViewer](https://github.com/MiniDigger/MiniMessageViewer).
 
 The font used can be found [here](https://fonts2u.com/minecraft-regular.font).
-
----
-
-`adventure-webui` is released under the terms of the [MIT License](license.txt)
 
 [Discord]: https://discord.gg/MMfhJ8F

@@ -62,6 +62,7 @@ kotlin {
 
                 implementation(libs.adventure.minimessage)
                 implementation(libs.adventure.text.serializer.gson)
+                implementation(libs.cache4k)
                 implementation(libs.kotlinx.html)
                 implementation(libs.logback.classic)
             }
