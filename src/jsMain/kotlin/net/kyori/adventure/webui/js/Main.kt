@@ -1,7 +1,6 @@
 package net.kyori.adventure.webui.js
 
 import kotlin.js.json
-import kotlin.properties.Delegates
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.dom.hasClass
@@ -24,7 +23,7 @@ private val urlParams: URLSearchParams by lazy { URLSearchParams(window.location
 private const val PARAM_INPUT: String = "input"
 private const val PARAM_MODE: String = "mode"
 
-private var isInEditorMode by Delegates.notNull<Boolean>()
+private var isInEditorMode: Boolean = false
 private lateinit var editorInput: EditorInput
 
 private lateinit var currentMode: Mode
