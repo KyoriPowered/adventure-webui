@@ -94,7 +94,7 @@ public fun main() {
                     if (isInEditorMode && ::editorInput.isInitialized) {
                         window.fetch(
                                 "$URL_API$URL_EDITOR$URL_EDITOR_OUTPUT",
-                                RequestInit("POST", body = input.value.replace("\n", "\\n")))
+                                RequestInit("POST", body = input.value))
                             .then { response ->
                                 response.text().then { token ->
                                     window.navigator.clipboard.writeText(
