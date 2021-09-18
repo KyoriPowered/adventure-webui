@@ -26,7 +26,7 @@ private val outputSessions: Cache<String, String> =
 public fun Route.installEditor() {
     post(URL_EDITOR_INPUT) {
         val input = Serializers.json.tryDecodeFromString<EditorInput>(call.receiveText())
-        if (input == null || input.input.isBlank()) {
+        if (input == null) {
             call.response.status(HttpStatusCode.BadRequest)
         } else {
             generateToken().let { token ->
