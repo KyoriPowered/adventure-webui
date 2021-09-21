@@ -33,6 +33,15 @@ public fun main() {
     document.addEventListener(
         "DOMContentLoaded",
         {
+            // Defaults for all toast messages
+            bulmaToast.setDefaults(
+                json(
+                    "position" to "bottom-right",
+                    "dismissible" to true,
+                    "pauseOnHover" to true,
+                    "duration" to 6000,
+                    "animate" to json("in" to "fadeIn", "out" to "fadeOut")))
+
             // EDITOR
             val input = document.getElementById("input")!!.unsafeCast<HTMLTextAreaElement>()
             val saveButton = document.getElementById("editor-save")!!
@@ -48,11 +57,7 @@ public fun main() {
                             bulmaToast.toast(
                                 json(
                                     "message" to "Could not load editor session!",
-                                    "type" to "is-error",
-                                    "position" to "bottom-right",
-                                    "dismissible" to true,
-                                    "pauseOnHover" to true,
-                                    "animate" to json("in" to "fadeIn", "out" to "fadeOut")))
+                                    "type" to "is-error"))
                         } else {
                             response.text().then { text ->
                                 val possibleEditorInput =
@@ -62,12 +67,7 @@ public fun main() {
                                     bulmaToast.toast(
                                         json(
                                             "message" to "Could not load editor session!",
-                                            "type" to "is-error",
-                                            "position" to "bottom-right",
-                                            "dismissible" to true,
-                                            "pauseOnHover" to true,
-                                            "animate" to
-                                                json("in" to "fadeIn", "out" to "fadeOut")))
+                                            "type" to "is-error"))
                                 } else {
                                     isInEditorMode = true
                                     editorInput = possibleEditorInput
@@ -76,12 +76,7 @@ public fun main() {
                                         json(
                                             "message" to
                                                 "Loaded editor session! Press the save icon to generate a command to save the message to ${editorInput.application}.",
-                                            "type" to "is-success",
-                                            "position" to "bottom-right",
-                                            "dismissible" to true,
-                                            "pauseOnHover" to true,
-                                            "animate" to
-                                                json("in" to "fadeIn", "out" to "fadeOut")))
+                                            "type" to "is-success"))
                                     saveButton.classList.remove("is-hidden")
                                 }
                             }
@@ -104,12 +99,7 @@ public fun main() {
                                                 json(
                                                     "message" to
                                                         "The command to run in-game has been copied to your clipboard!",
-                                                    "type" to "is-success",
-                                                    "position" to "bottom-right",
-                                                    "dismissible" to true,
-                                                    "pauseOnHover" to true,
-                                                    "animate" to
-                                                        json("in" to "fadeIn", "out" to "fadeOut")))
+                                                    "type" to "is-success"))
                                         }
                                 }
                             }
@@ -219,11 +209,7 @@ public fun main() {
                             bulmaToast.toast(
                                 json(
                                     "message" to "Shareable link copied to clipboard!",
-                                    "type" to "is-success",
-                                    "position" to "bottom-right",
-                                    "dismissible" to true,
-                                    "pauseOnHover" to true,
-                                    "animate" to json("in" to "fadeIn", "out" to "fadeOut")))
+                                    "type" to "is-success"))
                         }
                 })
             document.getElementById("copy-button")!!.addEventListener(
@@ -233,11 +219,7 @@ public fun main() {
                         bulmaToast.toast(
                             json(
                                 "message" to "Input text copied to clipboard!",
-                                "type" to "is-success",
-                                "position" to "bottom-right",
-                                "dismissible" to true,
-                                "pauseOnHover" to true,
-                                "animate" to json("in" to "fadeIn", "out" to "fadeOut")))
+                                "type" to "is-success"))
                     }
                 })
             document.getElementById("export-to-json-button")!!.addEventListener(
@@ -258,12 +240,7 @@ public fun main() {
                                     bulmaToast.toast(
                                         json(
                                             "message" to "JSON copied to clipboard!",
-                                            "type" to "is-success",
-                                            "position" to "bottom-right",
-                                            "dismissible" to true,
-                                            "pauseOnHover" to true,
-                                            "animate" to
-                                                json("in" to "fadeIn", "out" to "fadeOut")))
+                                            "type" to "is-success"))
                                 }
                             }
                         }
@@ -365,11 +342,7 @@ private fun checkEvents(target: EventTarget?, typesToCheck: Collection<EventType
                             "<p><b>Click Event</b></p><p>Action: <i>${
                                     clickAction.replace('_', ' ').replaceFirstChar(Char::uppercase)
                                 }</i></p><p>Content: <i>$content</i></p>",
-                        "type" to "is-info",
-                        "position" to "bottom-right",
-                        "dismissible" to true,
-                        "pauseOnHover" to true,
-                        "animate" to json("in" to "fadeIn", "out" to "fadeOut")))
+                        "type" to "is-info"))
             }
         }
 
@@ -385,11 +358,7 @@ private fun checkEvents(target: EventTarget?, typesToCheck: Collection<EventType
                 bulmaToast.toast(
                     json(
                         "message" to "<p><b>Insertion</b></p><p>Content: <i>$insertion</i></p>",
-                        "type" to "is-info",
-                        "position" to "bottom-right",
-                        "dismissible" to true,
-                        "pauseOnHover" to true,
-                        "animate" to json("in" to "fadeIn", "out" to "fadeOut")))
+                        "type" to "is-info"))
             }
         }
 
