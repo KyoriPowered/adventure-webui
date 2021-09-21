@@ -132,6 +132,10 @@ public fun main() {
             // OBFUSCATION
             window.setInterval({ obfuscateAll() }, 10)
 
+            // OUTPUT BOXES
+            val outputPre = document.getElementById("output-pre")!!.unsafeCast<HTMLPreElement>()
+            val outputPane = document.getElementById("output-pane")!!.unsafeCast<HTMLDivElement>()
+
             // CARET
             val chatBox = document.getElementById("chat-entry-box")!!.unsafeCast<HTMLDivElement>()
             window.setInterval(
@@ -143,9 +147,16 @@ public fun main() {
                 element.addEventListener("click", { settingsBox!!.classList.toggle("is-active") })
             }
 
+            // SETTINGS
+            val settingBackground =
+                document.getElementById("setting-background")!!.unsafeCast<HTMLSelectElement>()
+            settingBackground.addEventListener(
+                "change",
+                {
+                    outputPane.style.backgroundImage = "url(\"img/${settingBackground.value}.jpg\")"
+                })
+
             // MODES
-            val outputPre = document.getElementById("output-pre")!!.unsafeCast<HTMLPreElement>()
-            val outputPane = document.getElementById("output-pane")!!.unsafeCast<HTMLDivElement>()
             val urlParams = URLSearchParams(window.location.search)
             currentMode = Mode.fromString(urlParams.get(PARAM_MODE))
             outputPre.classList.add(currentMode.className)
@@ -181,6 +192,16 @@ public fun main() {
                                 outputPre.classList.remove(mode.className)
                                 outputPane.classList.remove(mode.className)
                             }
+                        }
+
+                        if (currentMode == Mode.SERVER_LIST) {
+                            // Remove the current background if we are switching to "server list"
+                            // as it has a black background that is otherwise overridden
+                            outputPane.style.removeProperty("background-image")
+                        } else {
+                            // Otherwise, try to put back the background from before
+                            outputPane.style.backgroundImage =
+                                "url(\"img/${settingBackground.value}.jpg\")"
                         }
 
                         // re-parse to remove the horrible server list header line hack
@@ -258,15 +279,6 @@ public fun main() {
                 {
                     burgerMenu.classList.toggle("is-active")
                     navbarMenu.classList.toggle("is-active")
-                })
-
-            // SETTINGS
-            val settingBackground =
-                document.getElementById("setting-background")!!.unsafeCast<HTMLSelectElement>()
-            settingBackground.addEventListener(
-                "change",
-                {
-                    outputPane.style.backgroundImage = "url(\"img/${settingBackground.value}.jpg\")"
                 })
 
             // EVENTS
