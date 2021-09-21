@@ -14,5 +14,6 @@ public external fun encodeURIComponent(string: String): String
 public external class bulmaToast {
     public companion object {
         public fun toast(settings: Json)
+        public fun setDefaults(settings: Json)
     }
 }
