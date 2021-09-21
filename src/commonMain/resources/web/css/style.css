@@ -168,11 +168,13 @@
     padding: 0;
 }
 #output-pre.mode-lore {
+    display: inline-flex;
+    flex-direction: column;
+}
+output-pre.mode-lore, #hover-tooltip {
     background-color: rgba(1, 1, 1, 0.8);
     border: solid #1b0035;
-    display: inline-flex;
     padding: 5px;
-    flex-direction: column;
     line-height: 19px;
     border-radius: 5px;
 }
@@ -191,7 +193,6 @@
     font-size: 20px;
     line-height: 20px;
 }
-/* hover tooltip (style removed) */
 #hover-tooltip {
     position: fixed;
     top: 0;
