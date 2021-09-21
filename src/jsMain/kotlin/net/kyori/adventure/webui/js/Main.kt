@@ -301,12 +301,9 @@ public fun main() {
                 "mouseover",
                 { event ->
                     val target = event.target
-                    if (target is HTMLSpanElement && target.classList.contains(COMPONENT_CLASS)) {
-                        checkHoverEvents(target, hoverTooltip)
-
-                        // we need to prevent propagation as we do that ourselves manually
-                        event.stopPropagation()
-                    }
+                    checkHoverEvents(target, hoverTooltip)
+                    // we need to prevent propagation as we do that ourselves manually
+                    event.stopPropagation()
                 })
 
             document.addEventListener(
@@ -318,8 +315,6 @@ public fun main() {
                             hoverTooltip.hidden = true
                             hoverTooltip.innerHTML = ""
                         }
-
-                        // we need to prevent propagation as we do that ourselves manually
                         event.stopPropagation()
                     }
                 })
@@ -415,13 +410,18 @@ private fun onWebsocketReady() {
         }
 }
 
-private fun checkHoverEvents(target: HTMLSpanElement, hoverTooltip: HTMLDivElement) {
-    if (EventType.HOVER.isUsable(currentMode)) {
-        val hoverAction = target.dataset[DATA_HOVER_EVENT_ACTION.camel]
-        if (hoverAction == "show_text") {
-            hoverTooltip.hidden = false
-            hoverTooltip.innerHTML = target.dataset[DATA_HOVER_EVENT_VALUE.camel] ?: ""
+private fun checkHoverEvents(target: EventTarget?, hoverTooltip: HTMLDivElement) {
+    if (target is HTMLSpanElement && target.classList.contains(COMPONENT_CLASS)) {
+        if (EventType.HOVER.isUsable(currentMode)) {
+            val hoverAction = target.dataset[DATA_HOVER_EVENT_ACTION.camel]
+            if (hoverAction == "show_text") {
+                hoverTooltip.hidden = false
+                hoverTooltip.innerHTML = target.dataset[DATA_HOVER_EVENT_VALUE.camel] ?: ""
+                // No further bubbling required
+                return
+            }
         }
+        checkHoverEvents(target.parentElement, hoverTooltip)
     }
 }
 
