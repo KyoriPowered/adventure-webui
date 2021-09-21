@@ -11,12 +11,19 @@ import net.kyori.adventure.webui.DATA_HOVER_EVENT_VALUE
 import net.kyori.adventure.webui.DATA_INSERTION
 import net.kyori.adventure.webui.jvm.addData
 import net.kyori.adventure.webui.jvm.addStyle
+import net.kyori.adventure.webui.jvm.appendComponent
 
 /** A render hook for hover events. */
 public val HOVER_EVENT_RENDER_HOOK: ComponentRenderHook = { component ->
     component.hoverEvent()?.let { hoverEvent ->
         addData(DATA_HOVER_EVENT_ACTION, hoverEvent.action().toString())
-        addData(DATA_HOVER_EVENT_VALUE, hoverEvent.value().toString())
+        if (hoverEvent.value() is TextComponent) {
+            val hoverHtml = StringBuilder()
+            hoverHtml.appendComponent(HookManager.render(hoverEvent.value() as TextComponent))
+            addData(DATA_HOVER_EVENT_VALUE, hoverHtml.toString())
+        } else {
+            addData(DATA_HOVER_EVENT_VALUE, hoverEvent.value().toString())
+        }
     }
 
     true
