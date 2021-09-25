@@ -137,7 +137,7 @@ public fun main() {
             val outputPre = document.getElementById("output-pre")!!.unsafeCast<HTMLPreElement>()
             val outputPane = document.getElementById("output-pane")!!.unsafeCast<HTMLDivElement>()
             val hoverTooltip =
-                document.getElementById(HOVER_TOOLTIP_ID).unsafeCast<HTMLDivElement>()
+                document.getElementById("hover-tooltip").unsafeCast<HTMLDivElement>()
 
             // CARET
             val chatBox = document.getElementById("chat-entry-box")!!.unsafeCast<HTMLDivElement>()

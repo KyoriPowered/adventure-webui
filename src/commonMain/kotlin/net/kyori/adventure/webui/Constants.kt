@@ -3,9 +3,6 @@ package net.kyori.adventure.webui
 /** Class for DOM-rendered Adventure components. */
 public const val COMPONENT_CLASS: String = "adventure-component"
 
-/** ID for the single hover tooltip element. */
-public const val HOVER_TOOLTIP_ID: String = "hover-tooltip"
-
 /** Data name for insertion value. */
 public val DATA_INSERTION: DataAttribute = DataAttribute("insertion")
 
