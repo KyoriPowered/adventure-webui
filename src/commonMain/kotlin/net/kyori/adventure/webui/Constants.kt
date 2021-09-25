@@ -6,11 +6,8 @@ public const val COMPONENT_CLASS: String = "adventure-component"
 /** Data name for insertion value. */
 public val DATA_INSERTION: DataAttribute = DataAttribute("insertion")
 
-/** Data name for hover event actions. */
-public val DATA_HOVER_EVENT_ACTION: DataAttribute = DataAttribute("hover-event-action")
-
-/** Data name for hover event values. */
-public val DATA_HOVER_EVENT_VALUE: DataAttribute = DataAttribute("hover-event-value")
+/** Data name for "show text" hover event values. */
+public val DATA_HOVER_EVENT_SHOW_TEXT: DataAttribute = DataAttribute("hover-event-show-text")
 
 /** Data name for click event actions. */
 public val DATA_CLICK_EVENT_ACTION: DataAttribute = DataAttribute("click-event-action")

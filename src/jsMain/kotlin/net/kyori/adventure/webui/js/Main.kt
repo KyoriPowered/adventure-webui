@@ -136,8 +136,7 @@ public fun main() {
             // OUTPUT BOXES
             val outputPre = document.getElementById("output-pre")!!.unsafeCast<HTMLPreElement>()
             val outputPane = document.getElementById("output-pane")!!.unsafeCast<HTMLDivElement>()
-            val hoverTooltip =
-                document.getElementById("hover-tooltip").unsafeCast<HTMLDivElement>()
+            val hoverTooltip = document.getElementById("hover-tooltip").unsafeCast<HTMLDivElement>()
 
             // CARET
             val chatBox = document.getElementById("chat-entry-box")!!.unsafeCast<HTMLDivElement>()
@@ -413,10 +412,10 @@ private fun onWebsocketReady() {
 private fun checkHoverEvents(target: EventTarget?, hoverTooltip: HTMLDivElement) {
     if (target is HTMLSpanElement && target.classList.contains(COMPONENT_CLASS)) {
         if (EventType.HOVER.isUsable(currentMode)) {
-            val hoverAction = target.dataset[DATA_HOVER_EVENT_ACTION.camel]
-            if (hoverAction == "show_text") {
+            val showTextHover = target.dataset[DATA_HOVER_EVENT_SHOW_TEXT.camel]
+            if (showTextHover != null) {
                 hoverTooltip.hidden = false
-                hoverTooltip.innerHTML = target.dataset[DATA_HOVER_EVENT_VALUE.camel] ?: ""
+                hoverTooltip.innerHTML = showTextHover
                 // No further bubbling required
                 return
             }
