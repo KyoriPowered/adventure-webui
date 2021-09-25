@@ -114,13 +114,13 @@
     display: block;
 }
 /* output pre */
-#output-pre {
+#output-pre, #hover-tooltip {
     margin-bottom: 4px;
     color: white;
     background-color: rgba(1, 1, 1, 0.4);
     text-shadow: 3px 3px hsl(0, 0%, 24%);
 }
-#output-pre span {
+#output-pre span, #hover-tooltip span {
     font-size: 28px;
     line-height: 28px;
 }
@@ -168,11 +168,13 @@
     padding: 0;
 }
 #output-pre.mode-lore {
+    display: inline-flex;
+    flex-direction: column;
+}
+output-pre.mode-lore, #hover-tooltip {
     background-color: rgba(1, 1, 1, 0.8);
     border: solid #1b0035;
-    display: inline-flex;
     padding: 5px;
-    flex-direction: column;
     line-height: 19px;
     border-radius: 5px;
 }
@@ -190,6 +192,13 @@
 #output-pre.mode-server-list span {
     font-size: 20px;
     line-height: 20px;
+}
+#hover-tooltip {
+    position: fixed;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 9999;
 }
 /* other shit */
 .is-horizontal {

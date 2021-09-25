@@ -1,22 +1,24 @@
 package net.kyori.adventure.webui.jvm.minimessage.hook
 
 import kotlinx.html.classes
+import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TextComponent
+import net.kyori.adventure.text.event.HoverEvent
 import net.kyori.adventure.text.format.TextDecoration
-import net.kyori.adventure.webui.COMPONENT_CLASS
-import net.kyori.adventure.webui.DATA_CLICK_EVENT_ACTION
-import net.kyori.adventure.webui.DATA_CLICK_EVENT_VALUE
-import net.kyori.adventure.webui.DATA_HOVER_EVENT_ACTION
-import net.kyori.adventure.webui.DATA_HOVER_EVENT_VALUE
-import net.kyori.adventure.webui.DATA_INSERTION
+import net.kyori.adventure.webui.*
 import net.kyori.adventure.webui.jvm.addData
 import net.kyori.adventure.webui.jvm.addStyle
+import net.kyori.adventure.webui.jvm.appendComponent
 
 /** A render hook for hover events. */
 public val HOVER_EVENT_RENDER_HOOK: ComponentRenderHook = { component ->
     component.hoverEvent()?.let { hoverEvent ->
-        addData(DATA_HOVER_EVENT_ACTION, hoverEvent.action().toString())
-        addData(DATA_HOVER_EVENT_VALUE, hoverEvent.value().toString())
+        if (hoverEvent.action() == HoverEvent.Action.SHOW_TEXT) {
+            val hoverHtml = StringBuilder()
+            hoverHtml.appendComponent(HookManager.render(hoverEvent.value() as Component))
+            addData(DATA_HOVER_EVENT_SHOW_TEXT, hoverHtml.toString())
+        }
+        // unknown hover events are discarded FOR NOW
     }
 
     true
