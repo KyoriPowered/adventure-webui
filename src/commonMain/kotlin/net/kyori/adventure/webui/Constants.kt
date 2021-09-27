@@ -24,6 +24,9 @@ public const val URL_MINI_TO_HTML: String = "/mini-to-html"
 /** Path for conversion between MiniMessage and JSON. */
 public const val URL_MINI_TO_JSON: String = "/mini-to-json"
 
+/** Path for conversion between MiniMessage and a tree view. */
+public const val URL_MINI_TO_TREE: String = "/mini-to-tree"
+
 /** Path for editor-related API routes. */
 public const val URL_EDITOR: String = "/editor"
 

@@ -225,6 +225,9 @@ html {
     align-items: center;
     flex-direction: column;
 }
+.notification pre {
+    text-align: left;
+}
 #server-list-image {
     width: 65px;
 }

@@ -7,8 +7,14 @@ import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.websocket.*
+import java.util.function.BiPredicate
 import kotlinx.serialization.encodeToString
+import net.kyori.adventure.text.minimessage.Context
 import net.kyori.adventure.text.minimessage.MiniMessage
+import net.kyori.adventure.text.minimessage.parser.ParsingException
+import net.kyori.adventure.text.minimessage.parser.TokenParser
+import net.kyori.adventure.text.minimessage.parser.node.TagNode
+import net.kyori.adventure.text.minimessage.transformation.TransformationRegistry
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 import net.kyori.adventure.webui.*
 import net.kyori.adventure.webui.jvm.appendComponent
@@ -86,6 +92,32 @@ public fun Application.minimessage() {
                         ?: return@post
                 call.respondText(
                     GsonComponentSerializer.gson().serialize(MiniMessage.get().deserialize(input)))
+            }
+
+            post(URL_MINI_TO_TREE) {
+                val input =
+                    Serializers.json.tryDecodeFromString<Call>(call.receiveText())?.miniMessage
+                        ?: return@post
+                val placeholderResolver = { _: String? -> null }
+                val transformationFactory = { node: TagNode ->
+                    try {
+                        TransformationRegistry.standard()
+                            .get(
+                                node.name(),
+                                node.parts(),
+                                mapOf(),
+                                placeholderResolver,
+                                Context.of(false, input, null))
+                    } catch (ignored: ParsingException) {
+                        null
+                    }
+                }
+                val tagNameChecker = BiPredicate { name: String?, _: Boolean ->
+                    TransformationRegistry.standard().exists(name, placeholderResolver)
+                }
+                val root =
+                    TokenParser.parse(transformationFactory, tagNameChecker, mapOf(), input, false)
+                call.respondText(root.toString())
             }
 
             route(URL_EDITOR) { installEditor() }
