@@ -66,7 +66,7 @@ public fun Application.minimessage() {
                                         .miniMessage
                                         .split("\n")
                                         .map { line -> HookManager.render(line) }
-                                        .map { line -> MiniMessage.get().deserialize(line) }
+                                        .map { line -> MiniMessage.miniMessage().deserialize(line) }
                                         .map { component -> HookManager.render(component) }
                                         .forEach { component ->
                                             result.appendComponent(component)
@@ -91,7 +91,8 @@ public fun Application.minimessage() {
                     Serializers.json.tryDecodeFromString<Call>(call.receiveText())?.miniMessage
                         ?: return@post
                 call.respondText(
-                    GsonComponentSerializer.gson().serialize(MiniMessage.get().deserialize(input)))
+                    GsonComponentSerializer.gson()
+                        .serialize(MiniMessage.miniMessage().deserialize(input)))
             }
 
             post(URL_MINI_TO_TREE) {
@@ -107,7 +108,7 @@ public fun Application.minimessage() {
                                 node.parts(),
                                 mapOf(),
                                 placeholderResolver,
-                                Context.of(false, input, null))
+                                Context.of(false, input, MiniMessage.miniMessage()))
                     } catch (ignored: ParsingException) {
                         null
                     }
