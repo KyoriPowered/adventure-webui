@@ -92,6 +92,9 @@
     display: block;
 }
 /* output pre */
+#output-pre:empty {
+    display: none !important;
+}
 #output-pre, #hover-tooltip {
     margin-bottom: 4px;
     color: white;
