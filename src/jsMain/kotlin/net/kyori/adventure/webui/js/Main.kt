@@ -248,6 +248,31 @@ public fun main() {
                         }
                 })
 
+            document.getElementById("show-tree-button")!!.addEventListener(
+                "click",
+                {
+                    window.fetch(
+                            "$URL_API$URL_MINI_TO_TREE",
+                            RequestInit(
+                                method = "POST",
+                                cache = RequestCache.NO_CACHE,
+                                headers = mapOf(Pair("Content-Type", "text/plain")),
+                                body =
+                                    Serializers.json.encodeToString(
+                                        Call(miniMessage = input.value))))
+                        .then { response ->
+                            response.text().then { text ->
+                                val escaped =
+                                    text.replace("&", "&amp;")
+                                        .replace("<", "&lt;")
+                                        .replace(">", "&gt;")
+                                bulmaToast.toast(
+                                    json(
+                                        "message" to "<pre>$escaped</pre>", "type" to "is-success"))
+                            }
+                        }
+                })
+
             // EDITOR
 
             // BURGER MENU
