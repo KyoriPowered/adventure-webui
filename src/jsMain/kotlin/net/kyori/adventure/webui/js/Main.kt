@@ -395,9 +395,14 @@ private fun onWebsocketReady() {
                     if (result.success && result.dom != null) {
                         output.textContent = ""
 
-                        val div = document.createElement("div")
-                        div.innerHTML = result.dom
-                        output.append(div)
+                        result.dom.split("\n").forEach { line ->
+                            if (line.isNotEmpty()) {
+                                document.createElement("div").also { div ->
+                                    div.innerHTML = line
+                                    output.append(div)
+                                }
+                            }
+                        }
 
                         // reset scroll to bottom (like how chat works)
                         if (currentMode == Mode.CHAT_OPEN || currentMode == Mode.CHAT_CLOSED) {
@@ -405,6 +410,8 @@ private fun onWebsocketReady() {
                         }
                     } else if (!result.success && result.errorMessage != null) {
                         console.error("A parse error occurred: ${result.errorMessage}")
+                    } else {
+                        console.error("An unknown error occurred!")
                     }
                 }
             }
