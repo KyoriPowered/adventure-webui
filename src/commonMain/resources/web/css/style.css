@@ -36,28 +36,6 @@
     font-style: italic;
     font-display: swap;
 }
-/* hover */
-.hover {
-    position: absolute;
-    background-color: white;
-    border: black;
-    visibility: hidden;
-    z-index: +1;
-    bottom: 100%;
-    left: 50%;
-    border-radius: 5px;
-    box-shadow: 1px 1px 5px 0 #000000;
-    padding: 2px;
-    cursor: initial;
-    color: black;
-}
-.hover-source {
-    position: relative;
-    cursor: pointer;
-}
-.hover-source:hover .hover {
-    visibility: visible;
-}
 /* output pane */
 #output-pane {
     background-image: url("../img/grass.jpg");
