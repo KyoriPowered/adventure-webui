@@ -171,7 +171,7 @@
     display: inline-flex;
     flex-direction: column;
 }
-output-pre.mode-lore, #hover-tooltip {
+#output-pre.mode-lore, #hover-tooltip {
     background-color: rgba(1, 1, 1, 0.8);
     border: solid #1b0035;
     padding: 5px;
