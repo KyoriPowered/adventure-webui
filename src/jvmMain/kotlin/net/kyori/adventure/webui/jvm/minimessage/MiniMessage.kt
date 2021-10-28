@@ -23,11 +23,9 @@ import net.kyori.adventure.webui.jvm.appendComponent
 import net.kyori.adventure.webui.jvm.getConfigString
 import net.kyori.adventure.webui.jvm.minimessage.editor.installEditor
 import net.kyori.adventure.webui.jvm.minimessage.hook.*
-import net.kyori.adventure.webui.websocket.Call
-import net.kyori.adventure.webui.websocket.ParseResult
-import net.kyori.adventure.webui.websocket.Response
+import net.kyori.adventure.webui.websocket.*
 
-public fun Call.templateResolver(): TemplateResolver {
+public fun Templates.templateResolver(): TemplateResolver {
     val stringConverted =
         this.stringTemplates?.map { Template.template(it.key, it.value) } ?: listOf()
     val componentConverted =
@@ -67,44 +65,56 @@ public fun Application.minimessage() {
         // set up other routing
         route(URL_API) {
             webSocket(URL_MINI_TO_HTML) {
+                var templateResolver = TemplateResolver.empty()
+                var miniMessage: String? = null
+
                 for (frame in incoming) {
                     if (frame is Frame.Text) {
-                        val call = Serializers.json.tryDecodeFromString<Call>(frame.readText())
-
-                        if (call?.miniMessage != null) {
-                            val response =
-                                try {
-                                    val result = StringBuilder()
-
-                                    call
-                                        .miniMessage
-                                        .split("\n")
-                                        .map { line -> HookManager.render(line) }
-                                        .map { line ->
-                                            MiniMessage.miniMessage()
-                                                .deserialize(line, call.templateResolver())
-                                        }
-                                        .map { component -> HookManager.render(component) }
-                                        .forEach { component ->
-                                            result.appendComponent(component)
-                                            result.append("\n")
-                                        }
-
-                                    Response(ParseResult(true, result.toString()))
-                                } catch (e: Exception) {
-                                    Response(
-                                        ParseResult(
-                                            false, errorMessage = e.message ?: "Unknown error!"))
-                                }
-
-                            outgoing.send(Frame.Text(Serializers.json.encodeToString(response)))
+                        println(frame.readText())
+                        val packet = Serializers.json.tryDecodeFromString<Packet>(frame.readText())
+                        println(packet)
+                        when (packet) {
+                            is Call -> {
+                                miniMessage = packet.miniMessage
+                            }
+                            is Templates -> {
+                                templateResolver = packet.templateResolver()
+                            }
+                            else -> continue
                         }
+
+                        if (miniMessage == null) continue
+                        val response =
+                            try {
+                                val result = StringBuilder()
+
+                                miniMessage
+                                    .split("\n")
+                                    .map { line -> HookManager.render(line) }
+                                    .map { line ->
+                                        MiniMessage.miniMessage()
+                                            .deserialize(line, templateResolver)
+                                    }
+                                    .map { component -> HookManager.render(component) }
+                                    .forEach { component ->
+                                        result.appendComponent(component)
+                                        result.append("\n")
+                                    }
+
+                                Response(ParseResult(true, result.toString()))
+                            } catch (e: Exception) {
+                                Response(
+                                    ParseResult(
+                                        false, errorMessage = e.message ?: "Unknown error!"))
+                            }
+
+                        outgoing.send(Frame.Text(Serializers.json.encodeToString(response)))
                     }
                 }
             }
 
             post(URL_MINI_TO_JSON) {
-                val structure = Serializers.json.tryDecodeFromString<Call>(call.receiveText())
+                val structure = Serializers.json.tryDecodeFromString<Combined>(call.receiveText())
                 val input = structure?.miniMessage ?: return@post
                 call.respondText(
                     GsonComponentSerializer.gson()
@@ -114,7 +124,7 @@ public fun Application.minimessage() {
             }
 
             post(URL_MINI_TO_TREE) {
-                val structure = Serializers.json.tryDecodeFromString<Call>(call.receiveText())
+                val structure = Serializers.json.tryDecodeFromString<Combined>(call.receiveText())
                 val input = structure?.miniMessage ?: return@post
                 val transformationFactory = { node: TagNode ->
                     try {

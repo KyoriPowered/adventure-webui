@@ -8,6 +8,7 @@ import kotlinx.serialization.encodeToString
 import net.kyori.adventure.webui.*
 import net.kyori.adventure.webui.editor.EditorInput
 import net.kyori.adventure.webui.websocket.Call
+import net.kyori.adventure.webui.websocket.Packet
 import net.kyori.adventure.webui.websocket.Response
 import org.w3c.dom.*
 import org.w3c.dom.clipboard.ClipboardEvent
@@ -533,7 +534,7 @@ private fun parse() {
                     if (line == "") "\u200B" else line
                 }
 
-            webSocket.send(Serializers.json.encodeToString(Call(combinedLines)))
+            webSocket.send(Serializers.json.encodeToString(Call(combinedLines) as Packet))
         }
     }
 }
