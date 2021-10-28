@@ -14,6 +14,7 @@ import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.minimessage.parser.ParsingException
 import net.kyori.adventure.text.minimessage.parser.TokenParser
 import net.kyori.adventure.text.minimessage.parser.node.TagNode
+import net.kyori.adventure.text.minimessage.template.TemplateResolver
 import net.kyori.adventure.text.minimessage.transformation.TransformationRegistry
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 import net.kyori.adventure.webui.*
@@ -99,25 +100,29 @@ public fun Application.minimessage() {
                 val input =
                     Serializers.json.tryDecodeFromString<Call>(call.receiveText())?.miniMessage
                         ?: return@post
-                val placeholderResolver = { _: String? -> null }
+                val templateResolver = TemplateResolver.empty()
                 val transformationFactory = { node: TagNode ->
                     try {
                         TransformationRegistry.standard()
                             .get(
                                 node.name(),
                                 node.parts(),
-                                mapOf(),
-                                placeholderResolver,
+                                templateResolver,
                                 Context.of(false, input, MiniMessage.miniMessage()))
                     } catch (ignored: ParsingException) {
                         null
                     }
                 }
                 val tagNameChecker = BiPredicate { name: String?, _: Boolean ->
-                    TransformationRegistry.standard().exists(name, placeholderResolver)
+                    TransformationRegistry.standard().exists(name, templateResolver)
                 }
                 val root =
-                    TokenParser.parse(transformationFactory, tagNameChecker, mapOf(), input, false)
+                    TokenParser.parse(
+                        transformationFactory,
+                        tagNameChecker,
+                        TemplateResolver.empty(),
+                        input,
+                        false)
                 call.respondText(root.toString())
             }
 

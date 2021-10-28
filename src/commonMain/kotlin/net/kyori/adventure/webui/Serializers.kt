@@ -7,7 +7,7 @@ import kotlinx.serialization.json.Json
 /** The serializers. */
 public object Serializers {
     /** The Json serializer. */
-    public var json: Json = Json {}
+    public var json: Json = Json
 }
 
 /** Attempts to decode a value from a string, returning `null` if the decoding failed. */
