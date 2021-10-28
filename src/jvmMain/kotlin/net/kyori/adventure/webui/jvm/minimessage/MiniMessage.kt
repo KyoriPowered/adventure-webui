@@ -11,6 +11,7 @@ import java.util.function.BiPredicate
 import kotlinx.serialization.encodeToString
 import net.kyori.adventure.text.minimessage.Context
 import net.kyori.adventure.text.minimessage.MiniMessage
+import net.kyori.adventure.text.minimessage.Template
 import net.kyori.adventure.text.minimessage.parser.ParsingException
 import net.kyori.adventure.text.minimessage.parser.TokenParser
 import net.kyori.adventure.text.minimessage.parser.node.TagNode
@@ -25,6 +26,18 @@ import net.kyori.adventure.webui.jvm.minimessage.hook.*
 import net.kyori.adventure.webui.websocket.Call
 import net.kyori.adventure.webui.websocket.ParseResult
 import net.kyori.adventure.webui.websocket.Response
+
+public fun Call.templateResolver(): TemplateResolver {
+    val stringConverted =
+        this.stringTemplates?.map { Template.template(it.key, it.value) } ?: listOf()
+    val componentConverted =
+        this.componentTemplates?.map {
+            Template.template(
+                it.key, GsonComponentSerializer.gson().deserialize(it.value.toString()))
+        }
+            ?: listOf()
+    return TemplateResolver.templates(stringConverted + componentConverted)
+}
 
 /** Entry-point for MiniMessage Viewer. */
 public fun Application.minimessage() {
@@ -67,7 +80,10 @@ public fun Application.minimessage() {
                                         .miniMessage
                                         .split("\n")
                                         .map { line -> HookManager.render(line) }
-                                        .map { line -> MiniMessage.miniMessage().deserialize(line) }
+                                        .map { line ->
+                                            MiniMessage.miniMessage()
+                                                .deserialize(line, call.templateResolver())
+                                        }
                                         .map { component -> HookManager.render(component) }
                                         .forEach { component ->
                                             result.appendComponent(component)
@@ -88,39 +104,38 @@ public fun Application.minimessage() {
             }
 
             post(URL_MINI_TO_JSON) {
-                val input =
-                    Serializers.json.tryDecodeFromString<Call>(call.receiveText())?.miniMessage
-                        ?: return@post
+                val structure = Serializers.json.tryDecodeFromString<Call>(call.receiveText())
+                val input = structure?.miniMessage ?: return@post
                 call.respondText(
                     GsonComponentSerializer.gson()
-                        .serialize(MiniMessage.miniMessage().deserialize(input)))
+                        .serialize(
+                            MiniMessage.miniMessage()
+                                .deserialize(input, structure.templateResolver())))
             }
 
             post(URL_MINI_TO_TREE) {
-                val input =
-                    Serializers.json.tryDecodeFromString<Call>(call.receiveText())?.miniMessage
-                        ?: return@post
-                val templateResolver = TemplateResolver.empty()
+                val structure = Serializers.json.tryDecodeFromString<Call>(call.receiveText())
+                val input = structure?.miniMessage ?: return@post
                 val transformationFactory = { node: TagNode ->
                     try {
                         TransformationRegistry.standard()
                             .get(
                                 node.name(),
                                 node.parts(),
-                                templateResolver,
+                                structure.templateResolver(),
                                 Context.of(false, input, MiniMessage.miniMessage()))
                     } catch (ignored: ParsingException) {
                         null
                     }
                 }
                 val tagNameChecker = BiPredicate { name: String?, _: Boolean ->
-                    TransformationRegistry.standard().exists(name, templateResolver)
+                    TransformationRegistry.standard().exists(name, structure.templateResolver())
                 }
                 val root =
                     TokenParser.parse(
                         transformationFactory,
                         tagNameChecker,
-                        TemplateResolver.empty(),
+                        structure.templateResolver(),
                         input,
                         false)
                 call.respondText(root.toString())
