@@ -34,7 +34,12 @@ public fun Templates.templateResolver(): TemplateResolver {
                 it.key, GsonComponentSerializer.gson().deserialize(it.value.toString()))
         }
             ?: listOf()
-    return TemplateResolver.templates(stringConverted + componentConverted)
+    val miniMessageConverted =
+        this.miniMessageTemplates?.map {
+            Template.template(it.key, MiniMessage.miniMessage().deserialize(it.value))
+        }
+            ?: listOf()
+    return TemplateResolver.templates(stringConverted + componentConverted + miniMessageConverted)
 }
 
 /** Entry-point for MiniMessage Viewer. */

@@ -4,7 +4,7 @@ import kotlin.js.json
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.dom.hasClass
-import kotlinx.html.classes
+import kotlinx.html.InputType
 import kotlinx.html.dom.append
 import kotlinx.html.js.div
 import kotlinx.html.js.input
@@ -29,7 +29,8 @@ private val urlParams: URLSearchParams by lazy { URLSearchParams(window.location
 
 private const val PARAM_INPUT: String = "input"
 private const val PARAM_MODE: String = "mode"
-private const val PARAM_TEMPLATES: String = "templates"
+private const val PARAM_STRING_TEMPLATES: String = "st"
+private const val PARAM_COMPONENT_TEMPLATES: String = "ct"
 
 private var isInEditorMode: Boolean = false
 private lateinit var editorInput: EditorInput
@@ -151,9 +152,14 @@ public fun main() {
                     "click",
                     {
                         templatesBox!!.classList.toggle("is-active")
+                        val (stringTemplates, miniMessageTemplates) = readTemplates()
                         webSocket.send(
                             Serializers.json.encodeToString(
-                                TemplatesImpl(readTemplates()) as Packet))
+                                TemplatesImpl(
+                                    stringTemplates = stringTemplates,
+                                    componentTemplates = null,
+                                    miniMessageTemplates = miniMessageTemplates) as
+                                    Packet))
                     })
             }
             document.getElementsByClassName("add-template-button").asList().forEach { element ->
@@ -227,16 +233,23 @@ public fun main() {
                 "click",
                 {
                     val inputValue = encodeURIComponent(input.value)
-                    val templates =
-                        encodeURIComponent(Serializers.json.encodeToString(readTemplates()))
-                    window.navigator.clipboard.writeText(
-                            "$homeUrl?$PARAM_MODE=${currentMode.paramName}&$PARAM_INPUT=$inputValue&$PARAM_TEMPLATES=$templates")
-                        .then {
-                            bulmaToast.toast(
-                                json(
-                                    "message" to "Shareable link copied to clipboard!",
-                                    "type" to "is-success"))
-                        }
+                    val (stringTemplates, mmTemplates) = readTemplates()
+                    var link =
+                        "$homeUrl?$PARAM_MODE=${currentMode.paramName}&$PARAM_INPUT=$inputValue"
+                    if (stringTemplates.isNotEmpty()) {
+                        link += "&$PARAM_STRING_TEMPLATES="
+                        link += encodeURIComponent(Serializers.json.encodeToString(stringTemplates))
+                    }
+                    if (mmTemplates.isNotEmpty()) {
+                        link += "&$PARAM_COMPONENT_TEMPLATES="
+                        link += encodeURIComponent(Serializers.json.encodeToString(mmTemplates))
+                    }
+                    window.navigator.clipboard.writeText(link).then {
+                        bulmaToast.toast(
+                            json(
+                                "message" to "Shareable link copied to clipboard!",
+                                "type" to "is-success"))
+                    }
                 })
             document.getElementById("copy-button")!!.addEventListener(
                 "click",
@@ -383,8 +396,12 @@ public fun main() {
         })
 }
 
-private fun readTemplates(): Map<String, String> {
+private fun readTemplates(): Pair<Map<String, String>, Map<String, String>> {
     val templatesBox = document.getElementById("templates-box")!!
+    val templateComponents =
+        templatesBox.getElementsByClassName("template-component").asList().map {
+            it.unsafeCast<HTMLInputElement>().checked
+        }
     val templateKeys =
         templatesBox.getElementsByClassName("template-key").asList().map {
             it.unsafeCast<HTMLInputElement>().value
@@ -393,23 +410,33 @@ private fun readTemplates(): Map<String, String> {
         templatesBox.getElementsByClassName("template-value").asList().map {
             it.unsafeCast<HTMLInputElement>().value
         }
-    return templateKeys
+    val stringTemplates = mutableMapOf<String, String>()
+    val miniMessageTemplates = mutableMapOf<String, String>()
+    templateKeys
         .zip(templateValues)
-        .filter { it.first.isNotEmpty() && it.second.isNotEmpty() }
-        .toMap()
+        .zip(templateComponents)
+        .filter { (t, _) -> t.first.isNotEmpty() && t.second.isNotEmpty() }
+        .forEach { (t, c) ->
+            (if (c) miniMessageTemplates else stringTemplates)[t.first] = t.second
+        }
+    return stringTemplates to miniMessageTemplates
 }
 
-private fun addTemplate(): Pair<HTMLInputElement, HTMLInputElement> {
+private fun addTemplate(): Triple<HTMLInputElement, HTMLInputElement, HTMLInputElement> {
     val templatesList = document.getElementById("templates-list")!!
     lateinit var key: HTMLInputElement
     lateinit var value: HTMLInputElement
+    lateinit var component: HTMLInputElement
     templatesList.append {
         div(classes = "field is-horizontal") {
+            div(classes = "control") {
+                component = input(type = InputType.checkBox, classes = "template-component")
+            }
             div(classes = "control") { key = input(classes = "template-key") }
             div(classes = "control") { value = input(classes = "template-value") }
         }
     }
-    return key to value
+    return Triple(component, key, value)
 }
 
 private fun onWebsocketReady() {
@@ -422,18 +449,35 @@ private fun onWebsocketReady() {
             inputBox.value = text
             println("SHARED: $text")
         }
-        urlParams.get(PARAM_TEMPLATES)?.also { inputString ->
-            val templates =
-                Serializers.json.tryDecodeFromString<Map<String, String>>(
-                    decodeURIComponent(inputString))
-            println("SHARED: $templates")
-            templates?.forEach { (k, v) ->
-                val (inputKey, inputValue) = addTemplate()
-                inputKey.value = k
-                inputValue.value = v
-            }
-            webSocket.send(Serializers.json.encodeToString(TemplatesImpl(templates) as Packet))
+        var stringTemplates: Map<String, String>? = null
+        var miniMessageTemplates: Map<String, String>? = null
+        urlParams.get(PARAM_STRING_TEMPLATES)?.also { inputString ->
+            stringTemplates = Serializers.json.tryDecodeFromString(decodeURIComponent(inputString))
+            println("SHARED: $stringTemplates")
         }
+        urlParams.get(PARAM_COMPONENT_TEMPLATES)?.also { inputString ->
+            miniMessageTemplates =
+                Serializers.json.tryDecodeFromString(decodeURIComponent(inputString))
+            println("SHARED: $miniMessageTemplates")
+        }
+        stringTemplates?.forEach { (k, v) ->
+            val (_, inputKey, inputValue) = addTemplate()
+            inputKey.value = k
+            inputValue.value = v
+        }
+        miniMessageTemplates?.forEach { (k, v) ->
+            val (checkbox, inputKey, inputValue) = addTemplate()
+            checkbox.checked = true
+            inputKey.value = k
+            inputValue.value = v
+        }
+        webSocket.send(
+            Serializers.json.encodeToString(
+                TemplatesImpl(
+                    stringTemplates = stringTemplates,
+                    componentTemplates = null,
+                    miniMessageTemplates = miniMessageTemplates) as
+                    Packet))
     }
 
     parse()

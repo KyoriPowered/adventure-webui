@@ -10,6 +10,7 @@ public sealed interface Packet
 public sealed interface Templates : Packet {
     public val stringTemplates: Map<String, String>?
     public val componentTemplates: Map<String, JsonObject>?
+    public val miniMessageTemplates: Map<String, String>?
 }
 
 @Serializable
@@ -20,12 +21,14 @@ public data class Call(public val miniMessage: String? = null) : Packet
 @SerialName("templates")
 public data class TemplatesImpl(
     public override val stringTemplates: Map<String, String>? = null,
-    public override val componentTemplates: Map<String, JsonObject>? = null
+    public override val componentTemplates: Map<String, JsonObject>? = null,
+    public override val miniMessageTemplates: Map<String, String>? = null
 ) : Templates
 
 @Serializable
 public data class Combined(
     public val miniMessage: String? = null,
     public override val stringTemplates: Map<String, String>? = null,
-    public override val componentTemplates: Map<String, JsonObject>? = null
+    public override val componentTemplates: Map<String, JsonObject>? = null,
+    public override val miniMessageTemplates: Map<String, String>? = null
 ) : Templates
