@@ -74,12 +74,8 @@ public fun Application.minimessage() {
                         val packet = Serializers.json.tryDecodeFromString<Packet>(frame.readText())
                         println(packet)
                         when (packet) {
-                            is Call -> {
-                                miniMessage = packet.miniMessage
-                            }
-                            is Templates -> {
-                                templateResolver = packet.templateResolver()
-                            }
+                            is Call -> miniMessage = packet.miniMessage
+                            is Templates -> templateResolver = packet.templateResolver()
                             else -> continue
                         }
 

@@ -74,6 +74,9 @@
                  aria-label="Source" rel="noopener" title="Source">
                 <span class="icon is-small"><i class="fab fa-github"></i></span>
               </a>
+              <a class="button templates-button" aria-label="Templates" title="Templates">
+                <span class="icon is-small"><i class="fas fa-code"></i></span>
+              </a>
               <a class="button settings-button" aria-label="Settings" title="Settings">
                 <span class="icon is-small"><i class="fas fa-cog"></i></span>
               </a>
@@ -109,6 +112,26 @@
         </div>
       </div>
     </section>
+
+    <div id="templates-box" class="modal">
+      <div class="modal-background templates-button"></div>
+      <div class="modal-card">
+        <header class="modal-card-head">
+          <p class="modal-card-title">Templates</p>
+          <button class="delete templates-button"></button>
+        </header>
+        <section class="modal-card-body">
+          <div class="field-body">
+            <div id="templates-list" class="field-group">
+            </div>
+            <a class="button add-template-button" aria-label="Add template" title="Add template">
+              <span class="icon is-small"><i class="fas fa-plus"></i></span>
+            </a>
+          </div>
+        </section>
+        <footer class="modal-card-foot"></footer>
+      </div>
+    </div>
 
     <!-- SETTINGS -->
     <div id="settings-box" class="modal">

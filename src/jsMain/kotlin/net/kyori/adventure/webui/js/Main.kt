@@ -4,12 +4,17 @@ import kotlin.js.json
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.dom.hasClass
+import kotlinx.html.classes
+import kotlinx.html.dom.append
+import kotlinx.html.js.div
+import kotlinx.html.js.input
 import kotlinx.serialization.encodeToString
 import net.kyori.adventure.webui.*
 import net.kyori.adventure.webui.editor.EditorInput
 import net.kyori.adventure.webui.websocket.Call
 import net.kyori.adventure.webui.websocket.Packet
 import net.kyori.adventure.webui.websocket.Response
+import net.kyori.adventure.webui.websocket.TemplatesImpl
 import org.w3c.dom.*
 import org.w3c.dom.clipboard.ClipboardEvent
 import org.w3c.dom.events.EventTarget
@@ -24,6 +29,7 @@ private val urlParams: URLSearchParams by lazy { URLSearchParams(window.location
 
 private const val PARAM_INPUT: String = "input"
 private const val PARAM_MODE: String = "mode"
+private const val PARAM_TEMPLATES: String = "templates"
 
 private var isInEditorMode: Boolean = false
 private lateinit var editorInput: EditorInput
@@ -139,6 +145,20 @@ public fun main() {
             document.getElementsByClassName("settings-button").asList().forEach { element ->
                 element.addEventListener("click", { settingsBox!!.classList.toggle("is-active") })
             }
+            val templatesBox = document.getElementById("templates-box")
+            document.getElementsByClassName("templates-button").asList().forEach { element ->
+                element.addEventListener(
+                    "click",
+                    {
+                        templatesBox!!.classList.toggle("is-active")
+                        webSocket.send(
+                            Serializers.json.encodeToString(
+                                TemplatesImpl(readTemplates()) as Packet))
+                    })
+            }
+            document.getElementsByClassName("add-template-button").asList().forEach { element ->
+                element.addEventListener("click", { addTemplate() })
+            }
 
             // SETTINGS
             val settingBackground =
@@ -206,8 +226,11 @@ public fun main() {
             document.getElementById("link-share-button")!!.addEventListener(
                 "click",
                 {
+                    val inputValue = encodeURIComponent(input.value)
+                    val templates =
+                        encodeURIComponent(Serializers.json.encodeToString(readTemplates()))
                     window.navigator.clipboard.writeText(
-                            "$homeUrl?$PARAM_MODE=${currentMode.paramName}&$PARAM_INPUT=${encodeURIComponent(input.value)}")
+                            "$homeUrl?$PARAM_MODE=${currentMode.paramName}&$PARAM_INPUT=$inputValue&$PARAM_TEMPLATES=$templates")
                         .then {
                             bulmaToast.toast(
                                 json(
@@ -360,6 +383,35 @@ public fun main() {
         })
 }
 
+private fun readTemplates(): Map<String, String> {
+    val templatesBox = document.getElementById("templates-box")!!
+    val templateKeys =
+        templatesBox.getElementsByClassName("template-key").asList().map {
+            it.unsafeCast<HTMLInputElement>().value
+        }
+    val templateValues =
+        templatesBox.getElementsByClassName("template-value").asList().map {
+            it.unsafeCast<HTMLInputElement>().value
+        }
+    return templateKeys
+        .zip(templateValues)
+        .filter { it.first.isNotEmpty() && it.second.isNotEmpty() }
+        .toMap()
+}
+
+private fun addTemplate(): Pair<HTMLInputElement, HTMLInputElement> {
+    val templatesList = document.getElementById("templates-list")!!
+    lateinit var key: HTMLInputElement
+    lateinit var value: HTMLInputElement
+    templatesList.append {
+        div(classes = "field is-horizontal") {
+            div(classes = "control") { key = input(classes = "template-key") }
+            div(classes = "control") { value = input(classes = "template-value") }
+        }
+    }
+    return key to value
+}
+
 private fun onWebsocketReady() {
     // SHARING
     val inputBox = document.getElementById("input")!!.unsafeCast<HTMLTextAreaElement>()
@@ -369,6 +421,18 @@ private fun onWebsocketReady() {
             val text = decodeURIComponent(inputString)
             inputBox.value = text
             println("SHARED: $text")
+        }
+        urlParams.get(PARAM_TEMPLATES)?.also { inputString ->
+            val templates =
+                Serializers.json.tryDecodeFromString<Map<String, String>>(
+                    decodeURIComponent(inputString))
+            println("SHARED: $templates")
+            templates?.forEach { (k, v) ->
+                val (inputKey, inputValue) = addTemplate()
+                inputKey.value = k
+                inputValue.value = v
+            }
+            webSocket.send(Serializers.json.encodeToString(TemplatesImpl(templates) as Packet))
         }
     }
 
