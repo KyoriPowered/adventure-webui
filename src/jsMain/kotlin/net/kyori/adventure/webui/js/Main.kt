@@ -14,7 +14,7 @@ import net.kyori.adventure.webui.editor.EditorInput
 import net.kyori.adventure.webui.websocket.Call
 import net.kyori.adventure.webui.websocket.Packet
 import net.kyori.adventure.webui.websocket.Response
-import net.kyori.adventure.webui.websocket.TemplatesImpl
+import net.kyori.adventure.webui.websocket.Templates
 import org.w3c.dom.*
 import org.w3c.dom.clipboard.ClipboardEvent
 import org.w3c.dom.events.EventTarget

@@ -8,14 +8,14 @@ import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
 import net.kyori.adventure.webui.websocket.Call
 import net.kyori.adventure.webui.websocket.Packet
-import net.kyori.adventure.webui.websocket.TemplatesImpl
+import net.kyori.adventure.webui.websocket.Templates
 
 /** The serializers. */
 public object Serializers {
     private val module = SerializersModule {
         polymorphic(Packet::class) {
             subclass(Call::class)
-            subclass(TemplatesImpl::class)
+            subclass(Templates::class)
         }
     }
 
