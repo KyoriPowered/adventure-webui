@@ -82,7 +82,7 @@ public fun Application.minimessage() {
                         when (packet) {
                             is Call -> miniMessage = packet.miniMessage
                             is Templates -> templateResolver = packet.templateResolver()
-                            else -> continue
+                            null -> continue
                         }
 
                         if (miniMessage == null) continue
