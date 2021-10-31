@@ -152,14 +152,7 @@ public fun main() {
                     "click",
                     {
                         templatesBox!!.classList.toggle("is-active")
-                        val (stringTemplates, miniMessageTemplates) = readTemplates()
-                        webSocket.send(
-                            Serializers.json.encodeToString(
-                                TemplatesImpl(
-                                    stringTemplates = stringTemplates,
-                                    componentTemplates = null,
-                                    miniMessageTemplates = miniMessageTemplates) as
-                                    Packet))
+                        webSocket.send(readTemplates())
                     })
             }
             document.getElementsByClassName("add-template-button").asList().forEach { element ->
@@ -233,16 +226,20 @@ public fun main() {
                 "click",
                 {
                     val inputValue = encodeURIComponent(input.value)
-                    val (stringTemplates, mmTemplates) = readTemplates()
+                    val templates = readTemplates()
                     var link =
                         "$homeUrl?$PARAM_MODE=${currentMode.paramName}&$PARAM_INPUT=$inputValue"
-                    if (stringTemplates.isNotEmpty()) {
+                    if (templates.stringTemplates != null) {
                         link += "&$PARAM_STRING_TEMPLATES="
-                        link += encodeURIComponent(Serializers.json.encodeToString(stringTemplates))
+                        link +=
+                            encodeURIComponent(
+                                Serializers.json.encodeToString(templates.stringTemplates))
                     }
-                    if (mmTemplates.isNotEmpty()) {
+                    if (templates.miniMessageTemplates != null) {
                         link += "&$PARAM_COMPONENT_TEMPLATES="
-                        link += encodeURIComponent(Serializers.json.encodeToString(mmTemplates))
+                        link +=
+                            encodeURIComponent(
+                                Serializers.json.encodeToString(templates.miniMessageTemplates))
                     }
                     window.navigator.clipboard.writeText(link).then {
                         bulmaToast.toast(
@@ -396,7 +393,7 @@ public fun main() {
         })
 }
 
-private fun readTemplates(): Pair<Map<String, String>, Map<String, String>> {
+private fun readTemplates(): Templates {
     val templatesBox = document.getElementById("templates-box")!!
     val templateComponents =
         templatesBox.getElementsByClassName("template-component").asList().map {
@@ -419,7 +416,7 @@ private fun readTemplates(): Pair<Map<String, String>, Map<String, String>> {
         .forEach { (t, c) ->
             (if (c) miniMessageTemplates else stringTemplates)[t.first] = t.second
         }
-    return stringTemplates to miniMessageTemplates
+    return Templates(stringTemplates = stringTemplates, miniMessageTemplates = miniMessageTemplates)
 }
 
 private fun addTemplate(): Triple<HTMLInputElement, HTMLInputElement, HTMLInputElement> {
@@ -472,12 +469,8 @@ private fun onWebsocketReady() {
             inputValue.value = v
         }
         webSocket.send(
-            Serializers.json.encodeToString(
-                TemplatesImpl(
-                    stringTemplates = stringTemplates,
-                    componentTemplates = null,
-                    miniMessageTemplates = miniMessageTemplates) as
-                    Packet))
+            Templates(
+                stringTemplates = stringTemplates, miniMessageTemplates = miniMessageTemplates))
     }
 
     parse()
@@ -649,3 +642,7 @@ private fun parse() {
 
 private inline fun <reified T> List<T>.safeSubList(startIndex: Int, endIndex: Int): List<T> =
     if (endIndex > size) this else this.subList(startIndex, endIndex)
+
+private fun WebSocket.send(packet: Packet) {
+    this.send(Serializers.json.encodeToString(packet))
+}
