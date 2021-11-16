@@ -9,8 +9,8 @@ import net.kyori.adventure.webui.*
 import net.kyori.adventure.webui.editor.EditorInput
 import net.kyori.adventure.webui.websocket.Call
 import net.kyori.adventure.webui.websocket.Packet
-import net.kyori.adventure.webui.websocket.Response
 import net.kyori.adventure.webui.websocket.Placeholders
+import net.kyori.adventure.webui.websocket.Response
 import org.w3c.dom.*
 import org.w3c.dom.clipboard.ClipboardEvent
 import org.w3c.dom.events.EventTarget
@@ -235,7 +235,8 @@ public fun main() {
                         link += "&$PARAM_COMPONENT_PLACEHOLDERS="
                         link +=
                             encodeURIComponent(
-                                Serializers.json.encodeToString(placeholders.miniMessagePlaceholders))
+                                Serializers.json.encodeToString(
+                                    placeholders.miniMessagePlaceholders))
                     }
                     window.navigator.clipboard.writeText(link).then {
                         bulmaToast.toast(
@@ -390,29 +391,14 @@ public fun main() {
 }
 
 private fun readPlaceholders(): Placeholders {
-    val placeholdersBox = document.getElementById("placeholders-box")!!
-    val placeholderIsMM =
-        placeholdersBox.getElementsByClassName("placeholder-component").asList().map {
-            it.unsafeCast<HTMLInputElement>().checked
-        }
-    val placeholderKeys =
-        placeholdersBox.getElementsByClassName("placeholder-key").asList().map {
-            it.unsafeCast<HTMLInputElement>().value
-        }
-    val placeholderValues =
-        placeholdersBox.getElementsByClassName("placeholder-value").asList().map {
-            it.unsafeCast<HTMLInputElement>().value
-        }
+    val userPlaceholders = UserPlaceholder.allInList()
     val stringPlaceholders = mutableMapOf<String, String>()
     val miniMessagePlaceholders = mutableMapOf<String, String>()
-    placeholderKeys
-        .zip(placeholderValues)
-        .zip(placeholderIsMM)
-        .filter { (t, _) -> t.first.isNotEmpty() && t.second.isNotEmpty() }
-        .forEach { (t, c) ->
-            (if (c) miniMessagePlaceholders else stringPlaceholders)[t.first] = t.second
-        }
-    return Placeholders(stringPlaceholders = stringPlaceholders, miniMessagePlaceholders = miniMessagePlaceholders)
+    userPlaceholders.filter { t -> t.key.isNotEmpty() && t.value.isNotEmpty() }.forEach { t ->
+        (if (t.isMiniMessage) miniMessagePlaceholders else stringPlaceholders)[t.key] = t.value
+    }
+    return Placeholders(
+        stringPlaceholders = stringPlaceholders, miniMessagePlaceholders = miniMessagePlaceholders)
 }
 
 private fun onWebsocketReady() {
@@ -428,7 +414,8 @@ private fun onWebsocketReady() {
         var stringPlaceholders: Map<String, String>? = null
         var miniMessagePlaceholders: Map<String, String>? = null
         urlParams.get(PARAM_STRING_PLACEHOLDERS)?.also { inputString ->
-            stringPlaceholders = Serializers.json.tryDecodeFromString(decodeURIComponent(inputString))
+            stringPlaceholders =
+                Serializers.json.tryDecodeFromString(decodeURIComponent(inputString))
             println("SHARED: $stringPlaceholders")
         }
         urlParams.get(PARAM_COMPONENT_PLACEHOLDERS)?.also { inputString ->
@@ -438,20 +425,21 @@ private fun onWebsocketReady() {
         }
         stringPlaceholders?.forEach { (k, v) ->
             UserPlaceholder.addToList().apply {
-                key.value = k
-                value.value = v
+                key = k
+                value = v
             }
         }
         miniMessagePlaceholders?.forEach { (k, v) ->
             UserPlaceholder.addToList().apply {
-                isMM.checked = true
-                key.value = k
-                value.value = v
+                isMiniMessage = true
+                key = k
+                value = v
             }
         }
         webSocket.send(
             Placeholders(
-                stringPlaceholders = stringPlaceholders, miniMessagePlaceholders = miniMessagePlaceholders))
+                stringPlaceholders = stringPlaceholders,
+                miniMessagePlaceholders = miniMessagePlaceholders))
     }
 
     parse()

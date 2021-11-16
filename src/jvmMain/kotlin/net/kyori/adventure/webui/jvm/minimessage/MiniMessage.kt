@@ -27,22 +27,23 @@ import net.kyori.adventure.webui.websocket.*
 
 public val Placeholders?.placeholderResolver: TemplateResolver
     get() {
-    if (this == null) return TemplateResolver.empty()
-    val stringConverted =
-        this.stringPlaceholders?.map { Template.template(it.key, it.value) } ?: listOf()
-    val componentConverted =
-        this.componentPlaceholders?.map {
-            Template.template(
-                it.key, GsonComponentSerializer.gson().deserialize(it.value.toString()))
-        }
-            ?: listOf()
-    val miniMessageConverted =
-        this.miniMessagePlaceholders?.map {
-            Template.template(it.key, MiniMessage.miniMessage().deserialize(it.value))
-        }
-            ?: listOf()
-    return TemplateResolver.templates(stringConverted + componentConverted + miniMessageConverted)
-}
+        if (this == null) return TemplateResolver.empty()
+        val stringConverted =
+            this.stringPlaceholders?.map { Template.template(it.key, it.value) } ?: listOf()
+        val componentConverted =
+            this.componentPlaceholders?.map {
+                Template.template(
+                    it.key, GsonComponentSerializer.gson().deserialize(it.value.toString()))
+            }
+                ?: listOf()
+        val miniMessageConverted =
+            this.miniMessagePlaceholders?.map {
+                Template.template(it.key, MiniMessage.miniMessage().deserialize(it.value))
+            }
+                ?: listOf()
+        return TemplateResolver.templates(
+            stringConverted + componentConverted + miniMessageConverted)
+    }
 
 /** Entry-point for MiniMessage Viewer. */
 public fun Application.minimessage() {
