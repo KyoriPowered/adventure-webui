@@ -25,18 +25,19 @@ import net.kyori.adventure.webui.jvm.minimessage.editor.installEditor
 import net.kyori.adventure.webui.jvm.minimessage.hook.*
 import net.kyori.adventure.webui.websocket.*
 
-public fun Templates?.templateResolver(): TemplateResolver {
+public val Placeholders?.placeholderResolver: TemplateResolver
+    get() {
     if (this == null) return TemplateResolver.empty()
     val stringConverted =
-        this.stringTemplates?.map { Template.template(it.key, it.value) } ?: listOf()
+        this.stringPlaceholders?.map { Template.template(it.key, it.value) } ?: listOf()
     val componentConverted =
-        this.componentTemplates?.map {
+        this.componentPlaceholders?.map {
             Template.template(
                 it.key, GsonComponentSerializer.gson().deserialize(it.value.toString()))
         }
             ?: listOf()
     val miniMessageConverted =
-        this.miniMessageTemplates?.map {
+        this.miniMessagePlaceholders?.map {
             Template.template(it.key, MiniMessage.miniMessage().deserialize(it.value))
         }
             ?: listOf()
@@ -79,7 +80,7 @@ public fun Application.minimessage() {
                         val packet = Serializers.json.tryDecodeFromString<Packet>(frame.readText())
                         when (packet) {
                             is Call -> miniMessage = packet.miniMessage
-                            is Templates -> templateResolver = packet.templateResolver()
+                            is Placeholders -> templateResolver = packet.placeholderResolver
                             null -> continue
                         }
 
@@ -120,13 +121,13 @@ public fun Application.minimessage() {
                     GsonComponentSerializer.gson()
                         .serialize(
                             MiniMessage.miniMessage()
-                                .deserialize(input, structure.templates.templateResolver())))
+                                .deserialize(input, structure.placeholders.placeholderResolver)))
             }
 
             post(URL_MINI_TO_TREE) {
                 val structure = Serializers.json.tryDecodeFromString<Combined>(call.receiveText())
                 val input = structure?.miniMessage ?: return@post
-                val resolver = structure.templates.templateResolver()
+                val resolver = structure.placeholders.placeholderResolver
                 val transformationFactory = { node: TagNode ->
                     try {
                         TransformationRegistry.standard()

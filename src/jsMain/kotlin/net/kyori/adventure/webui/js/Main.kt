@@ -4,18 +4,13 @@ import kotlin.js.json
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.dom.hasClass
-import kotlinx.html.InputType
-import kotlinx.html.dom.append
-import kotlinx.html.js.input
-import kotlinx.html.js.td
-import kotlinx.html.js.tr
 import kotlinx.serialization.encodeToString
 import net.kyori.adventure.webui.*
 import net.kyori.adventure.webui.editor.EditorInput
 import net.kyori.adventure.webui.websocket.Call
 import net.kyori.adventure.webui.websocket.Packet
 import net.kyori.adventure.webui.websocket.Response
-import net.kyori.adventure.webui.websocket.Templates
+import net.kyori.adventure.webui.websocket.Placeholders
 import org.w3c.dom.*
 import org.w3c.dom.clipboard.ClipboardEvent
 import org.w3c.dom.events.EventTarget
@@ -30,8 +25,8 @@ private val urlParams: URLSearchParams by lazy { URLSearchParams(window.location
 
 private const val PARAM_INPUT: String = "input"
 private const val PARAM_MODE: String = "mode"
-private const val PARAM_STRING_TEMPLATES: String = "st"
-private const val PARAM_COMPONENT_TEMPLATES: String = "ct"
+private const val PARAM_STRING_PLACEHOLDERS: String = "st"
+private const val PARAM_COMPONENT_PLACEHOLDERS: String = "ct"
 
 private var isInEditorMode: Boolean = false
 private lateinit var editorInput: EditorInput
@@ -147,17 +142,17 @@ public fun main() {
             document.getElementsByClassName("settings-button").asList().forEach { element ->
                 element.addEventListener("click", { settingsBox!!.classList.toggle("is-active") })
             }
-            val templatesBox = document.getElementById("templates-box")
-            document.getElementsByClassName("templates-button").asList().forEach { element ->
+            val placeholdersBox = document.getElementById("placeholders-box")
+            document.getElementsByClassName("placeholders-button").asList().forEach { element ->
                 element.addEventListener(
                     "click",
                     {
-                        templatesBox!!.classList.toggle("is-active")
-                        webSocket.send(readTemplates())
+                        placeholdersBox!!.classList.toggle("is-active")
+                        webSocket.send(readPlaceholders())
                     })
             }
-            document.getElementsByClassName("add-template-button").asList().forEach { element ->
-                element.addEventListener("click", { addTemplate() })
+            document.getElementsByClassName("add-placeholder-button").asList().forEach { element ->
+                element.addEventListener("click", { UserPlaceholder.addToList() })
             }
 
             // SETTINGS
@@ -227,20 +222,20 @@ public fun main() {
                 "click",
                 {
                     val inputValue = encodeURIComponent(input.value)
-                    val templates = readTemplates()
+                    val placeholders = readPlaceholders()
                     var link =
                         "$homeUrl?$PARAM_MODE=${currentMode.paramName}&$PARAM_INPUT=$inputValue"
-                    if (templates.stringTemplates != null) {
-                        link += "&$PARAM_STRING_TEMPLATES="
+                    if (placeholders.stringPlaceholders != null) {
+                        link += "&$PARAM_STRING_PLACEHOLDERS="
                         link +=
                             encodeURIComponent(
-                                Serializers.json.encodeToString(templates.stringTemplates))
+                                Serializers.json.encodeToString(placeholders.stringPlaceholders))
                     }
-                    if (templates.miniMessageTemplates != null) {
-                        link += "&$PARAM_COMPONENT_TEMPLATES="
+                    if (placeholders.miniMessagePlaceholders != null) {
+                        link += "&$PARAM_COMPONENT_PLACEHOLDERS="
                         link +=
                             encodeURIComponent(
-                                Serializers.json.encodeToString(templates.miniMessageTemplates))
+                                Serializers.json.encodeToString(placeholders.miniMessagePlaceholders))
                     }
                     window.navigator.clipboard.writeText(link).then {
                         bulmaToast.toast(
@@ -394,47 +389,30 @@ public fun main() {
         })
 }
 
-private fun readTemplates(): Templates {
-    val templatesBox = document.getElementById("templates-box")!!
-    val templateComponents =
-        templatesBox.getElementsByClassName("template-component").asList().map {
+private fun readPlaceholders(): Placeholders {
+    val placeholdersBox = document.getElementById("placeholders-box")!!
+    val placeholderIsMM =
+        placeholdersBox.getElementsByClassName("placeholder-component").asList().map {
             it.unsafeCast<HTMLInputElement>().checked
         }
-    val templateKeys =
-        templatesBox.getElementsByClassName("template-key").asList().map {
+    val placeholderKeys =
+        placeholdersBox.getElementsByClassName("placeholder-key").asList().map {
             it.unsafeCast<HTMLInputElement>().value
         }
-    val templateValues =
-        templatesBox.getElementsByClassName("template-value").asList().map {
+    val placeholderValues =
+        placeholdersBox.getElementsByClassName("placeholder-value").asList().map {
             it.unsafeCast<HTMLInputElement>().value
         }
-    val stringTemplates = mutableMapOf<String, String>()
-    val miniMessageTemplates = mutableMapOf<String, String>()
-    templateKeys
-        .zip(templateValues)
-        .zip(templateComponents)
+    val stringPlaceholders = mutableMapOf<String, String>()
+    val miniMessagePlaceholders = mutableMapOf<String, String>()
+    placeholderKeys
+        .zip(placeholderValues)
+        .zip(placeholderIsMM)
         .filter { (t, _) -> t.first.isNotEmpty() && t.second.isNotEmpty() }
         .forEach { (t, c) ->
-            (if (c) miniMessageTemplates else stringTemplates)[t.first] = t.second
+            (if (c) miniMessagePlaceholders else stringPlaceholders)[t.first] = t.second
         }
-    return Templates(stringTemplates = stringTemplates, miniMessageTemplates = miniMessageTemplates)
-}
-
-private fun addTemplate(): Triple<HTMLInputElement, HTMLInputElement, HTMLInputElement> {
-    val templatesList = document.getElementById("templates-list")!!
-    lateinit var key: HTMLInputElement
-    lateinit var value: HTMLInputElement
-    lateinit var component: HTMLInputElement
-    templatesList.append {
-        tr {
-            td(classes = "control is-vcentered has-text-centered") {
-                component = input(type = InputType.checkBox, classes = "template-component")
-            }
-            td(classes = "control") { key = input(classes = "input template-key") }
-            td(classes = "control") { value = input(classes = "input template-value") }
-        }
-    }
-    return Triple(component, key, value)
+    return Placeholders(stringPlaceholders = stringPlaceholders, miniMessagePlaceholders = miniMessagePlaceholders)
 }
 
 private fun onWebsocketReady() {
@@ -447,31 +425,33 @@ private fun onWebsocketReady() {
             inputBox.value = text
             println("SHARED: $text")
         }
-        var stringTemplates: Map<String, String>? = null
-        var miniMessageTemplates: Map<String, String>? = null
-        urlParams.get(PARAM_STRING_TEMPLATES)?.also { inputString ->
-            stringTemplates = Serializers.json.tryDecodeFromString(decodeURIComponent(inputString))
-            println("SHARED: $stringTemplates")
+        var stringPlaceholders: Map<String, String>? = null
+        var miniMessagePlaceholders: Map<String, String>? = null
+        urlParams.get(PARAM_STRING_PLACEHOLDERS)?.also { inputString ->
+            stringPlaceholders = Serializers.json.tryDecodeFromString(decodeURIComponent(inputString))
+            println("SHARED: $stringPlaceholders")
         }
-        urlParams.get(PARAM_COMPONENT_TEMPLATES)?.also { inputString ->
-            miniMessageTemplates =
+        urlParams.get(PARAM_COMPONENT_PLACEHOLDERS)?.also { inputString ->
+            miniMessagePlaceholders =
                 Serializers.json.tryDecodeFromString(decodeURIComponent(inputString))
-            println("SHARED: $miniMessageTemplates")
+            println("SHARED: $miniMessagePlaceholders")
         }
-        stringTemplates?.forEach { (k, v) ->
-            val (_, inputKey, inputValue) = addTemplate()
-            inputKey.value = k
-            inputValue.value = v
+        stringPlaceholders?.forEach { (k, v) ->
+            UserPlaceholder.addToList().apply {
+                key.value = k
+                value.value = v
+            }
         }
-        miniMessageTemplates?.forEach { (k, v) ->
-            val (checkbox, inputKey, inputValue) = addTemplate()
-            checkbox.checked = true
-            inputKey.value = k
-            inputValue.value = v
+        miniMessagePlaceholders?.forEach { (k, v) ->
+            UserPlaceholder.addToList().apply {
+                isMM.checked = true
+                key.value = k
+                value.value = v
+            }
         }
         webSocket.send(
-            Templates(
-                stringTemplates = stringTemplates, miniMessageTemplates = miniMessageTemplates))
+            Placeholders(
+                stringPlaceholders = stringPlaceholders, miniMessagePlaceholders = miniMessagePlaceholders))
     }
 
     parse()
