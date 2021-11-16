@@ -122,14 +122,22 @@
         </header>
         <section class="modal-card-body">
           <div class="field-body">
-            <div id="templates-list" class="field-group">
-            </div>
-            <a class="button add-template-button" aria-label="Add template" title="Add template">
-              <span class="icon is-small"><i class="fas fa-plus"></i></span>
-            </a>
+            <table class="table is-striped is-hoverable is-fullwidth">
+              <thead>
+                <tr>
+                  <th><abbr title="Tick to convert the replacement to a component using MiniMessage formatting">MM?</abbr></th>
+                  <th>Key</th>
+                  <th>Replacement</th>
+                </tr>
+              </thead>
+            </table>
           </div>
         </section>
-        <footer class="modal-card-foot"></footer>
+        <footer class="modal-card-foot">
+          <a class="button add-template-button" aria-label="Add template" title="Add template">
+            <span class="icon is-small"><i class="fas fa-plus"></i></span><span> Add template</span>
+          </a>
+        </footer>
       </div>
     </div>
 
