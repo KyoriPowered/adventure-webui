@@ -6,8 +6,9 @@ import kotlinx.browser.window
 import kotlinx.dom.hasClass
 import kotlinx.html.InputType
 import kotlinx.html.dom.append
-import kotlinx.html.js.div
 import kotlinx.html.js.input
+import kotlinx.html.js.td
+import kotlinx.html.js.tr
 import kotlinx.serialization.encodeToString
 import net.kyori.adventure.webui.*
 import net.kyori.adventure.webui.editor.EditorInput
@@ -425,12 +426,12 @@ private fun addTemplate(): Triple<HTMLInputElement, HTMLInputElement, HTMLInputE
     lateinit var value: HTMLInputElement
     lateinit var component: HTMLInputElement
     templatesList.append {
-        div(classes = "field is-horizontal") {
-            div(classes = "control") {
+        tr {
+            td(classes = "control is-vcentered has-text-centered") {
                 component = input(type = InputType.checkBox, classes = "template-component")
             }
-            div(classes = "control") { key = input(classes = "template-key") }
-            div(classes = "control") { value = input(classes = "template-value") }
+            td(classes = "control") { key = input(classes = "input template-key") }
+            td(classes = "control") { value = input(classes = "input template-value") }
         }
     }
     return Triple(component, key, value)
