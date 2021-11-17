@@ -4,6 +4,7 @@
 package net.kyori.adventure.webui.js
 
 import kotlin.js.Json
+import kotlin.js.json
 
 // standard js methods
 public external fun decodeURIComponent(encodedURI: String): String
@@ -16,4 +17,7 @@ public external class bulmaToast {
         public fun toast(settings: Json)
         public fun setDefaults(settings: Json)
     }
+}
+public fun bulmaToast.Companion.toast(message: String, type: String) {
+    this.toast(json("message" to message, "type" to type))
 }
