@@ -40,6 +40,7 @@ import org.w3c.dom.events.EventTarget
 import org.w3c.dom.events.MouseEvent
 import org.w3c.dom.get
 import org.w3c.dom.url.URLSearchParams
+import org.w3c.fetch.Headers
 import org.w3c.fetch.NO_CACHE
 import org.w3c.fetch.RequestCache
 import org.w3c.fetch.RequestInit
@@ -650,13 +651,14 @@ private fun WebSocket.send(packet: Packet) {
     this.send(Serializers.json.encodeToString(packet))
 }
 
-private fun Window.postPacket(url: String, packet: Packet): Promise<org.w3c.fetch.Response> {
+private inline fun <reified T : Packet> Window.postPacket(url: String, packet: T): Promise<org.w3c.fetch.Response> {
+    console.log(Headers(mapOf("Content-Type" to "text/plain")))
     return this.fetch(
         url,
         RequestInit(
             method = "POST",
             cache = RequestCache.NO_CACHE,
-            headers = mapOf(Pair("Content-Type", "text/plain")),
+            headers = Headers(json("Content-Type" to "text/plain")),
             body = Serializers.json.encodeToString(packet)
         )
     )
