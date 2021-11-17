@@ -536,10 +536,9 @@ private fun checkClickEvents(target: EventTarget?, typesToCheck: Collection<Even
                 remainingTypesToCheck.add(EventType.CLICK)
             } else {
                 val content = target.dataset[DATA_CLICK_EVENT_VALUE.camel] ?: ""
+                val actionName = clickAction.replace('_', ' ').replaceFirstChar(Char::uppercase)
                 bulmaToast.toast(
-                    "<p><b>Click Event</b></p><p>Action: <i>${
-                    clickAction.replace('_', ' ').replaceFirstChar(Char::uppercase)
-                    }</i></p><p>Content: <i>$content</i></p>",
+                    "<p><b>Click Event</b></p><p>Action: <i>${actionName}</i></p><p>Content: <i>$content</i></p>",
                     type = "is-info"
                 )
             }
@@ -639,7 +638,6 @@ private fun WebSocket.send(packet: Packet) {
 }
 
 private inline fun <reified T : Packet> Window.postPacket(url: String, packet: T): Promise<org.w3c.fetch.Response> {
-    console.log(Headers(mapOf("Content-Type" to "text/plain")))
     return this.fetch(
         url,
         RequestInit(
