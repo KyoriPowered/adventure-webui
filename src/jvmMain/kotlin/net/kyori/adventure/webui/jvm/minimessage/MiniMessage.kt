@@ -11,6 +11,7 @@ import java.util.function.BiPredicate
 import kotlinx.serialization.encodeToString
 import net.kyori.adventure.text.minimessage.Context
 import net.kyori.adventure.text.minimessage.MiniMessage
+import net.kyori.adventure.text.minimessage.Template
 import net.kyori.adventure.text.minimessage.parser.ParsingException
 import net.kyori.adventure.text.minimessage.parser.TokenParser
 import net.kyori.adventure.text.minimessage.parser.node.TagNode
@@ -22,9 +23,27 @@ import net.kyori.adventure.webui.jvm.appendComponent
 import net.kyori.adventure.webui.jvm.getConfigString
 import net.kyori.adventure.webui.jvm.minimessage.editor.installEditor
 import net.kyori.adventure.webui.jvm.minimessage.hook.*
-import net.kyori.adventure.webui.websocket.Call
-import net.kyori.adventure.webui.websocket.ParseResult
-import net.kyori.adventure.webui.websocket.Response
+import net.kyori.adventure.webui.websocket.*
+
+public val Placeholders?.placeholderResolver: TemplateResolver
+    get() {
+        if (this == null) return TemplateResolver.empty()
+        val stringConverted =
+            this.stringPlaceholders?.map { Template.template(it.key, it.value) } ?: listOf()
+        val componentConverted =
+            this.componentPlaceholders?.map {
+                Template.template(
+                    it.key, GsonComponentSerializer.gson().deserialize(it.value.toString()))
+            }
+                ?: listOf()
+        val miniMessageConverted =
+            this.miniMessagePlaceholders?.map {
+                Template.template(it.key, MiniMessage.miniMessage().deserialize(it.value))
+            }
+                ?: listOf()
+        return TemplateResolver.templates(
+            stringConverted + componentConverted + miniMessageConverted)
+    }
 
 /** Entry-point for MiniMessage Viewer. */
 public fun Application.minimessage() {
@@ -54,75 +73,79 @@ public fun Application.minimessage() {
         // set up other routing
         route(URL_API) {
             webSocket(URL_MINI_TO_HTML) {
+                var templateResolver = TemplateResolver.empty()
+                var miniMessage: String? = null
+
                 for (frame in incoming) {
                     if (frame is Frame.Text) {
-                        val call = Serializers.json.tryDecodeFromString<Call>(frame.readText())
-
-                        if (call?.miniMessage != null) {
-                            val response =
-                                try {
-                                    val result = StringBuilder()
-
-                                    call
-                                        .miniMessage
-                                        .split("\n")
-                                        .map { line -> HookManager.render(line) }
-                                        .map { line -> MiniMessage.miniMessage().deserialize(line) }
-                                        .map { component -> HookManager.render(component) }
-                                        .forEach { component ->
-                                            result.appendComponent(component)
-                                            result.append("\n")
-                                        }
-
-                                    Response(ParseResult(true, result.toString()))
-                                } catch (e: Exception) {
-                                    Response(
-                                        ParseResult(
-                                            false, errorMessage = e.message ?: "Unknown error!"))
-                                }
-
-                            outgoing.send(Frame.Text(Serializers.json.encodeToString(response)))
+                        val packet = Serializers.json.tryDecodeFromString<Packet>(frame.readText())
+                        when (packet) {
+                            is Call -> miniMessage = packet.miniMessage
+                            is Placeholders -> templateResolver = packet.placeholderResolver
+                            null -> continue
                         }
+
+                        if (miniMessage == null) continue
+                        val response =
+                            try {
+                                val result = StringBuilder()
+
+                                miniMessage
+                                    .split("\n")
+                                    .map { line -> HookManager.render(line) }
+                                    .map { line ->
+                                        MiniMessage.miniMessage()
+                                            .deserialize(line, templateResolver)
+                                    }
+                                    .map { component -> HookManager.render(component) }
+                                    .forEach { component ->
+                                        result.appendComponent(component)
+                                        result.append("\n")
+                                    }
+
+                                Response(ParseResult(true, result.toString()))
+                            } catch (e: Exception) {
+                                Response(
+                                    ParseResult(
+                                        false, errorMessage = e.message ?: "Unknown error!"))
+                            }
+
+                        outgoing.send(Frame.Text(Serializers.json.encodeToString(response)))
                     }
                 }
             }
 
             post(URL_MINI_TO_JSON) {
-                val input =
-                    Serializers.json.tryDecodeFromString<Call>(call.receiveText())?.miniMessage
-                        ?: return@post
+                val structure = Serializers.json.tryDecodeFromString<Combined>(call.receiveText())
+                val input = structure?.miniMessage ?: return@post
                 call.respondText(
                     GsonComponentSerializer.gson()
-                        .serialize(MiniMessage.miniMessage().deserialize(input)))
+                        .serialize(
+                            MiniMessage.miniMessage()
+                                .deserialize(input, structure.placeholders.placeholderResolver)))
             }
 
             post(URL_MINI_TO_TREE) {
-                val input =
-                    Serializers.json.tryDecodeFromString<Call>(call.receiveText())?.miniMessage
-                        ?: return@post
-                val templateResolver = TemplateResolver.empty()
+                val structure = Serializers.json.tryDecodeFromString<Combined>(call.receiveText())
+                val input = structure?.miniMessage ?: return@post
+                val resolver = structure.placeholders.placeholderResolver
                 val transformationFactory = { node: TagNode ->
                     try {
                         TransformationRegistry.standard()
                             .get(
                                 node.name(),
                                 node.parts(),
-                                templateResolver,
+                                resolver,
                                 Context.of(false, input, MiniMessage.miniMessage()))
                     } catch (ignored: ParsingException) {
                         null
                     }
                 }
                 val tagNameChecker = BiPredicate { name: String?, _: Boolean ->
-                    TransformationRegistry.standard().exists(name, templateResolver)
+                    TransformationRegistry.standard().exists(name, resolver)
                 }
                 val root =
-                    TokenParser.parse(
-                        transformationFactory,
-                        tagNameChecker,
-                        TemplateResolver.empty(),
-                        input,
-                        false)
+                    TokenParser.parse(transformationFactory, tagNameChecker, resolver, input, false)
                 call.respondText(root.toString())
             }
 

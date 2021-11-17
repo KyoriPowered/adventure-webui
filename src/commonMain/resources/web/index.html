@@ -74,6 +74,9 @@
                  aria-label="Source" rel="noopener" title="Source">
                 <span class="icon is-small"><i class="fab fa-github"></i></span>
               </a>
+              <a class="button placeholders-button" aria-label="Placeholders" title="Placeholders">
+                <span class="icon is-small"><i class="fas fa-code"></i></span>
+              </a>
               <a class="button settings-button" aria-label="Settings" title="Settings">
                 <span class="icon is-small"><i class="fas fa-cog"></i></span>
               </a>
@@ -109,6 +112,35 @@
         </div>
       </div>
     </section>
+
+    <div id="placeholders-box" class="modal">
+      <div class="modal-background placeholders-button"></div>
+      <div class="modal-card">
+        <header class="modal-card-head">
+          <p class="modal-card-title">Placeholders</p>
+          <button class="delete placeholders-button"></button>
+        </header>
+        <section class="modal-card-body">
+          <div class="field-body">
+            <table class="table is-striped is-hoverable is-fullwidth">
+              <thead>
+                <tr>
+                  <th><abbr title="Tick to convert the replacement to a component using MiniMessage formatting">MM?</abbr></th>
+                  <th>Key</th>
+                  <th>Replacement</th>
+                </tr>
+              </thead>
+              <tbody id="placeholders-list"></tbody>
+            </table>
+          </div>
+        </section>
+        <footer class="modal-card-foot">
+          <a class="button add-placeholder-button" aria-label="Add placeholder" title="Add placeholder">
+            <span class="icon is-small"><i class="fas fa-plus"></i></span><span> Add placeholder</span>
+          </a>
+        </footer>
+      </div>
+    </div>
 
     <!-- SETTINGS -->
     <div id="settings-box" class="modal">

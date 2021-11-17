@@ -53,6 +53,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(libs.kotlinx.serialization.json)
+                implementation(libs.kotlinx.html)
             }
         }
 
@@ -63,7 +64,6 @@ kotlin {
                 implementation(libs.adventure.minimessage)
                 implementation(libs.adventure.text.serializer.gson)
                 implementation(libs.cache4k)
-                implementation(libs.kotlinx.html)
                 implementation(libs.logback.classic)
             }
         }

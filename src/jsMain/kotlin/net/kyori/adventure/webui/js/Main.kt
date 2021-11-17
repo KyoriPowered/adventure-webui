@@ -8,6 +8,8 @@ import kotlinx.serialization.encodeToString
 import net.kyori.adventure.webui.*
 import net.kyori.adventure.webui.editor.EditorInput
 import net.kyori.adventure.webui.websocket.Call
+import net.kyori.adventure.webui.websocket.Packet
+import net.kyori.adventure.webui.websocket.Placeholders
 import net.kyori.adventure.webui.websocket.Response
 import org.w3c.dom.*
 import org.w3c.dom.clipboard.ClipboardEvent
@@ -23,6 +25,8 @@ private val urlParams: URLSearchParams by lazy { URLSearchParams(window.location
 
 private const val PARAM_INPUT: String = "input"
 private const val PARAM_MODE: String = "mode"
+private const val PARAM_STRING_PLACEHOLDERS: String = "st"
+private const val PARAM_COMPONENT_PLACEHOLDERS: String = "ct"
 
 private var isInEditorMode: Boolean = false
 private lateinit var editorInput: EditorInput
@@ -138,6 +142,18 @@ public fun main() {
             document.getElementsByClassName("settings-button").asList().forEach { element ->
                 element.addEventListener("click", { settingsBox!!.classList.toggle("is-active") })
             }
+            val placeholdersBox = document.getElementById("placeholders-box")
+            document.getElementsByClassName("placeholders-button").asList().forEach { element ->
+                element.addEventListener(
+                    "click",
+                    {
+                        placeholdersBox!!.classList.toggle("is-active")
+                        webSocket.send(readPlaceholders())
+                    })
+            }
+            document.getElementsByClassName("add-placeholder-button").asList().forEach { element ->
+                element.addEventListener("click", { UserPlaceholder.addToList() })
+            }
 
             // SETTINGS
             val settingBackground =
@@ -205,14 +221,29 @@ public fun main() {
             document.getElementById("link-share-button")!!.addEventListener(
                 "click",
                 {
-                    window.navigator.clipboard.writeText(
-                            "$homeUrl?$PARAM_MODE=${currentMode.paramName}&$PARAM_INPUT=${encodeURIComponent(input.value)}")
-                        .then {
-                            bulmaToast.toast(
-                                json(
-                                    "message" to "Shareable link copied to clipboard!",
-                                    "type" to "is-success"))
-                        }
+                    val inputValue = encodeURIComponent(input.value)
+                    val placeholders = readPlaceholders()
+                    var link =
+                        "$homeUrl?$PARAM_MODE=${currentMode.paramName}&$PARAM_INPUT=$inputValue"
+                    if (placeholders.stringPlaceholders != null) {
+                        link += "&$PARAM_STRING_PLACEHOLDERS="
+                        link +=
+                            encodeURIComponent(
+                                Serializers.json.encodeToString(placeholders.stringPlaceholders))
+                    }
+                    if (placeholders.miniMessagePlaceholders != null) {
+                        link += "&$PARAM_COMPONENT_PLACEHOLDERS="
+                        link +=
+                            encodeURIComponent(
+                                Serializers.json.encodeToString(
+                                    placeholders.miniMessagePlaceholders))
+                    }
+                    window.navigator.clipboard.writeText(link).then {
+                        bulmaToast.toast(
+                            json(
+                                "message" to "Shareable link copied to clipboard!",
+                                "type" to "is-success"))
+                    }
                 })
             document.getElementById("copy-button")!!.addEventListener(
                 "click",
@@ -359,6 +390,17 @@ public fun main() {
         })
 }
 
+private fun readPlaceholders(): Placeholders {
+    val userPlaceholders = UserPlaceholder.allInList()
+    val stringPlaceholders = mutableMapOf<String, String>()
+    val miniMessagePlaceholders = mutableMapOf<String, String>()
+    userPlaceholders.filter { t -> t.key.isNotEmpty() && t.value.isNotEmpty() }.forEach { t ->
+        (if (t.isMiniMessage) miniMessagePlaceholders else stringPlaceholders)[t.key] = t.value
+    }
+    return Placeholders(
+        stringPlaceholders = stringPlaceholders, miniMessagePlaceholders = miniMessagePlaceholders)
+}
+
 private fun onWebsocketReady() {
     // SHARING
     val inputBox = document.getElementById("input")!!.unsafeCast<HTMLTextAreaElement>()
@@ -369,6 +411,35 @@ private fun onWebsocketReady() {
             inputBox.value = text
             println("SHARED: $text")
         }
+        var stringPlaceholders: Map<String, String>? = null
+        var miniMessagePlaceholders: Map<String, String>? = null
+        urlParams.get(PARAM_STRING_PLACEHOLDERS)?.also { inputString ->
+            stringPlaceholders =
+                Serializers.json.tryDecodeFromString(decodeURIComponent(inputString))
+            println("SHARED: $stringPlaceholders")
+        }
+        urlParams.get(PARAM_COMPONENT_PLACEHOLDERS)?.also { inputString ->
+            miniMessagePlaceholders =
+                Serializers.json.tryDecodeFromString(decodeURIComponent(inputString))
+            println("SHARED: $miniMessagePlaceholders")
+        }
+        stringPlaceholders?.forEach { (k, v) ->
+            UserPlaceholder.addToList().apply {
+                key = k
+                value = v
+            }
+        }
+        miniMessagePlaceholders?.forEach { (k, v) ->
+            UserPlaceholder.addToList().apply {
+                isMiniMessage = true
+                key = k
+                value = v
+            }
+        }
+        webSocket.send(
+            Placeholders(
+                stringPlaceholders = stringPlaceholders,
+                miniMessagePlaceholders = miniMessagePlaceholders))
     }
 
     parse()
@@ -533,10 +604,14 @@ private fun parse() {
                     if (line == "") "\u200B" else line
                 }
 
-            webSocket.send(Serializers.json.encodeToString(Call(combinedLines)))
+            webSocket.send(Serializers.json.encodeToString(Call(combinedLines) as Packet))
         }
     }
 }
 
 private inline fun <reified T> List<T>.safeSubList(startIndex: Int, endIndex: Int): List<T> =
     if (endIndex > size) this else this.subList(startIndex, endIndex)
+
+private fun WebSocket.send(packet: Packet) {
+    this.send(Serializers.json.encodeToString(packet))
+}
