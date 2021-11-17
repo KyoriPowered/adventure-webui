@@ -1,13 +1,19 @@
 package net.kyori.adventure.webui.jvm.minimessage
 
-import io.ktor.application.*
-import io.ktor.http.cio.websocket.*
-import io.ktor.http.content.*
-import io.ktor.request.*
-import io.ktor.response.*
-import io.ktor.routing.*
-import io.ktor.websocket.*
-import java.util.function.BiPredicate
+import io.ktor.application.Application
+import io.ktor.application.call
+import io.ktor.http.cio.websocket.Frame
+import io.ktor.http.cio.websocket.readText
+import io.ktor.http.content.defaultResource
+import io.ktor.http.content.resource
+import io.ktor.http.content.resources
+import io.ktor.http.content.static
+import io.ktor.request.receiveText
+import io.ktor.response.respondText
+import io.ktor.routing.post
+import io.ktor.routing.route
+import io.ktor.routing.routing
+import io.ktor.websocket.webSocket
 import kotlinx.serialization.encodeToString
 import net.kyori.adventure.text.minimessage.Context
 import net.kyori.adventure.text.minimessage.MiniMessage
@@ -18,12 +24,32 @@ import net.kyori.adventure.text.minimessage.parser.node.TagNode
 import net.kyori.adventure.text.minimessage.template.TemplateResolver
 import net.kyori.adventure.text.minimessage.transformation.TransformationRegistry
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
-import net.kyori.adventure.webui.*
+import net.kyori.adventure.webui.Serializers
+import net.kyori.adventure.webui.URL_API
+import net.kyori.adventure.webui.URL_EDITOR
+import net.kyori.adventure.webui.URL_MINI_TO_HTML
+import net.kyori.adventure.webui.URL_MINI_TO_JSON
+import net.kyori.adventure.webui.URL_MINI_TO_TREE
 import net.kyori.adventure.webui.jvm.appendComponent
 import net.kyori.adventure.webui.jvm.getConfigString
 import net.kyori.adventure.webui.jvm.minimessage.editor.installEditor
-import net.kyori.adventure.webui.jvm.minimessage.hook.*
-import net.kyori.adventure.webui.websocket.*
+import net.kyori.adventure.webui.jvm.minimessage.hook.CLICK_EVENT_RENDER_HOOK
+import net.kyori.adventure.webui.jvm.minimessage.hook.COMPONENT_CLASS_RENDER_HOOK
+import net.kyori.adventure.webui.jvm.minimessage.hook.FONT_RENDER_HOOK
+import net.kyori.adventure.webui.jvm.minimessage.hook.HOVER_EVENT_RENDER_HOOK
+import net.kyori.adventure.webui.jvm.minimessage.hook.HookManager
+import net.kyori.adventure.webui.jvm.minimessage.hook.INSERTION_RENDER_HOOK
+import net.kyori.adventure.webui.jvm.minimessage.hook.TEXT_COLOR_RENDER_HOOK
+import net.kyori.adventure.webui.jvm.minimessage.hook.TEXT_DECORATION_RENDER_HOOK
+import net.kyori.adventure.webui.jvm.minimessage.hook.TEXT_RENDER_HOOK
+import net.kyori.adventure.webui.tryDecodeFromString
+import net.kyori.adventure.webui.websocket.Call
+import net.kyori.adventure.webui.websocket.Combined
+import net.kyori.adventure.webui.websocket.Packet
+import net.kyori.adventure.webui.websocket.ParseResult
+import net.kyori.adventure.webui.websocket.Placeholders
+import net.kyori.adventure.webui.websocket.Response
+import java.util.function.BiPredicate
 
 public val Placeholders?.placeholderResolver: TemplateResolver
     get() {
@@ -33,7 +59,8 @@ public val Placeholders?.placeholderResolver: TemplateResolver
         val componentConverted =
             this.componentPlaceholders?.map {
                 Template.template(
-                    it.key, GsonComponentSerializer.gson().deserialize(it.value.toString()))
+                    it.key, GsonComponentSerializer.gson().deserialize(it.value.toString())
+                )
             }
                 ?: listOf()
         val miniMessageConverted =
@@ -42,7 +69,8 @@ public val Placeholders?.placeholderResolver: TemplateResolver
             }
                 ?: listOf()
         return TemplateResolver.templates(
-            stringConverted + componentConverted + miniMessageConverted)
+            stringConverted + componentConverted + miniMessageConverted
+        )
     }
 
 /** Entry-point for MiniMessage Viewer. */
@@ -78,8 +106,7 @@ public fun Application.minimessage() {
 
                 for (frame in incoming) {
                     if (frame is Frame.Text) {
-                        val packet = Serializers.json.tryDecodeFromString<Packet>(frame.readText())
-                        when (packet) {
+                        when (val packet = Serializers.json.tryDecodeFromString<Packet>(frame.readText())) {
                             is Call -> miniMessage = packet.miniMessage
                             is Placeholders -> templateResolver = packet.placeholderResolver
                             null -> continue
@@ -107,7 +134,9 @@ public fun Application.minimessage() {
                             } catch (e: Exception) {
                                 Response(
                                     ParseResult(
-                                        false, errorMessage = e.message ?: "Unknown error!"))
+                                        false, errorMessage = e.message ?: "Unknown error!"
+                                    )
+                                )
                             }
 
                         outgoing.send(Frame.Text(Serializers.json.encodeToString(response)))
@@ -122,7 +151,9 @@ public fun Application.minimessage() {
                     GsonComponentSerializer.gson()
                         .serialize(
                             MiniMessage.miniMessage()
-                                .deserialize(input, structure.placeholders.placeholderResolver)))
+                                .deserialize(input, structure.placeholders.placeholderResolver)
+                        )
+                )
             }
 
             post(URL_MINI_TO_TREE) {
@@ -136,7 +167,8 @@ public fun Application.minimessage() {
                                 node.name(),
                                 node.parts(),
                                 resolver,
-                                Context.of(false, input, MiniMessage.miniMessage()))
+                                Context.of(false, input, MiniMessage.miniMessage())
+                            )
                     } catch (ignored: ParsingException) {
                         null
                     }

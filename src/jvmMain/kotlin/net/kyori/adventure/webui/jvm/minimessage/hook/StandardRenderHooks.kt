@@ -5,7 +5,11 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.event.HoverEvent
 import net.kyori.adventure.text.format.TextDecoration
-import net.kyori.adventure.webui.*
+import net.kyori.adventure.webui.COMPONENT_CLASS
+import net.kyori.adventure.webui.DATA_CLICK_EVENT_ACTION
+import net.kyori.adventure.webui.DATA_CLICK_EVENT_VALUE
+import net.kyori.adventure.webui.DATA_HOVER_EVENT_SHOW_TEXT
+import net.kyori.adventure.webui.DATA_INSERTION
 import net.kyori.adventure.webui.jvm.addData
 import net.kyori.adventure.webui.jvm.addStyle
 import net.kyori.adventure.webui.jvm.appendComponent

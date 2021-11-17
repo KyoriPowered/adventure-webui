@@ -1,8 +1,8 @@
 package net.kyori.adventure.webui.jvm.minimessage.hook
 
-import java.util.PriorityQueue
 import kotlinx.html.SPAN
 import net.kyori.adventure.text.Component
+import java.util.PriorityQueue
 
 /** Manager for hooks. */
 public object HookManager {

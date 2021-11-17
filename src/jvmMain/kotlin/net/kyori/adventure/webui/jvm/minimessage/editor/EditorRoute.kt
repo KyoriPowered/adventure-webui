@@ -3,19 +3,22 @@
 package net.kyori.adventure.webui.jvm.minimessage.editor
 
 import io.github.reactivecircus.cache4k.Cache
-import io.ktor.application.*
-import io.ktor.http.*
-import io.ktor.request.*
-import io.ktor.response.*
-import io.ktor.routing.*
-import java.util.*
-import kotlin.time.Duration
+import io.ktor.application.call
+import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
+import io.ktor.request.receiveText
+import io.ktor.response.respondText
+import io.ktor.routing.Route
+import io.ktor.routing.get
+import io.ktor.routing.post
 import kotlinx.serialization.encodeToString
 import net.kyori.adventure.webui.Serializers
 import net.kyori.adventure.webui.URL_EDITOR_INPUT
 import net.kyori.adventure.webui.URL_EDITOR_OUTPUT
 import net.kyori.adventure.webui.editor.EditorInput
 import net.kyori.adventure.webui.tryDecodeFromString
+import java.util.UUID
+import kotlin.time.Duration
 
 private val inputSessions: Cache<String, EditorInput> =
     Cache.Builder().expireAfterWrite(Duration.minutes(5)).build()
@@ -33,7 +36,8 @@ public fun Route.installEditor() {
                 inputSessions.put(token, input)
                 call.respondText(
                     Serializers.json.encodeToString(EditorInputResponse(token)),
-                    ContentType.Application.Json)
+                    ContentType.Application.Json
+                )
             }
         }
     }

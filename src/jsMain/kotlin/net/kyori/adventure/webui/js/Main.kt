@@ -1,24 +1,48 @@
 package net.kyori.adventure.webui.js
 
-import kotlin.js.json
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.dom.hasClass
 import kotlinx.serialization.encodeToString
-import net.kyori.adventure.webui.*
+import net.kyori.adventure.webui.COMPONENT_CLASS
+import net.kyori.adventure.webui.DATA_CLICK_EVENT_ACTION
+import net.kyori.adventure.webui.DATA_CLICK_EVENT_VALUE
+import net.kyori.adventure.webui.DATA_HOVER_EVENT_SHOW_TEXT
+import net.kyori.adventure.webui.DATA_INSERTION
+import net.kyori.adventure.webui.PARAM_EDITOR_TOKEN
+import net.kyori.adventure.webui.Serializers
+import net.kyori.adventure.webui.URL_API
+import net.kyori.adventure.webui.URL_EDITOR
+import net.kyori.adventure.webui.URL_EDITOR_INPUT
+import net.kyori.adventure.webui.URL_EDITOR_OUTPUT
+import net.kyori.adventure.webui.URL_MINI_TO_HTML
+import net.kyori.adventure.webui.URL_MINI_TO_JSON
+import net.kyori.adventure.webui.URL_MINI_TO_TREE
 import net.kyori.adventure.webui.editor.EditorInput
+import net.kyori.adventure.webui.tryDecodeFromString
 import net.kyori.adventure.webui.websocket.Call
 import net.kyori.adventure.webui.websocket.Packet
 import net.kyori.adventure.webui.websocket.Placeholders
 import net.kyori.adventure.webui.websocket.Response
-import org.w3c.dom.*
+import org.w3c.dom.Element
+import org.w3c.dom.HTMLAnchorElement
+import org.w3c.dom.HTMLDivElement
+import org.w3c.dom.HTMLElement
+import org.w3c.dom.HTMLPreElement
+import org.w3c.dom.HTMLSelectElement
+import org.w3c.dom.HTMLSpanElement
+import org.w3c.dom.HTMLTextAreaElement
+import org.w3c.dom.WebSocket
+import org.w3c.dom.asList
 import org.w3c.dom.clipboard.ClipboardEvent
 import org.w3c.dom.events.EventTarget
 import org.w3c.dom.events.MouseEvent
+import org.w3c.dom.get
 import org.w3c.dom.url.URLSearchParams
 import org.w3c.fetch.NO_CACHE
 import org.w3c.fetch.RequestCache
 import org.w3c.fetch.RequestInit
+import kotlin.js.json
 
 private val homeUrl: String by lazy { window.location.href.split('?')[0] }
 private val urlParams: URLSearchParams by lazy { URLSearchParams(window.location.search) }
@@ -45,7 +69,9 @@ public fun main() {
                     "dismissible" to true,
                     "pauseOnHover" to true,
                     "duration" to 6000,
-                    "animate" to json("in" to "fadeIn", "out" to "fadeOut")))
+                    "animate" to json("in" to "fadeIn", "out" to "fadeOut")
+                )
+            )
 
             // EDITOR
             val input = document.getElementById("input")!!.unsafeCast<HTMLTextAreaElement>()
@@ -54,67 +80,78 @@ public fun main() {
                 isInEditorMode = true
 
                 window.fetch(
-                        "$URL_API$URL_EDITOR$URL_EDITOR_INPUT?$PARAM_EDITOR_TOKEN=$token",
-                        RequestInit("GET"))
-                    .then { response ->
-                        if (!response.ok) {
-                            isInEditorMode = false
-                            bulmaToast.toast(
-                                json(
-                                    "message" to "Could not load editor session!",
-                                    "type" to "is-error"))
-                        } else {
-                            response.text().then { text ->
-                                val possibleEditorInput =
-                                    Serializers.json.tryDecodeFromString<EditorInput>(text)
-                                if (possibleEditorInput == null) {
-                                    isInEditorMode = false
-                                    bulmaToast.toast(
-                                        json(
-                                            "message" to "Could not load editor session!",
-                                            "type" to "is-error"))
-                                } else {
-                                    isInEditorMode = true
-                                    editorInput = possibleEditorInput
-                                    input.value = editorInput.input
-                                    bulmaToast.toast(
-                                        json(
-                                            "message" to
-                                                "Loaded editor session! Press the save icon to generate a command to save the message to ${editorInput.application}.",
-                                            "type" to "is-success"))
-                                    saveButton.classList.remove("is-hidden")
-                                }
+                    "$URL_API$URL_EDITOR$URL_EDITOR_INPUT?$PARAM_EDITOR_TOKEN=$token",
+                    RequestInit("GET")
+                ).then { response ->
+                    if (!response.ok) {
+                        isInEditorMode = false
+                        bulmaToast.toast(
+                            json(
+                                "message" to "Could not load editor session!",
+                                "type" to "is-error"
+                            )
+                        )
+                    } else {
+                        response.text().then { text ->
+                            val possibleEditorInput =
+                                Serializers.json.tryDecodeFromString<EditorInput>(text)
+                            if (possibleEditorInput == null) {
+                                isInEditorMode = false
+                                bulmaToast.toast(
+                                    json(
+                                        "message" to "Could not load editor session!",
+                                        "type" to "is-error"
+                                    )
+                                )
+                            } else {
+                                isInEditorMode = true
+                                editorInput = possibleEditorInput
+                                input.value = editorInput.input
+                                bulmaToast.toast(
+                                    json(
+                                        "message" to
+                                            "Loaded editor session! Press the save icon to generate a command to save the message to ${editorInput.application}.",
+                                        "type" to "is-success"
+                                    )
+                                )
+                                saveButton.classList.remove("is-hidden")
                             }
                         }
                     }
+                }
             }
             saveButton.addEventListener(
                 "click",
                 {
                     if (isInEditorMode && ::editorInput.isInitialized) {
                         window.fetch(
-                                "$URL_API$URL_EDITOR$URL_EDITOR_OUTPUT",
-                                RequestInit("POST", body = input.value))
-                            .then { response ->
-                                response.text().then { token ->
-                                    window.navigator.clipboard.writeText(
-                                            editorInput.command.replace("{token}", token))
-                                        .then {
-                                            bulmaToast.toast(
-                                                json(
-                                                    "message" to
-                                                        "The command to run in-game has been copied to your clipboard!",
-                                                    "type" to "is-success"))
-                                        }
-                                }
+                            "$URL_API$URL_EDITOR$URL_EDITOR_OUTPUT",
+                            RequestInit("POST", body = input.value)
+                        ).then { response ->
+                            response.text().then { token ->
+                                window.navigator.clipboard.writeText(
+                                    editorInput.command.replace("{token}", token)
+                                )
+                                    .then {
+                                        bulmaToast.toast(
+                                            json(
+                                                "message" to
+                                                    "The command to run in-game has been copied to your clipboard!",
+                                                "type" to "is-success"
+                                            )
+                                        )
+                                    }
                             }
+                        }
                     }
-                })
+                }
+            )
 
             // WEBSOCKET
             webSocket =
                 if (window.location.hostname == "localhost" ||
-                    window.location.hostname == "127.0.0.1") {
+                    window.location.hostname == "127.0.0.1"
+                ) {
                     WebSocket("ws://${window.location.host}$URL_API$URL_MINI_TO_HTML")
                 } else {
                     WebSocket("wss://${window.location.host}$URL_API$URL_MINI_TO_HTML")
@@ -134,8 +171,7 @@ public fun main() {
 
             // CARET
             val chatBox = document.getElementById("chat-entry-box")!!.unsafeCast<HTMLDivElement>()
-            window.setInterval(
-                { chatBox.innerHTML = if (chatBox.innerHTML == "_") " " else "_" }, 380)
+            window.setInterval({ chatBox.innerHTML = if (chatBox.innerHTML == "_") " " else "_" }, 380)
 
             // BUTTONS
             val settingsBox = document.getElementById("settings-box")
@@ -149,20 +185,19 @@ public fun main() {
                     {
                         placeholdersBox!!.classList.toggle("is-active")
                         webSocket.send(readPlaceholders())
-                    })
+                    }
+                )
             }
             document.getElementsByClassName("add-placeholder-button").asList().forEach { element ->
                 element.addEventListener("click", { UserPlaceholder.addToList() })
             }
 
             // SETTINGS
-            val settingBackground =
-                document.getElementById("setting-background")!!.unsafeCast<HTMLSelectElement>()
+            val settingBackground = document.getElementById("setting-background")!!.unsafeCast<HTMLSelectElement>()
             settingBackground.addEventListener(
                 "change",
-                {
-                    outputPane.style.backgroundImage = "url(\"img/${settingBackground.value}.jpg\")"
-                })
+                { outputPane.style.backgroundImage = "url(\"img/${settingBackground.value}.jpg\")" }
+            )
 
             // MODES
             val urlParams = URLSearchParams(window.location.search)
@@ -170,8 +205,7 @@ public fun main() {
             outputPre.classList.add(currentMode.className)
             outputPane.classList.add(currentMode.className)
 
-            val modeButtons =
-                document.getElementsByClassName("mc-mode").asList().unsafeCast<List<HTMLElement>>()
+            val modeButtons = document.getElementsByClassName("mc-mode").asList().unsafeCast<List<HTMLElement>>()
             modeButtons.forEach { element ->
                 // set is-active on the current mode first
                 val mode = Mode.valueOf(element.dataset["mode"]!!)
@@ -214,7 +248,8 @@ public fun main() {
 
                         // re-parse to remove the horrible server list header line hack
                         parse()
-                    })
+                    }
+                )
             }
 
             // CLIPBOARD
@@ -229,22 +264,28 @@ public fun main() {
                         link += "&$PARAM_STRING_PLACEHOLDERS="
                         link +=
                             encodeURIComponent(
-                                Serializers.json.encodeToString(placeholders.stringPlaceholders))
+                                Serializers.json.encodeToString(placeholders.stringPlaceholders)
+                            )
                     }
                     if (placeholders.miniMessagePlaceholders != null) {
                         link += "&$PARAM_COMPONENT_PLACEHOLDERS="
                         link +=
                             encodeURIComponent(
                                 Serializers.json.encodeToString(
-                                    placeholders.miniMessagePlaceholders))
+                                    placeholders.miniMessagePlaceholders
+                                )
+                            )
                     }
                     window.navigator.clipboard.writeText(link).then {
                         bulmaToast.toast(
                             json(
                                 "message" to "Shareable link copied to clipboard!",
-                                "type" to "is-success"))
+                                "type" to "is-success"
+                            )
+                        )
                     }
-                })
+                }
+            )
             document.getElementById("copy-button")!!.addEventListener(
                 "click",
                 {
@@ -252,57 +293,71 @@ public fun main() {
                         bulmaToast.toast(
                             json(
                                 "message" to "Input text copied to clipboard!",
-                                "type" to "is-success"))
+                                "type" to "is-success"
+                            )
+                        )
                     }
-                })
+                }
+            )
             document.getElementById("export-to-json-button")!!.addEventListener(
                 "click",
                 {
                     window.fetch(
-                            "$URL_API$URL_MINI_TO_JSON",
-                            RequestInit(
-                                method = "POST",
-                                cache = RequestCache.NO_CACHE,
-                                headers = mapOf(Pair("Content-Type", "text/plain")),
-                                body =
-                                    Serializers.json.encodeToString(
-                                        Call(miniMessage = input.value))))
+                        "$URL_API$URL_MINI_TO_JSON",
+                        RequestInit(
+                            method = "POST",
+                            cache = RequestCache.NO_CACHE,
+                            headers = mapOf(Pair("Content-Type", "text/plain")),
+                            body =
+                            Serializers.json.encodeToString(
+                                Call(miniMessage = input.value)
+                            )
+                        )
+                    )
                         .then { response ->
                             response.text().then { text ->
                                 window.navigator.clipboard.writeText(text).then {
                                     bulmaToast.toast(
                                         json(
                                             "message" to "JSON copied to clipboard!",
-                                            "type" to "is-success"))
+                                            "type" to "is-success"
+                                        )
+                                    )
                                 }
                             }
                         }
-                })
+                }
+            )
 
             document.getElementById("show-tree-button")!!.addEventListener(
                 "click",
                 {
                     window.fetch(
-                            "$URL_API$URL_MINI_TO_TREE",
-                            RequestInit(
-                                method = "POST",
-                                cache = RequestCache.NO_CACHE,
-                                headers = mapOf(Pair("Content-Type", "text/plain")),
-                                body =
-                                    Serializers.json.encodeToString(
-                                        Call(miniMessage = input.value))))
-                        .then { response ->
-                            response.text().then { text ->
-                                val escaped =
-                                    text.replace("&", "&amp;")
-                                        .replace("<", "&lt;")
-                                        .replace(">", "&gt;")
-                                bulmaToast.toast(
-                                    json(
-                                        "message" to "<pre>$escaped</pre>", "type" to "is-success"))
-                            }
+                        "$URL_API$URL_MINI_TO_TREE",
+                        RequestInit(
+                            method = "POST",
+                            cache = RequestCache.NO_CACHE,
+                            headers = mapOf(Pair("Content-Type", "text/plain")),
+                            body =
+                            Serializers.json.encodeToString(
+                                Call(miniMessage = input.value)
+                            )
+                        )
+                    ).then { response ->
+                        response.text().then { text ->
+                            val escaped =
+                                text.replace("&", "&amp;")
+                                    .replace("<", "&lt;")
+                                    .replace(">", "&gt;")
+                            bulmaToast.toast(
+                                json(
+                                    "message" to "<pre>$escaped</pre>", "type" to "is-success"
+                                )
+                            )
                         }
-                })
+                    }
+                }
+            )
 
             // EDITOR
 
@@ -314,7 +369,8 @@ public fun main() {
                 {
                     burgerMenu.classList.toggle("is-active")
                     navbarMenu.classList.toggle("is-active")
-                })
+                }
+            )
 
             // EVENTS
             document.addEventListener(
@@ -327,7 +383,8 @@ public fun main() {
                         // we need to prevent propagation as we do that ourselves manually
                         event.stopPropagation()
                     }
-                })
+                }
+            )
 
             document.addEventListener(
                 "mouseover",
@@ -336,7 +393,8 @@ public fun main() {
                     checkHoverEvents(target, hoverTooltip)
                     // we need to prevent propagation as we do that ourselves manually
                     event.stopPropagation()
-                })
+                }
+            )
 
             document.addEventListener(
                 "mouseout",
@@ -349,7 +407,8 @@ public fun main() {
                         }
                         event.stopPropagation()
                     }
-                })
+                }
+            )
 
             document.addEventListener(
                 "mousemove",
@@ -386,8 +445,10 @@ public fun main() {
 
                     hoverTooltip.style.top = "${top}px"
                     hoverTooltip.style.left = "${left}px"
-                })
-        })
+                }
+            )
+        }
+    )
 }
 
 private fun readPlaceholders(): Placeholders {
@@ -398,7 +459,8 @@ private fun readPlaceholders(): Placeholders {
         (if (t.isMiniMessage) miniMessagePlaceholders else stringPlaceholders)[t.key] = t.value
     }
     return Placeholders(
-        stringPlaceholders = stringPlaceholders, miniMessagePlaceholders = miniMessagePlaceholders)
+        stringPlaceholders = stringPlaceholders, miniMessagePlaceholders = miniMessagePlaceholders
+    )
 }
 
 private fun onWebsocketReady() {
@@ -439,7 +501,9 @@ private fun onWebsocketReady() {
         webSocket.send(
             Placeholders(
                 stringPlaceholders = stringPlaceholders,
-                miniMessagePlaceholders = miniMessagePlaceholders))
+                miniMessagePlaceholders = miniMessagePlaceholders
+            )
+        )
     }
 
     parse()
@@ -454,7 +518,8 @@ private fun onWebsocketReady() {
             event.preventDefault()
             val paste = event.unsafeCast<ClipboardEvent>().clipboardData!!.getData("text")
             document.execCommand("insertText", false, paste.replace("\\n", "\n"))
-        })
+        }
+    )
     val output = document.getElementById("output-pre")!!
     webSocket.onmessage =
         { messageEvent ->
@@ -519,14 +584,17 @@ private fun checkClickEvents(target: EventTarget?, typesToCheck: Collection<Even
                     json(
                         "message" to
                             "<p><b>Click Event</b></p><p>Action: <i>${
-                                    clickAction.replace('_', ' ').replaceFirstChar(Char::uppercase)
-                                }</i></p><p>Content: <i>$content</i></p>",
-                        "type" to "is-info"))
+                            clickAction.replace('_', ' ').replaceFirstChar(Char::uppercase)
+                            }</i></p><p>Content: <i>$content</i></p>",
+                        "type" to "is-info"
+                    )
+                )
             }
         }
 
         if (EventType.INSERTION.isUsable(currentMode) &&
-            typesToCheck.contains(EventType.INSERTION)) {
+            typesToCheck.contains(EventType.INSERTION)
+        ) {
             val insertion = target.dataset[DATA_INSERTION.camel]
 
             if (insertion == null) {
@@ -535,7 +603,9 @@ private fun checkClickEvents(target: EventTarget?, typesToCheck: Collection<Even
                 bulmaToast.toast(
                     json(
                         "message" to "<p><b>Insertion</b></p><p>Content: <i>$insertion</i></p>",
-                        "type" to "is-info"))
+                        "type" to "is-info"
+                    )
+                )
             }
         }
 
@@ -590,7 +660,8 @@ private fun parse() {
                         Mode.SERVER_LIST ->
                             buildList(3) {
                                 add(
-                                    "KyoriCraft                                                 <gray>0<dark_gray>/</dark_gray>20")
+                                    "KyoriCraft                                                 <gray>0<dark_gray>/</dark_gray>20"
+                                )
                                 add(list.getOrNull(0) ?: "\u200B")
                                 add(list.getOrNull(1) ?: "\u200B")
                             }

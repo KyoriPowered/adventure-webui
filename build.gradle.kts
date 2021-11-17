@@ -3,21 +3,14 @@ import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
 
 plugins {
     application
-    id("com.diffplug.spotless")
     id("net.kyori.indra.git")
     id("org.jetbrains.kotlin.multiplatform")
     id("org.jetbrains.kotlin.plugin.serialization")
+    id("org.jlleitschuh.gradle.ktlint")
 }
 
-spotless {
-    kotlin {
-        // spotless doesn't know about multi-platform source sets
-        target(listOf("commonMain", "jsMain", "jvmMain")
-            .map { sourceSet -> "src/$sourceSet/kotlin/**/*.kt" })
-
-        // use dropbox style for 4 space indents
-        ktfmt("0.27").dropboxStyle()
-    }
+configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
+    version.set("0.43.0")
 }
 
 repositories {
