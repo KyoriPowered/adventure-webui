@@ -550,8 +550,8 @@ private fun checkClickEvents(target: EventTarget?, typesToCheck: Collection<Even
                 val content = target.dataset[DATA_CLICK_EVENT_VALUE.camel] ?: ""
                 bulmaToast.toast(
                     "<p><b>Click Event</b></p><p>Action: <i>${
-                        clickAction.replace('_', ' ').replaceFirstChar(Char::uppercase)
-                        }</i></p><p>Content: <i>$content</i></p>",
+                    clickAction.replace('_', ' ').replaceFirstChar(Char::uppercase)
+                    }</i></p><p>Content: <i>$content</i></p>",
                     type = "is-info"
                 )
             }
