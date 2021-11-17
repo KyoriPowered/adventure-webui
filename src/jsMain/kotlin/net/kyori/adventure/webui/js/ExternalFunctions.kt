@@ -18,6 +18,6 @@ public external class bulmaToast {
         public fun setDefaults(settings: Json)
     }
 }
-public fun bulmaToast.Companion.toast(message: String, type: String) {
+public fun bulmaToast.Companion.toast(message: String, type: String = "is-success") {
     this.toast(json("message" to message, "type" to type))
 }

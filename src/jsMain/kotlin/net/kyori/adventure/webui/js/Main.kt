@@ -107,8 +107,7 @@ public fun main() {
                                 editorInput = possibleEditorInput
                                 input.value = editorInput.input
                                 bulmaToast.toast(
-                                    "Loaded editor session! Press the save icon to generate a command to save the message to ${editorInput.application}.",
-                                    type = "is-success"
+                                    "Loaded editor session! Press the save icon to generate a command to save the message to ${editorInput.application}."
                                 )
                                 saveButton.classList.remove("is-hidden")
                             }
@@ -130,8 +129,7 @@ public fun main() {
                                 )
                                     .then {
                                         bulmaToast.toast(
-                                            "The command to run in-game has been copied to your clipboard!",
-                                            type = "is-success"
+                                            "The command to run in-game has been copied to your clipboard!"
                                         )
                                     }
                             }
@@ -270,10 +268,7 @@ public fun main() {
                             )
                     }
                     window.navigator.clipboard.writeText(link).then {
-                        bulmaToast.toast(
-                            "Shareable link copied to clipboard!",
-                            type = "is-success"
-                        )
+                        bulmaToast.toast("Shareable link copied to clipboard!")
                     }
                 }
             )
@@ -281,10 +276,7 @@ public fun main() {
                 "click",
                 {
                     window.navigator.clipboard.writeText(input.value.replace("\n", "\\n")).then {
-                        bulmaToast.toast(
-                            "Input text copied to clipboard!",
-                            type = "is-success"
-                        )
+                        bulmaToast.toast("Input text copied to clipboard!")
                     }
                 }
             )
@@ -298,10 +290,7 @@ public fun main() {
                         .then { response ->
                             response.text().then { text ->
                                 window.navigator.clipboard.writeText(text).then {
-                                    bulmaToast.toast(
-                                        "JSON copied to clipboard!",
-                                        type = "is-success"
-                                    )
+                                    bulmaToast.toast("JSON copied to clipboard!")
                                 }
                             }
                         }
@@ -320,9 +309,7 @@ public fun main() {
                                 text.replace("&", "&amp;")
                                     .replace("<", "&lt;")
                                     .replace(">", "&gt;")
-                            bulmaToast.toast(
-                                "<pre>$escaped</pre>", type = "is-success"
-                            )
+                            bulmaToast.toast("<pre>$escaped</pre>")
                         }
                     }
                 }
