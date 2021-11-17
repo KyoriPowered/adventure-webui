@@ -2,11 +2,18 @@ package net.kyori.adventure.webui.js
 
 import kotlinx.browser.document
 import kotlinx.html.InputType
+import kotlinx.html.classes
 import kotlinx.html.dom.append
+import kotlinx.html.js.a
+import kotlinx.html.js.i
 import kotlinx.html.js.input
+import kotlinx.html.js.span
 import kotlinx.html.js.td
 import kotlinx.html.js.tr
+import kotlinx.html.title
+import org.w3c.dom.HTMLAnchorElement
 import org.w3c.dom.HTMLInputElement
+import org.w3c.dom.HTMLTableRowElement
 import org.w3c.dom.asList
 
 public class UserPlaceholder(
@@ -38,15 +45,27 @@ public class UserPlaceholder(
             lateinit var key: HTMLInputElement
             lateinit var value: HTMLInputElement
             lateinit var isMM: HTMLInputElement
+            lateinit var row: HTMLTableRowElement
+            lateinit var deleteButton: HTMLAnchorElement
             list.append {
-                tr {
+                row = tr {
                     td(classes = "control is-vcentered has-text-centered") {
                         isMM = input(type = InputType.checkBox, classes = "placeholder-component")
                     }
                     td(classes = "control") { key = input(classes = "input placeholder-key") }
                     td(classes = "control") { value = input(classes = "input placeholder-value") }
+                    td(classes = "control") {
+                        deleteButton = a(classes = "button is-danger") {
+                            title = "Remove placeholder"
+                            attributes["aria-label"] = "Remove placeholder"
+                            span(classes = "icon is-small") {
+                                i(classes = "fas fa-trash-alt")
+                            }
+                        }
+                    }
                 }
             }
+            deleteButton.addEventListener("click", { row.remove() })
             return UserPlaceholder(isMM, key, value)
         }
 
