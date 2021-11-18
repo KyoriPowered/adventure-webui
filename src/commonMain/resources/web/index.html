@@ -90,8 +90,24 @@
       <div id="main-container" class="container is-flex is-flex-direction-column mb-1">
         <div class="columns mb-1">
           <!-- INPUT -->
-          <div class="column is-full mt-1 pb-0">
-            <label for="input">Input: </label>
+          <div class="column is-full mt-2 pb-0">
+            <div class="is-horizontal is-flex">
+              <label for="input">Input: </label>
+              <div class="buttons has-addons is-right is-flex-grow-1">
+                <button class="button" id="editor-bold-button" aria-label="Bold" title="Bold">
+                  <span class="icon is-small"><i class="fas fa-bold"></i></span>
+                </button>
+                <button class="button" id="editor-italic-button" aria-label="Italic" title="Italic">
+                  <span class="icon is-small"><i class="fas fa-italic"></i></span>
+                </button>
+                <button class="button" id="editor-underline-button" aria-label="Underline" title="Underline">
+                  <span class="icon is-small"><i class="fas fa-underline"></i></span>
+                </button>
+                <button class="button" id="editor-strikethrough-button" aria-label="Strikethrough" title="Strikethrough">
+                  <span class="icon is-small"><i class="fas fa-strikethrough"></i></span>
+                </button>
+              </div>
+            </div>
             <textarea id="input" class="textarea mono-font" minrows="4" placeholder="<blue>Hello <red>World!" spellcheck="false"></textarea>
           </div>
         </div>

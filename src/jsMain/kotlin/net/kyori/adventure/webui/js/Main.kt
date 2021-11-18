@@ -403,6 +403,8 @@ public fun main() {
                     hoverTooltip.style.left = "${left}px"
                 }
             )
+
+            installStyleButtons()
         }
     )
 }
