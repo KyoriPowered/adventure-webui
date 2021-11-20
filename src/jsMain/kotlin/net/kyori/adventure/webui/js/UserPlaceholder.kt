@@ -21,23 +21,9 @@ public class UserPlaceholder(
     private val keyInput: HTMLInputElement,
     private val valueInput: HTMLInputElement
 ) {
-    public var isMiniMessage: Boolean
-        get() = isMiniMessageCheckbox.checked
-        set(value) {
-            isMiniMessageCheckbox.checked = value
-        }
-
-    public var key: String
-        get() = keyInput.value
-        set(value) {
-            keyInput.value = value
-        }
-
-    public var value: String
-        get() = valueInput.value
-        set(value) {
-            valueInput.value = value
-        }
+    public var isMiniMessage: Boolean by isMiniMessageCheckbox::checked
+    public var key: String by keyInput::value
+    public var value: String by valueInput::value
 
     public companion object {
         public fun addToList(): UserPlaceholder {

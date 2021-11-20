@@ -33,15 +33,18 @@ import org.w3c.dom.HTMLSelectElement
 import org.w3c.dom.HTMLSpanElement
 import org.w3c.dom.HTMLTextAreaElement
 import org.w3c.dom.WebSocket
+import org.w3c.dom.Window
 import org.w3c.dom.asList
 import org.w3c.dom.clipboard.ClipboardEvent
 import org.w3c.dom.events.EventTarget
 import org.w3c.dom.events.MouseEvent
 import org.w3c.dom.get
 import org.w3c.dom.url.URLSearchParams
+import org.w3c.fetch.Headers
 import org.w3c.fetch.NO_CACHE
 import org.w3c.fetch.RequestCache
 import org.w3c.fetch.RequestInit
+import kotlin.js.Promise
 import kotlin.js.json
 
 private val homeUrl: String by lazy { window.location.href.split('?')[0] }
@@ -86,10 +89,8 @@ public fun main() {
                     if (!response.ok) {
                         isInEditorMode = false
                         bulmaToast.toast(
-                            json(
-                                "message" to "Could not load editor session!",
-                                "type" to "is-error"
-                            )
+                            "Could not load editor session!",
+                            type = "is-error"
                         )
                     } else {
                         response.text().then { text ->
@@ -98,21 +99,15 @@ public fun main() {
                             if (possibleEditorInput == null) {
                                 isInEditorMode = false
                                 bulmaToast.toast(
-                                    json(
-                                        "message" to "Could not load editor session!",
-                                        "type" to "is-error"
-                                    )
+                                    "Could not load editor session!",
+                                    type = "is-error"
                                 )
                             } else {
                                 isInEditorMode = true
                                 editorInput = possibleEditorInput
                                 input.value = editorInput.input
                                 bulmaToast.toast(
-                                    json(
-                                        "message" to
-                                            "Loaded editor session! Press the save icon to generate a command to save the message to ${editorInput.application}.",
-                                        "type" to "is-success"
-                                    )
+                                    "Loaded editor session! Press the save icon to generate a command to save the message to ${editorInput.application}."
                                 )
                                 saveButton.classList.remove("is-hidden")
                             }
@@ -134,11 +129,7 @@ public fun main() {
                                 )
                                     .then {
                                         bulmaToast.toast(
-                                            json(
-                                                "message" to
-                                                    "The command to run in-game has been copied to your clipboard!",
-                                                "type" to "is-success"
-                                            )
+                                            "The command to run in-game has been copied to your clipboard!"
                                         )
                                     }
                             }
@@ -277,12 +268,7 @@ public fun main() {
                             )
                     }
                     window.navigator.clipboard.writeText(link).then {
-                        bulmaToast.toast(
-                            json(
-                                "message" to "Shareable link copied to clipboard!",
-                                "type" to "is-success"
-                            )
-                        )
+                        bulmaToast.toast("Shareable link copied to clipboard!")
                     }
                 }
             )
@@ -290,39 +276,21 @@ public fun main() {
                 "click",
                 {
                     window.navigator.clipboard.writeText(input.value.replace("\n", "\\n")).then {
-                        bulmaToast.toast(
-                            json(
-                                "message" to "Input text copied to clipboard!",
-                                "type" to "is-success"
-                            )
-                        )
+                        bulmaToast.toast("Input text copied to clipboard!")
                     }
                 }
             )
             document.getElementById("export-to-json-button")!!.addEventListener(
                 "click",
                 {
-                    window.fetch(
+                    window.postPacket(
                         "$URL_API$URL_MINI_TO_JSON",
-                        RequestInit(
-                            method = "POST",
-                            cache = RequestCache.NO_CACHE,
-                            headers = mapOf(Pair("Content-Type", "text/plain")),
-                            body =
-                            Serializers.json.encodeToString(
-                                Call(miniMessage = input.value)
-                            )
-                        )
+                        Call(miniMessage = input.value)
                     )
                         .then { response ->
                             response.text().then { text ->
                                 window.navigator.clipboard.writeText(text).then {
-                                    bulmaToast.toast(
-                                        json(
-                                            "message" to "JSON copied to clipboard!",
-                                            "type" to "is-success"
-                                        )
-                                    )
+                                    bulmaToast.toast("JSON copied to clipboard!")
                                 }
                             }
                         }
@@ -332,28 +300,16 @@ public fun main() {
             document.getElementById("show-tree-button")!!.addEventListener(
                 "click",
                 {
-                    window.fetch(
+                    window.postPacket(
                         "$URL_API$URL_MINI_TO_TREE",
-                        RequestInit(
-                            method = "POST",
-                            cache = RequestCache.NO_CACHE,
-                            headers = mapOf(Pair("Content-Type", "text/plain")),
-                            body =
-                            Serializers.json.encodeToString(
-                                Call(miniMessage = input.value)
-                            )
-                        )
+                        Call(miniMessage = input.value)
                     ).then { response ->
                         response.text().then { text ->
                             val escaped =
                                 text.replace("&", "&amp;")
                                     .replace("<", "&lt;")
                                     .replace(">", "&gt;")
-                            bulmaToast.toast(
-                                json(
-                                    "message" to "<pre>$escaped</pre>", "type" to "is-success"
-                                )
-                            )
+                            bulmaToast.toast("<pre>$escaped</pre>")
                         }
                     }
                 }
@@ -580,14 +536,10 @@ private fun checkClickEvents(target: EventTarget?, typesToCheck: Collection<Even
                 remainingTypesToCheck.add(EventType.CLICK)
             } else {
                 val content = target.dataset[DATA_CLICK_EVENT_VALUE.camel] ?: ""
+                val actionName = clickAction.replace('_', ' ').replaceFirstChar(Char::uppercase)
                 bulmaToast.toast(
-                    json(
-                        "message" to
-                            "<p><b>Click Event</b></p><p>Action: <i>${
-                            clickAction.replace('_', ' ').replaceFirstChar(Char::uppercase)
-                            }</i></p><p>Content: <i>$content</i></p>",
-                        "type" to "is-info"
-                    )
+                    "<p><b>Click Event</b></p><p>Action: <i>$actionName</i></p><p>Content: <i>$content</i></p>",
+                    type = "is-info"
                 )
             }
         }
@@ -601,10 +553,8 @@ private fun checkClickEvents(target: EventTarget?, typesToCheck: Collection<Even
                 typesToCheck + EventType.INSERTION
             } else {
                 bulmaToast.toast(
-                    json(
-                        "message" to "<p><b>Insertion</b></p><p>Content: <i>$insertion</i></p>",
-                        "type" to "is-info"
-                    )
+                    "<p><b>Insertion</b></p><p>Content: <i>$insertion</i></p>",
+                    type = "is-info"
                 )
             }
         }
@@ -675,7 +625,7 @@ private fun parse() {
                     if (line == "") "\u200B" else line
                 }
 
-            webSocket.send(Serializers.json.encodeToString(Call(combinedLines) as Packet))
+            webSocket.send(Call(combinedLines))
         }
     }
 }
@@ -685,4 +635,16 @@ private inline fun <reified T> List<T>.safeSubList(startIndex: Int, endIndex: In
 
 private fun WebSocket.send(packet: Packet) {
     this.send(Serializers.json.encodeToString(packet))
+}
+
+private inline fun <reified T : Packet> Window.postPacket(url: String, packet: T): Promise<org.w3c.fetch.Response> {
+    return this.fetch(
+        url,
+        RequestInit(
+            method = "POST",
+            cache = RequestCache.NO_CACHE,
+            headers = Headers(json("Content-Type" to "text/plain")),
+            body = Serializers.json.encodeToString(packet)
+        )
+    )
 }
