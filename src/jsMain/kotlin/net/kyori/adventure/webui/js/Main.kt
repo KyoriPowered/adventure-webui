@@ -251,14 +251,14 @@ public fun main() {
                     val placeholders = readPlaceholders()
                     var link =
                         "$homeUrl?$PARAM_MODE=${currentMode.paramName}&$PARAM_INPUT=$inputValue"
-                    if (placeholders.stringPlaceholders != null) {
+                    if (!placeholders.stringPlaceholders.isNullOrEmpty()) {
                         link += "&$PARAM_STRING_PLACEHOLDERS="
                         link +=
                             encodeURIComponent(
                                 Serializers.json.encodeToString(placeholders.stringPlaceholders)
                             )
                     }
-                    if (placeholders.miniMessagePlaceholders != null) {
+                    if (!placeholders.miniMessagePlaceholders.isNullOrEmpty()) {
                         link += "&$PARAM_COMPONENT_PLACEHOLDERS="
                         link +=
                             encodeURIComponent(
