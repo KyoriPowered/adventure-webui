@@ -6,8 +6,8 @@ import org.w3c.dom.CustomEventInit
 import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLTextAreaElement
 
-public data class StyleTag(val beforeCursor: String, val beforeSel: String, val afterSel: String) {
-    public constructor(simple: String) : this("", "<$simple>", "</$simple>")
+public data class StyleTag(val beforeCursor: String, val placeholder: String, val beforeSel: String, val afterSel: String) {
+    public constructor(simple: String) : this("", "", "<$simple>", "</$simple>")
 }
 
 public val STYLE_WRAPPERS: Map<String, StyleTag> = mapOf(
@@ -15,7 +15,10 @@ public val STYLE_WRAPPERS: Map<String, StyleTag> = mapOf(
     "italic" to StyleTag("i"),
     "underline" to StyleTag("u"),
     "strikethrough" to StyleTag("st"),
-    "open-url" to StyleTag("<click:open_url:\'", "\'>", "</click>")
+    "open-url" to StyleTag("<click:open_url:\'", "url", "\'>", "</click>"),
+    "run-command" to StyleTag("<click:run_command:\'", "/command", "\'>", "</click>"),
+    "suggest-command" to StyleTag("<click:suggest_command:\'", "/command", "\'>", "</click>"),
+    "hover-text" to StyleTag("<hover:show_text:\'", "text", "\'>", "</hover>"),
 )
 
 public fun installStyleButtons() {
@@ -61,17 +64,18 @@ private fun handleStyleButton(inputBox: HTMLTextAreaElement, tag: StyleTag) {
         newSelEnd -= tagPrefix.length + tagSuffix.length
     } else {
         // If there don't seem to be already existing relevant tags near the selection, we add them!
-        inputBox.insertText(tagPrefix + selection + tagSuffix)
         if (tag.beforeCursor.isBlank()) {
             // This is a simple surrounding tag such as <b></b>. We make sure to keep exactly the same area selected as
             // was selected before hitting the style button.
+            inputBox.insertText(tagPrefix + selection + tagSuffix)
             newSelStart += tagPrefix.length
             newSelEnd += tagPrefix.length
         } else {
             // This is a tag which requires more user input, such as <input:open_url...>. For example, in the open_url
             // case, we helpfully position the cursor right where the url would go, so it can be typed right away.
+            inputBox.insertText(tag.beforeCursor + tag.placeholder + tag.beforeSel + selection + tagSuffix)
             newSelStart += tag.beforeCursor.length
-            newSelEnd = newSelStart
+            newSelEnd = newSelStart + tag.placeholder.length
         }
     }
 
