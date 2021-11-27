@@ -93,19 +93,28 @@
           <div class="column is-full mt-2 pb-0">
             <div class="is-horizontal is-flex">
               <label for="input">Input: </label>
-              <div class="buttons has-addons is-right is-flex-grow-1">
-                <button class="button" id="editor-bold-button" aria-label="Bold" title="Bold">
-                  <span class="icon is-small"><i class="fas fa-bold"></i></span>
-                </button>
-                <button class="button" id="editor-italic-button" aria-label="Italic" title="Italic">
-                  <span class="icon is-small"><i class="fas fa-italic"></i></span>
-                </button>
-                <button class="button" id="editor-underline-button" aria-label="Underline" title="Underline">
-                  <span class="icon is-small"><i class="fas fa-underline"></i></span>
-                </button>
-                <button class="button" id="editor-strikethrough-button" aria-label="Strikethrough" title="Strikethrough">
-                  <span class="icon is-small"><i class="fas fa-strikethrough"></i></span>
-                </button>
+              <div class="is-flex ml-auto">
+                <div class="buttons has-addons is-right">
+                  <button class="button" id="editor-bold-button" aria-label="Bold" title="Add bold text">
+                    <span class="icon is-small"><i class="fas fa-bold"></i></span>
+                  </button>
+                  <button class="button" id="editor-italic-button" aria-label="Italic" title="Add italic text">
+                    <span class="icon is-small"><i class="fas fa-italic"></i></span>
+                  </button>
+                  <button class="button" id="editor-underline-button" aria-label="Underline" title="Add underlined text">
+                    <span class="icon is-small"><i class="fas fa-underline"></i></span>
+                  </button>
+                  <button class="button" id="editor-strikethrough-button" aria-label="Strikethrough" title="Add strikethrough text">
+                    <span class="icon is-small"><i class="fas fa-strikethrough"></i></span>
+                  </button>
+                </div>
+              </div>
+              <div class="is-flex ml-1">
+                <div class="buttons has-addons is-right">
+                  <button class="button" id="editor-open-url-button" aria-label="Open URL" title="Add clickable URL">
+                    <span class="icon is-small"><i class="fas fa-link"></i></span>
+                  </button>
+                </div>
               </div>
             </div>
             <textarea id="input" class="textarea mono-font" minrows="4" placeholder="<blue>Hello <red>World!" spellcheck="false"></textarea>
