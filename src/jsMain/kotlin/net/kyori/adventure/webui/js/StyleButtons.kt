@@ -47,6 +47,10 @@ private fun handleStyleButton(inputBox: HTMLTextAreaElement, tag: StyleTag) {
     val tagPrefix = tag.beforeCursor + tag.beforeSel
     val tagSuffix = tag.afterSel
 
+    // These checks and modifications handle selection start and selection end separately. However, thanks to a cosmic
+    // coincidence of math, they generalize perfectly to the case of having no text selected, that is, just having
+    // your cursor somewhere in the text box (selection start equals selection end)
+
     if (before.endsWith(tagPrefix) && after.startsWith(tagSuffix)) {
         // This represents the case where the user's selection contains text which is immediately surrounded by the
         // relevant tags, so we remove those tags and leave the text selected as before.
