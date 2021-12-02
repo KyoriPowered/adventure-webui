@@ -4,9 +4,45 @@ import kotlinx.browser.document
 import org.w3c.dom.CustomEvent
 import org.w3c.dom.CustomEventInit
 import org.w3c.dom.HTMLButtonElement
+import org.w3c.dom.HTMLDivElement
+import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLTextAreaElement
+import org.w3c.dom.asList
+
+// https://iro.js.org/colorPicker_api.html
+private external interface ColorPicker {
+    // https://iro.js.org/guide.html#color-picker-events
+    fun <T> on(event: String, callback: (T) -> Unit)
+    var color: Color
+}
+
+// https://iro.js.org/color_api.html
+private external interface Color {
+    var hexString: String
+}
+
+// Copied out of adventure; can't use adventure api directly because this is javascript
+private val NAMED_COLORS = mapOf(
+    "#000000" to "black",
+    "#0000aa" to "dark_blue",
+    "#00aa00" to "dark_green",
+    "#00aaaa" to "dark_aqua",
+    "#aa0000" to "dark_red",
+    "#aa00aa" to "dark_purple",
+    "#ffaa00" to "gold",
+    "#aaaaaa" to "gray",
+    "#555555" to "dark_gray",
+    "#5555ff" to "blue",
+    "#55ff55" to "green",
+    "#55ffff" to "aqua",
+    "#ff5555" to "red",
+    "#ff55ff" to "light_purple",
+    "#ffff55" to "yellow",
+    "#ffffff" to "white",
+)
 
 public data class StyleTag(val beforeCursor: String, val placeholder: String, val beforeSel: String, val afterSel: String) {
+    public constructor(opening: String, closing: String) : this("", "", opening, closing)
     public constructor(simple: String) : this("", "", "<$simple>", "</$simple>")
 }
 
@@ -22,8 +58,9 @@ public val STYLE_WRAPPERS: Map<String, StyleTag> = mapOf(
 )
 
 public fun installStyleButtons() {
+    val inputBox = document.getElementById("input")!!.unsafeCast<HTMLTextAreaElement>()
+
     STYLE_WRAPPERS.forEach { (buttonName, tag) ->
-        val inputBox = document.getElementById("input")!!.unsafeCast<HTMLTextAreaElement>()
         val button = document.getElementById("editor-$buttonName-button")!!.unsafeCast<HTMLButtonElement>()
         button.addEventListener(
             "click",
@@ -32,6 +69,68 @@ public fun installStyleButtons() {
             }
         )
     }
+
+    document.getElementsByClassName("dropdown-trigger").asList().forEach { element ->
+        element.addEventListener(
+            "click",
+            {
+                // This should hopefully make it so any text selected before pressing the color dropdown should stay visually selected
+                inputBox.focus()
+                element.parentElement!!.classList.toggle("is-active")
+            }
+        )
+    }
+
+    val previewSwatch = document.getElementById("preview-swatch")!!.unsafeCast<HTMLDivElement>()
+    val previewHex = document.getElementById("preview-hex")!!.unsafeCast<HTMLInputElement>()
+
+    // I've given up on kotlin type safety
+    val colorPicker = js("new iro.ColorPicker('#picker')").unsafeCast<ColorPicker>()
+    colorPicker.on<Color>("color:change") { c ->
+        previewSwatch.style.backgroundColor = c.hexString
+        previewHex.value = c.hexString
+        previewHex.classList.remove("is-danger")
+    }
+
+    previewHex.addEventListener(
+        "input",
+        {
+            var validInput = false
+            val newHex = previewHex.value
+            // If the input isn't of the expected length for a full hex color, we assume the user is still typing it.
+            // While iro.js can accept shorthand notations, adventure doesn't, so rejecting them here is probably fine.
+            if (newHex.length == 7) {
+                try {
+                    // iro.js will let us know if the hex input is invalid by throwing an error.
+                    colorPicker.color.hexString = newHex
+                    // If we make it here, no error was thrown, and we can assume the input was a valid color!
+                    validInput = true
+                } catch (e: Throwable) {
+                    // iro.js throws a generic Error instance, so this is as good of a check as you can do
+                    if (e.message != "Invalid hex string") throw e
+                }
+            }
+
+            // If the input wasn't valid, we add a subtle red outline to the input box
+            if (validInput) previewHex.classList.remove("is-danger")
+            else previewHex.classList.add("is-danger")
+        }
+    )
+
+    val useColorButton = document.getElementById("use-color")!!.unsafeCast<HTMLButtonElement>()
+    useColorButton.addEventListener(
+        "click",
+        {
+            // Try to find a matching "named" color, which is probably more readable than a hex color
+            val namedColor = NAMED_COLORS[previewHex.value]
+            if (namedColor != null) {
+                handleStyleButton(inputBox, StyleTag(namedColor))
+            } else {
+                handleStyleButton(inputBox, StyleTag("<color:${previewHex.value}>", "</color>"))
+            }
+            useColorButton.closest(".dropdown")!!.classList.toggle("is-active") // Roll up the dropdown after a color was applied
+        }
+    )
 }
 
 // This is a separate function just so the level of indentation isn't horrible for the comments...

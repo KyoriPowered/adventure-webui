@@ -22,6 +22,8 @@
             integrity="sha256-u11/XQI2A6mpXa0j1p0l0UpO3ZuiMTInGUqaT2K9ZWQ=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bulma-toast@2.3.1/dist/bulma-toast.min.js" defer
             integrity="sha256-S9DjwN1WDDoq2jChOYfPxbSYY4A30/U6oknr7khzsO0=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@jaames/iro@5.5.2/dist/iro.min.js" defer
+            integrity="sha256-XQju26ya9yEvX99+M2rrLah6xHsjZIGK1LvX/L3RjQ0=" crossorigin="anonymous"></script>
   </head>
   <body>
     <header class="navbar is-light is-clipped">
@@ -94,6 +96,35 @@
             <div class="is-horizontal is-flex">
               <label for="input">Input: </label>
               <div class="is-flex ml-auto">
+                <div class="dropdown">
+                  <div class="dropdown-trigger">
+                    <button class="button" aria-haspopup="true" aria-controls="dropdown-menu">
+                      <span class="icon is-small">
+                        <i class="fas fa-palette" aria-hidden="true"></i>
+                      </span>
+                    </button>
+                  </div>
+                  <div class="dropdown-menu" id="dropdown-menu" role="menu">
+                    <div class="dropdown-content">
+                      <div class="dropdown-item">
+                        <div id="picker"></div>
+                      </div>
+                      <div class="dropdown-item is-flex">
+                        <div class="field has-addons is-flex-grow-1">
+                          <div id="preview-swatch" class="swatch is-flex-grow-1" style="background: #ffffff;"></div>
+                          <div class="control">
+                            <input id="preview-hex" class="input is-family-monospace has-text-centered" type="text" size="7" value="#ffffff">
+                          </div>
+                          <div class="control">
+                            <button id="use-color" class="button is-success">Apply color</button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="is-flex ml-1">
                 <div class="buttons has-addons is-right">
                   <button class="button" id="editor-bold-button" aria-label="Bold" title="Add bold text">
                     <span class="icon is-small"><i class="fas fa-bold"></i></span>
