@@ -39,6 +39,7 @@ import org.w3c.dom.clipboard.ClipboardEvent
 import org.w3c.dom.events.EventTarget
 import org.w3c.dom.events.MouseEvent
 import org.w3c.dom.get
+import org.w3c.dom.set
 import org.w3c.dom.url.URLSearchParams
 import org.w3c.fetch.Headers
 import org.w3c.fetch.NO_CACHE
@@ -174,8 +175,19 @@ public fun main() {
                 element.addEventListener(
                     "click",
                     {
-                        placeholdersBox!!.classList.toggle("is-active")
-                        webSocket.send(readPlaceholders())
+                        // classList.toggle returns whether the class is in the classlist after the operation
+                        // Since we care about updating everything after the uses closes the modal, we must negate the result.
+                        val opened = placeholdersBox!!.classList.toggle("is-active")
+                        if (!opened) {
+                            val newPlaceholders = readPlaceholders()
+                            window.localStorage[PARAM_STRING_PLACEHOLDERS] = Serializers.json.encodeToString(
+                                newPlaceholders.stringPlaceholders
+                            )
+                            window.localStorage[PARAM_COMPONENT_PLACEHOLDERS] = Serializers.json.encodeToString(
+                                newPlaceholders.miniMessagePlaceholders
+                            )
+                            webSocket.send(newPlaceholders)
+                        }
                     }
                 )
             }
@@ -192,7 +204,7 @@ public fun main() {
 
             // MODES
             val urlParams = URLSearchParams(window.location.search)
-            currentMode = Mode.fromString(urlParams.get(PARAM_MODE))
+            currentMode = Mode.fromString(urlParams.getFromParamsOrLocalStorage(PARAM_MODE))
             outputPre.classList.add(currentMode.className)
             outputPane.classList.add(currentMode.className)
 
@@ -215,6 +227,8 @@ public fun main() {
                         val button = event.target!!.unsafeCast<HTMLAnchorElement>()
                         button.classList.add("is-active")
                         currentMode = mode
+                        // Store current mode for persistence
+                        window.localStorage[PARAM_MODE] = currentMode.paramName
 
                         // swap the class for the pane
                         Mode.MODES.forEach { mode ->
@@ -424,22 +438,16 @@ private fun onWebsocketReady() {
     val inputBox = document.getElementById("input")!!.unsafeCast<HTMLTextAreaElement>()
 
     if (!isInEditorMode) {
-        urlParams.get(PARAM_INPUT)?.also { inputString ->
-            val text = decodeURIComponent(inputString)
-            inputBox.value = text
-            println("SHARED: $text")
+        urlParams.getFromParamsOrLocalStorage(PARAM_INPUT)?.also { inputString ->
+            inputBox.value = inputString
         }
         var stringPlaceholders: Map<String, String>? = null
         var miniMessagePlaceholders: Map<String, String>? = null
-        urlParams.get(PARAM_STRING_PLACEHOLDERS)?.also { inputString ->
-            stringPlaceholders =
-                Serializers.json.tryDecodeFromString(decodeURIComponent(inputString))
-            println("SHARED: $stringPlaceholders")
+        urlParams.getFromParamsOrLocalStorage(PARAM_STRING_PLACEHOLDERS)?.also { inputString ->
+            stringPlaceholders = Serializers.json.tryDecodeFromString(inputString)
         }
-        urlParams.get(PARAM_COMPONENT_PLACEHOLDERS)?.also { inputString ->
-            miniMessagePlaceholders =
-                Serializers.json.tryDecodeFromString(decodeURIComponent(inputString))
-            println("SHARED: $miniMessagePlaceholders")
+        urlParams.getFromParamsOrLocalStorage(PARAM_COMPONENT_PLACEHOLDERS)?.also { inputString ->
+            miniMessagePlaceholders = Serializers.json.tryDecodeFromString(inputString)
         }
         stringPlaceholders?.forEach { (k, v) ->
             UserPlaceholder.addToList().apply {
@@ -597,6 +605,8 @@ private fun parse() {
     // don't do anything if we're not initialised yet
     if (::webSocket.isInitialized) {
         val input = document.getElementById("input")!!.unsafeCast<HTMLTextAreaElement>().value
+        // Store current input for persistence
+        window.localStorage[PARAM_INPUT] = input
 
         if (input.isEmpty() && currentMode != Mode.SERVER_LIST) {
             // we don't want to parse if input is empty (server list mode is an exception!)
