@@ -24,7 +24,7 @@ jobs:
       - name: "build for deployment"
         run: "./gradlew distTar"
       - name: "setup ssh"
-        uses: webfactory/ssh-agent@v0.5.2
+        uses: webfactory/ssh-agent@v0.5.4
         with:
           ssh-private-key: ${{ secrets.DOCKER_HOST_SSH_KEY }}
       - name: "login to ghcr"
