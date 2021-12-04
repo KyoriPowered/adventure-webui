@@ -53,15 +53,14 @@ private val urlParams: URLSearchParams by lazy { URLSearchParams(window.location
 
 private const val PARAM_INPUT: String = "input"
 private const val PARAM_MODE: String = "mode"
-private const val PARAM_BACKGROUND: String = "bg"
+public const val PARAM_BACKGROUND: String = "bg"
 private const val PARAM_STRING_PLACEHOLDERS: String = "st"
 private const val PARAM_COMPONENT_PLACEHOLDERS: String = "ct"
 
 private var isInEditorMode: Boolean = false
 private lateinit var editorInput: EditorInput
 
-private lateinit var currentMode: Mode
-private lateinit var currentBackground: String
+public lateinit var currentMode: Mode
 private lateinit var webSocket: WebSocket
 
 public fun main() {
@@ -197,26 +196,9 @@ public fun main() {
                 element.addEventListener("click", { UserPlaceholder.addToList() })
             }
 
-            // SETTINGS
-            val settingBackground = document.getElementById("setting-background")!!.unsafeCast<HTMLSelectElement>()
-            currentBackground = urlParams.getFromParamsOrLocalStorage(PARAM_BACKGROUND) ?: settingBackground.value
-            settingBackground.value = currentBackground // ???
-            outputPane.style.backgroundImage = "url(\"img/$currentBackground.jpg\")"
-            settingBackground.addEventListener(
-                "change",
-                {
-                    currentBackground = settingBackground.value
-                    window.localStorage[PARAM_BACKGROUND] = currentBackground
-                    outputPane.style.backgroundImage = "url(\"img/$currentBackground.jpg\")"
-                }
-            )
-
             // MODES
             val urlParams = URLSearchParams(window.location.search)
             currentMode = Mode.fromString(urlParams.getFromParamsOrLocalStorage(PARAM_MODE))
-            if (currentMode == Mode.SERVER_LIST) {
-                outputPane.style.removeProperty("background-image")
-            }
             outputPre.classList.add(currentMode.className)
             outputPane.classList.add(currentMode.className)
 
@@ -253,20 +235,23 @@ public fun main() {
                             }
                         }
 
-                        if (currentMode == Mode.SERVER_LIST) {
-                            // Remove the current background if we are switching to "server list"
-                            // as it has a black background that is otherwise overridden
-                            outputPane.style.removeProperty("background-image")
-                        } else {
-                            // Otherwise, try to put back the background from before
-                            outputPane.style.backgroundImage = "url(\"img/$currentBackground.jpg\")"
-                        }
+                        updateBackground()
 
                         // re-parse to remove the horrible server list header line hack
                         parse()
                     }
                 )
             }
+
+            // SETTINGS
+            val settingBackground = document.getElementById("setting-background")!!.unsafeCast<HTMLSelectElement>()
+            currentBackground = urlParams.getFromParamsOrLocalStorage(PARAM_BACKGROUND) ?: settingBackground.value
+            settingBackground.addEventListener(
+                "change",
+                {
+                    currentBackground = settingBackground.value
+                }
+            )
 
             // CLIPBOARD
             document.getElementById("link-share-button")!!.addEventListener(
