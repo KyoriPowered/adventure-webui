@@ -53,6 +53,7 @@ private val urlParams: URLSearchParams by lazy { URLSearchParams(window.location
 
 private const val PARAM_INPUT: String = "input"
 private const val PARAM_MODE: String = "mode"
+private const val PARAM_BACKGROUND: String = "bg"
 private const val PARAM_STRING_PLACEHOLDERS: String = "st"
 private const val PARAM_COMPONENT_PLACEHOLDERS: String = "ct"
 
@@ -60,6 +61,7 @@ private var isInEditorMode: Boolean = false
 private lateinit var editorInput: EditorInput
 
 private lateinit var currentMode: Mode
+private lateinit var currentBackground: String
 private lateinit var webSocket: WebSocket
 
 public fun main() {
@@ -197,14 +199,24 @@ public fun main() {
 
             // SETTINGS
             val settingBackground = document.getElementById("setting-background")!!.unsafeCast<HTMLSelectElement>()
+            currentBackground = urlParams.getFromParamsOrLocalStorage(PARAM_BACKGROUND) ?: settingBackground.value
+            settingBackground.value = currentBackground // ???
+            outputPane.style.backgroundImage = "url(\"img/$currentBackground.jpg\")"
             settingBackground.addEventListener(
                 "change",
-                { outputPane.style.backgroundImage = "url(\"img/${settingBackground.value}.jpg\")" }
+                {
+                    currentBackground = settingBackground.value
+                    window.localStorage[PARAM_BACKGROUND] = currentBackground
+                    outputPane.style.backgroundImage = "url(\"img/$currentBackground.jpg\")"
+                }
             )
 
             // MODES
             val urlParams = URLSearchParams(window.location.search)
             currentMode = Mode.fromString(urlParams.getFromParamsOrLocalStorage(PARAM_MODE))
+            if (currentMode == Mode.SERVER_LIST) {
+                outputPane.style.removeProperty("background-image")
+            }
             outputPre.classList.add(currentMode.className)
             outputPane.classList.add(currentMode.className)
 
@@ -247,8 +259,7 @@ public fun main() {
                             outputPane.style.removeProperty("background-image")
                         } else {
                             // Otherwise, try to put back the background from before
-                            outputPane.style.backgroundImage =
-                                "url(\"img/${settingBackground.value}.jpg\")"
+                            outputPane.style.backgroundImage = "url(\"img/$currentBackground.jpg\")"
                         }
 
                         // re-parse to remove the horrible server list header line hack
@@ -265,6 +276,9 @@ public fun main() {
                     val placeholders = readPlaceholders()
                     var link =
                         "$homeUrl?$PARAM_MODE=${currentMode.paramName}&$PARAM_INPUT=$inputValue"
+                    if (currentMode != Mode.SERVER_LIST) {
+                        link += "&$PARAM_BACKGROUND=$currentBackground"
+                    }
                     if (!placeholders.stringPlaceholders.isNullOrEmpty()) {
                         link += "&$PARAM_STRING_PLACEHOLDERS="
                         link +=
