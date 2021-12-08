@@ -23,6 +23,7 @@ import net.kyori.adventure.webui.websocket.Call
 import net.kyori.adventure.webui.websocket.Packet
 import net.kyori.adventure.webui.websocket.Placeholders
 import net.kyori.adventure.webui.websocket.Response
+import org.w3c.dom.BeforeUnloadEvent
 import org.w3c.dom.Element
 import org.w3c.dom.HTMLAnchorElement
 import org.w3c.dom.HTMLDivElement
@@ -340,6 +341,18 @@ public fun main() {
             )
 
             installHoverManager()
+        }
+    )
+
+    window.addEventListener(
+        "beforeunload",
+        { event ->
+            val input = document.getElementById("input")!!.unsafeCast<HTMLTextAreaElement>()
+            if (input.value != "") {
+                val e = event as BeforeUnloadEvent
+                e.preventDefault()
+                e.returnValue = "" // Chrome
+            }
         }
     )
 }
