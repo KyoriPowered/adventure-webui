@@ -7,7 +7,6 @@ import kotlinx.serialization.encodeToString
 import net.kyori.adventure.webui.COMPONENT_CLASS
 import net.kyori.adventure.webui.DATA_CLICK_EVENT_ACTION
 import net.kyori.adventure.webui.DATA_CLICK_EVENT_VALUE
-import net.kyori.adventure.webui.DATA_HOVER_EVENT_SHOW_TEXT
 import net.kyori.adventure.webui.DATA_INSERTION
 import net.kyori.adventure.webui.PARAM_EDITOR_TOKEN
 import net.kyori.adventure.webui.Serializers
@@ -24,6 +23,7 @@ import net.kyori.adventure.webui.websocket.Call
 import net.kyori.adventure.webui.websocket.Packet
 import net.kyori.adventure.webui.websocket.Placeholders
 import net.kyori.adventure.webui.websocket.Response
+import org.w3c.dom.BeforeUnloadEvent
 import org.w3c.dom.Element
 import org.w3c.dom.HTMLAnchorElement
 import org.w3c.dom.HTMLDivElement
@@ -37,7 +37,6 @@ import org.w3c.dom.Window
 import org.w3c.dom.asList
 import org.w3c.dom.clipboard.ClipboardEvent
 import org.w3c.dom.events.EventTarget
-import org.w3c.dom.events.MouseEvent
 import org.w3c.dom.get
 import org.w3c.dom.url.URLSearchParams
 import org.w3c.fetch.Headers
@@ -58,7 +57,7 @@ private const val PARAM_COMPONENT_PLACEHOLDERS: String = "ct"
 private var isInEditorMode: Boolean = false
 private lateinit var editorInput: EditorInput
 
-private lateinit var currentMode: Mode
+public lateinit var currentMode: Mode
 private lateinit var webSocket: WebSocket
 
 public fun main() {
@@ -158,7 +157,6 @@ public fun main() {
             // OUTPUT BOXES
             val outputPre = document.getElementById("output-pre")!!.unsafeCast<HTMLPreElement>()
             val outputPane = document.getElementById("output-pane")!!.unsafeCast<HTMLDivElement>()
-            val hoverTooltip = document.getElementById("hover-tooltip").unsafeCast<HTMLDivElement>()
 
             // CARET
             val chatBox = document.getElementById("chat-entry-box")!!.unsafeCast<HTMLDivElement>()
@@ -342,69 +340,20 @@ public fun main() {
                 }
             )
 
-            document.addEventListener(
-                "mouseover",
-                { event ->
-                    val target = event.target
-                    checkHoverEvents(target, hoverTooltip)
-                    // we need to prevent propagation as we do that ourselves manually
-                    event.stopPropagation()
-                }
-            )
-
-            document.addEventListener(
-                "mouseout",
-                { event ->
-                    val target = event.target
-                    if (target is HTMLSpanElement && target.classList.contains(COMPONENT_CLASS)) {
-                        if (!hoverTooltip.hidden) {
-                            hoverTooltip.hidden = true
-                            hoverTooltip.innerHTML = ""
-                        }
-                        event.stopPropagation()
-                    }
-                }
-            )
-
-            document.addEventListener(
-                "mousemove",
-                { event ->
-                    val e = event as MouseEvent
-                    var top = e.clientY - 34
-                    var left = e.clientX + 14
-                    val hoverWidth = hoverTooltip.clientWidth
-                    val hoverHeight = hoverTooltip.clientHeight
-                    val windowWidth = window.innerWidth
-                    val windowHeight = window.innerHeight
-
-                    // If going off the right of the screen, go to the left of the cursor
-                    if (left + hoverWidth > windowWidth) {
-                        left -= hoverWidth + 36
-                    }
-
-                    // If now going off to the left of the screen, resort to going above the cursor
-                    if (left < 0) {
-                        left = 0
-                        top -= hoverHeight - 22
-
-                        // Go below the cursor if too high
-                        if (top < 0) {
-                            top += hoverHeight + 47
-                        }
-                        // Don't go off the top of the screen
-                    } else if (top < 0) {
-                        top = 0
-                        // Don't go off the bottom of the screen
-                    } else if (top + hoverHeight > windowHeight) {
-                        top = windowHeight - windowWidth
-                    }
-
-                    hoverTooltip.style.top = "${top}px"
-                    hoverTooltip.style.left = "${left}px"
-                }
-            )
-
+            installHoverManager()
             installStyleButtons()
+        }
+    )
+
+    window.addEventListener(
+        "beforeunload",
+        { event ->
+            val input = document.getElementById("input")!!.unsafeCast<HTMLTextAreaElement>()
+            if (input.value != "") {
+                val e = event as BeforeUnloadEvent
+                e.preventDefault()
+                e.returnValue = "" // Chrome
+            }
         }
     )
 }
@@ -510,21 +459,6 @@ private fun onWebsocketReady() {
                 }
             }
         }
-}
-
-private fun checkHoverEvents(target: EventTarget?, hoverTooltip: HTMLDivElement) {
-    if (target is HTMLSpanElement && target.classList.contains(COMPONENT_CLASS)) {
-        if (EventType.HOVER.isUsable(currentMode)) {
-            val showTextHover = target.dataset[DATA_HOVER_EVENT_SHOW_TEXT.camel]
-            if (showTextHover != null) {
-                hoverTooltip.hidden = false
-                hoverTooltip.innerHTML = showTextHover
-                // No further bubbling required
-                return
-            }
-        }
-        checkHoverEvents(target.parentElement, hoverTooltip)
-    }
 }
 
 private fun checkClickEvents(target: EventTarget?, typesToCheck: Collection<EventType>) {
