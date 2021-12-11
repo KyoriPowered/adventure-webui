@@ -38,6 +38,7 @@ import org.w3c.dom.asList
 import org.w3c.dom.clipboard.ClipboardEvent
 import org.w3c.dom.events.EventTarget
 import org.w3c.dom.get
+import org.w3c.dom.set
 import org.w3c.dom.url.URLSearchParams
 import org.w3c.fetch.Headers
 import org.w3c.fetch.NO_CACHE
@@ -51,6 +52,7 @@ private val urlParams: URLSearchParams by lazy { URLSearchParams(window.location
 
 private const val PARAM_INPUT: String = "input"
 private const val PARAM_MODE: String = "mode"
+public const val PARAM_BACKGROUND: String = "bg"
 private const val PARAM_STRING_PLACEHOLDERS: String = "st"
 private const val PARAM_COMPONENT_PLACEHOLDERS: String = "ct"
 
@@ -172,8 +174,19 @@ public fun main() {
                 element.addEventListener(
                     "click",
                     {
-                        placeholdersBox!!.classList.toggle("is-active")
-                        webSocket.send(readPlaceholders())
+                        // classList.toggle returns whether the class is in the classlist after the operation
+                        // Since we care about updating everything after the uses closes the modal, we must negate the result.
+                        val opened = placeholdersBox!!.classList.toggle("is-active")
+                        if (!opened) {
+                            val newPlaceholders = readPlaceholders()
+                            window.localStorage[PARAM_STRING_PLACEHOLDERS] = Serializers.json.encodeToString(
+                                newPlaceholders.stringPlaceholders
+                            )
+                            window.localStorage[PARAM_COMPONENT_PLACEHOLDERS] = Serializers.json.encodeToString(
+                                newPlaceholders.miniMessagePlaceholders
+                            )
+                            webSocket.send(newPlaceholders)
+                        }
                     }
                 )
             }
@@ -181,16 +194,9 @@ public fun main() {
                 element.addEventListener("click", { UserPlaceholder.addToList() })
             }
 
-            // SETTINGS
-            val settingBackground = document.getElementById("setting-background")!!.unsafeCast<HTMLSelectElement>()
-            settingBackground.addEventListener(
-                "change",
-                { outputPane.style.backgroundImage = "url(\"img/${settingBackground.value}.jpg\")" }
-            )
-
             // MODES
             val urlParams = URLSearchParams(window.location.search)
-            currentMode = Mode.fromString(urlParams.get(PARAM_MODE))
+            currentMode = Mode.fromString(urlParams.getFromParamsOrLocalStorage(PARAM_MODE))
             outputPre.classList.add(currentMode.className)
             outputPane.classList.add(currentMode.className)
 
@@ -213,6 +219,8 @@ public fun main() {
                         val button = event.target!!.unsafeCast<HTMLAnchorElement>()
                         button.classList.add("is-active")
                         currentMode = mode
+                        // Store current mode for persistence
+                        window.localStorage[PARAM_MODE] = currentMode.paramName
 
                         // swap the class for the pane
                         Mode.MODES.forEach { mode ->
@@ -225,21 +233,23 @@ public fun main() {
                             }
                         }
 
-                        if (currentMode == Mode.SERVER_LIST) {
-                            // Remove the current background if we are switching to "server list"
-                            // as it has a black background that is otherwise overridden
-                            outputPane.style.removeProperty("background-image")
-                        } else {
-                            // Otherwise, try to put back the background from before
-                            outputPane.style.backgroundImage =
-                                "url(\"img/${settingBackground.value}.jpg\")"
-                        }
+                        updateBackground()
 
                         // re-parse to remove the horrible server list header line hack
                         parse()
                     }
                 )
             }
+
+            // SETTINGS
+            val settingBackground = document.getElementById("setting-background")!!.unsafeCast<HTMLSelectElement>()
+            currentBackground = urlParams.getFromParamsOrLocalStorage(PARAM_BACKGROUND) ?: settingBackground.value
+            settingBackground.addEventListener(
+                "change",
+                {
+                    currentBackground = settingBackground.value
+                }
+            )
 
             // CLIPBOARD
             document.getElementById("link-share-button")!!.addEventListener(
@@ -249,6 +259,9 @@ public fun main() {
                     val placeholders = readPlaceholders()
                     var link =
                         "$homeUrl?$PARAM_MODE=${currentMode.paramName}&$PARAM_INPUT=$inputValue"
+                    if (currentMode != Mode.SERVER_LIST) {
+                        link += "&$PARAM_BACKGROUND=$currentBackground"
+                    }
                     if (!placeholders.stringPlaceholders.isNullOrEmpty()) {
                         link += "&$PARAM_STRING_PLACEHOLDERS="
                         link +=
@@ -375,22 +388,16 @@ private fun onWebsocketReady() {
     val inputBox = document.getElementById("input")!!.unsafeCast<HTMLTextAreaElement>()
 
     if (!isInEditorMode) {
-        urlParams.get(PARAM_INPUT)?.also { inputString ->
-            val text = decodeURIComponent(inputString)
-            inputBox.value = text
-            println("SHARED: $text")
+        urlParams.getFromParamsOrLocalStorage(PARAM_INPUT)?.also { inputString ->
+            inputBox.value = inputString
         }
         var stringPlaceholders: Map<String, String>? = null
         var miniMessagePlaceholders: Map<String, String>? = null
-        urlParams.get(PARAM_STRING_PLACEHOLDERS)?.also { inputString ->
-            stringPlaceholders =
-                Serializers.json.tryDecodeFromString(decodeURIComponent(inputString))
-            println("SHARED: $stringPlaceholders")
+        urlParams.getFromParamsOrLocalStorage(PARAM_STRING_PLACEHOLDERS)?.also { inputString ->
+            stringPlaceholders = Serializers.json.tryDecodeFromString(inputString)
         }
-        urlParams.get(PARAM_COMPONENT_PLACEHOLDERS)?.also { inputString ->
-            miniMessagePlaceholders =
-                Serializers.json.tryDecodeFromString(decodeURIComponent(inputString))
-            println("SHARED: $miniMessagePlaceholders")
+        urlParams.getFromParamsOrLocalStorage(PARAM_COMPONENT_PLACEHOLDERS)?.also { inputString ->
+            miniMessagePlaceholders = Serializers.json.tryDecodeFromString(inputString)
         }
         stringPlaceholders?.forEach { (k, v) ->
             UserPlaceholder.addToList().apply {
@@ -533,6 +540,8 @@ private fun parse() {
     // don't do anything if we're not initialised yet
     if (::webSocket.isInitialized) {
         val input = document.getElementById("input")!!.unsafeCast<HTMLTextAreaElement>().value
+        // Store current input for persistence
+        window.localStorage[PARAM_INPUT] = input
 
         if (input.isEmpty() && currentMode != Mode.SERVER_LIST) {
             // we don't want to parse if input is empty (server list mode is an exception!)
