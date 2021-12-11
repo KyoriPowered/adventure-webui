@@ -341,6 +341,7 @@ public fun main() {
             )
 
             installHoverManager()
+            installStyleButtons()
         }
     )
 

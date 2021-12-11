@@ -24,6 +24,8 @@
             integrity="sha256-u11/XQI2A6mpXa0j1p0l0UpO3ZuiMTInGUqaT2K9ZWQ=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bulma-toast@2.3.1/dist/bulma-toast.min.js" defer
             integrity="sha256-S9DjwN1WDDoq2jChOYfPxbSYY4A30/U6oknr7khzsO0=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@jaames/iro@5.5.2/dist/iro.min.js" defer
+            integrity="sha256-XQju26ya9yEvX99+M2rrLah6xHsjZIGK1LvX/L3RjQ0=" crossorigin="anonymous"></script>
   </head>
   <body>
     <header class="navbar is-clipped">
@@ -92,8 +94,85 @@
       <div id="main-container" class="container is-flex is-flex-direction-column mb-1">
         <div class="columns mb-1">
           <!-- INPUT -->
-          <div class="column is-full mt-1 pb-0">
-            <label for="input">Input: </label>
+          <div class="column is-full mt-2 pb-0">
+            <div class="is-horizontal is-flex">
+              <label for="input">Input: </label>
+              <div class="is-flex ml-auto">
+                <div class="dropdown">
+                  <div class="dropdown-trigger">
+                    <button class="button" aria-haspopup="true" aria-controls="dropdown-menu">
+                      <span class="icon is-small">
+                        <i class="fas fa-palette" aria-hidden="true"></i>
+                      </span>
+                    </button>
+                  </div>
+                  <div class="dropdown-menu" id="dropdown-menu" role="menu">
+                    <div class="dropdown-content">
+                      <div class="dropdown-item">
+                        <div id="picker"></div>
+                      </div>
+                      <div class="dropdown-item is-flex">
+                        <div class="field has-addons is-flex-grow-1">
+                          <div id="preview-swatch" class="swatch is-flex-grow-1" style="background: #ffffff;"></div>
+                          <div class="control">
+                            <input id="preview-hex" class="input is-family-monospace has-text-centered" type="text" size="7" value="#ffffff">
+                          </div>
+                          <div class="control">
+                            <button id="use-color" class="button is-success">Apply color</button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="is-flex ml-1">
+                <div class="buttons has-addons is-right">
+                  <button class="button" id="editor-bold-button" aria-label="Bold" title="Add bold text">
+                    <span class="icon is-small"><i class="fas fa-bold"></i></span>
+                  </button>
+                  <button class="button" id="editor-italic-button" aria-label="Italic" title="Add italic text">
+                    <span class="icon is-small"><i class="fas fa-italic"></i></span>
+                  </button>
+                  <button class="button" id="editor-underline-button" aria-label="Underline" title="Add underlined text">
+                    <span class="icon is-small"><i class="fas fa-underline"></i></span>
+                  </button>
+                  <button class="button" id="editor-strikethrough-button" aria-label="Strikethrough" title="Add strikethrough text">
+                    <span class="icon is-small"><i class="fas fa-strikethrough"></i></span>
+                  </button>
+                </div>
+              </div>
+              <div class="is-flex ml-1">
+                <div class="buttons has-addons is-right">
+                  <button class="button" id="editor-open-url-button" aria-label="Open URL" title="Add clickable URL">
+                    <span class="icon is-small"><i class="fas fa-link"></i></span>
+                  </button>
+                  <button class="button" id="editor-run-command-button" aria-label="Run Command" title="Add clickable command">
+                    <span class="icon is-small">
+                      <svg class="svg-inline--fa a-w-16" height="1em" aria-hidden="true" focusable="false" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+                        <path fill="currentColor" d="M339.313 2.75926L386.7 2.91021C404.492 2.91021 413.209 14.9141 404.991 30.6898L133.238 492.841L130.988 496.844C127.683 503.157 121.522 508.383 114.492 508.383L67.7287 508.443L61.7829 508.443C43.9915 508.443 35.2739 496.439 43.4916 480.663L45.4373 476.663L322.817 14.2984C326.122 7.98572 332.283 2.75926 339.313 2.75926Z"/>
+                      </svg>
+                    </span>
+                  </button>
+                  <button class="button" id="editor-suggest-command-button" aria-label="Suggest Command" title="Add clickable command suggestion">
+                    <span class="icon is-small">
+                      <svg class="svg-inline--fa a-w-16" height="1em" aria-hidden="true" focusable="false" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+                        <path fill="currentColor" d="M382.313 2.75926L429.7 2.91021C447.492 2.91021 456.209 14.9141 447.991 30.6898L176.238 492.841L173.988 496.844C170.683 503.157 164.522 508.383 157.492 508.383L110.729 508.443L104.783 508.443C86.9915 508.443 78.2739 496.439 86.4916 480.663L88.4373 476.663L365.817 14.2984C369.122 7.98572 375.283 2.75926 382.313 2.75926Z"/>
+                        <path fill="currentColor" d="M117.524 0C65.5586 0 31.9004 21.3336 5.47526 59.3802C0.681636 66.282 2.1595 75.7449 8.84635 80.8254L36.931 102.163C43.6842 107.294 53.293 106.094 58.5801 99.457C74.888 78.9858 86.985 67.1992 112.458 67.1992C132.487 67.1992 157.26 80.115 157.26 99.5757C157.26 114.287 145.14 121.843 125.364 132.952C102.302 145.908 71.7839 162.031 71.7839 202.365V208.75C71.7839 217.397 78.7793 224.406 87.4089 224.406H134.59C143.22 224.406 150.215 217.397 150.215 208.75V204.984C150.215 177.025 231.77 175.86 231.77 100.2C231.771 43.2217 172.785 0 117.524 0ZM111 243.624C86.1328 243.624 65.9017 263.895 65.9017 288.812C65.9017 313.728 86.1328 334 111 334C135.867 334 156.098 313.728 156.098 288.811C156.098 263.895 135.867 243.624 111 243.624Z"/>
+                      </svg>
+                    </span>
+                  </button>
+                  <button class="button" id="editor-hover-text-button" aria-label="Hover Show Text" title="Add hoverable text">
+                    <span class="icon is-small">
+                      <svg class="svg-inline--fa a-w-16" height="1em" aria-hidden="true" focusable="false" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                        <path fill="currentColor" d="M462.5 0C489.838 0 512 16.0056 512 35.75V250.25C512 269.994 489.838 286 462.5 286H165.5C138.162 286 116 269.994 116 250.25V35.75C116 16.0056 138.162 0 165.5 0H462.5Z"/>
+                        <path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" d="M97.5989 285.387L38.7062 449H15.7143C11.5466 449 7.54961 450.659 4.60261 453.613C1.65561 456.567 0 460.573 0 464.75V496.25C0 500.427 1.65561 504.433 4.60261 507.387C7.54961 510.341 11.5466 512 15.7143 512H141.429C145.596 512 149.593 510.341 152.54 507.387C155.487 504.433 157.143 500.427 157.143 496.25V464.75C157.143 460.573 155.487 456.567 152.54 453.613C149.593 450.659 145.596 449 141.429 449H122.198L145.082 386H294.918L317.802 449H298.571C294.404 449 290.407 450.659 287.46 453.613C284.513 456.567 282.857 460.573 282.857 464.75V496.25C282.857 500.427 284.513 504.433 287.46 507.387C290.407 510.341 294.404 512 298.571 512H424.286C428.453 512 432.45 510.341 435.397 507.387C438.344 504.433 440 500.427 440 496.25V464.75C440 460.573 438.344 456.567 435.397 453.613C432.45 450.659 428.453 449 424.286 449H401.294L350.181 307H266.217L266.308 307.25H173.692L173.783 307H146.625C125.418 307 106.983 298.253 97.5989 285.387Z"/>
+                      </svg>
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </div>
             <textarea id="input" class="textarea mono-font" minrows="4" placeholder="<blue>Hello <red>World!" spellcheck="false"></textarea>
           </div>
         </div>
