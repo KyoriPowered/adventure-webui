@@ -17,11 +17,11 @@ import io.ktor.websocket.webSocket
 import kotlinx.serialization.encodeToString
 import net.kyori.adventure.text.minimessage.Context
 import net.kyori.adventure.text.minimessage.MiniMessage
-import net.kyori.adventure.text.minimessage.Template
 import net.kyori.adventure.text.minimessage.parser.ParsingException
 import net.kyori.adventure.text.minimessage.parser.TokenParser
 import net.kyori.adventure.text.minimessage.parser.node.TagNode
-import net.kyori.adventure.text.minimessage.template.TemplateResolver
+import net.kyori.adventure.text.minimessage.placeholder.Placeholder
+import net.kyori.adventure.text.minimessage.placeholder.PlaceholderResolver
 import net.kyori.adventure.text.minimessage.transformation.TransformationRegistry
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 import net.kyori.adventure.webui.Serializers
@@ -51,24 +51,24 @@ import net.kyori.adventure.webui.websocket.Placeholders
 import net.kyori.adventure.webui.websocket.Response
 import java.util.function.BiPredicate
 
-public val Placeholders?.placeholderResolver: TemplateResolver
+public val Placeholders?.placeholderResolver: PlaceholderResolver
     get() {
-        if (this == null) return TemplateResolver.empty()
+        if (this == null) return PlaceholderResolver.empty()
         val stringConverted =
-            this.stringPlaceholders?.map { Template.template(it.key, it.value) } ?: listOf()
+            this.stringPlaceholders?.map { Placeholder.miniMessage(it.key, it.value) } ?: listOf() // todo: is this correct? or do Component.text()
         val componentConverted =
             this.componentPlaceholders?.map {
-                Template.template(
+                Placeholder.component(
                     it.key, GsonComponentSerializer.gson().deserialize(it.value.toString())
                 )
             }
                 ?: listOf()
         val miniMessageConverted =
             this.miniMessagePlaceholders?.map {
-                Template.template(it.key, MiniMessage.miniMessage().deserialize(it.value))
+                Placeholder.component(it.key, MiniMessage.miniMessage().deserialize(it.value))
             }
                 ?: listOf()
-        return TemplateResolver.templates(
+        return PlaceholderResolver.placeholders(
             stringConverted + componentConverted + miniMessageConverted
         )
     }
@@ -101,7 +101,7 @@ public fun Application.minimessage() {
         // set up other routing
         route(URL_API) {
             webSocket(URL_MINI_TO_HTML) {
-                var templateResolver = TemplateResolver.empty()
+                var templateResolver = PlaceholderResolver.empty()
                 var miniMessage: String? = null
 
                 for (frame in incoming) {
@@ -164,7 +164,7 @@ public fun Application.minimessage() {
                     try {
                         TransformationRegistry.standard()
                             .get(
-                                node.name(),
+                                node.name().lowercase(),
                                 node.parts(),
                                 resolver,
                                 Context.of(false, input, MiniMessage.miniMessage())
