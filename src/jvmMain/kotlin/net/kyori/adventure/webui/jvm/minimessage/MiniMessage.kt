@@ -55,7 +55,7 @@ public val Placeholders?.placeholderResolver: PlaceholderResolver
     get() {
         if (this == null) return PlaceholderResolver.empty()
         val stringConverted =
-            this.stringPlaceholders?.map { Placeholder.miniMessage(it.key, it.value) } ?: listOf() // todo: is this correct? or do Component.text()
+            this.stringPlaceholders?.map { Placeholder.miniMessage(it.key, it.value) } ?: listOf()
         val componentConverted =
             this.componentPlaceholders?.map {
                 Placeholder.component(
@@ -63,14 +63,7 @@ public val Placeholders?.placeholderResolver: PlaceholderResolver
                 )
             }
                 ?: listOf()
-        val miniMessageConverted =
-            this.miniMessagePlaceholders?.map {
-                Placeholder.component(it.key, MiniMessage.miniMessage().deserialize(it.value))
-            }
-                ?: listOf()
-        return PlaceholderResolver.placeholders(
-            stringConverted + componentConverted + miniMessageConverted
-        )
+        return PlaceholderResolver.placeholders(stringConverted + componentConverted)
     }
 
 /** Entry-point for MiniMessage Viewer. */
