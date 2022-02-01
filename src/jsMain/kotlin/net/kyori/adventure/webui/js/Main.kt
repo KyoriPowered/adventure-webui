@@ -588,7 +588,7 @@ private inline fun <reified T : Packet> Window.postPacket(url: String, packet: T
         RequestInit(
             method = "POST",
             cache = RequestCache.NO_CACHE,
-            headers = Headers(json("Content-Type" to "text/plain")),
+            headers = Headers(json("Content-Type" to "text/plain; charset=UTF-8")),
             body = Serializers.json.encodeToString(packet)
         )
     )
