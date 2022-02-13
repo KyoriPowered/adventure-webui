@@ -17,12 +17,10 @@ import io.ktor.websocket.webSocket
 import kotlinx.serialization.encodeToString
 import net.kyori.adventure.text.minimessage.Context
 import net.kyori.adventure.text.minimessage.MiniMessage
-import net.kyori.adventure.text.minimessage.parser.ParsingException
 import net.kyori.adventure.text.minimessage.parser.TokenParser
 import net.kyori.adventure.text.minimessage.parser.node.TagNode
-import net.kyori.adventure.text.minimessage.placeholder.Placeholder
-import net.kyori.adventure.text.minimessage.placeholder.PlaceholderResolver
-import net.kyori.adventure.text.minimessage.transformation.TransformationRegistry
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 import net.kyori.adventure.webui.Serializers
 import net.kyori.adventure.webui.URL_API
@@ -51,11 +49,11 @@ import net.kyori.adventure.webui.websocket.Placeholders
 import net.kyori.adventure.webui.websocket.Response
 import java.util.function.BiPredicate
 
-public val Placeholders?.placeholderResolver: PlaceholderResolver
+public val Placeholders?.tagResolver: TagResolver
     get() {
-        if (this == null) return PlaceholderResolver.empty()
+        if (this == null) return TagResolver.empty()
         val stringConverted =
-            this.stringPlaceholders?.map { Placeholder.miniMessage(it.key, it.value) } ?: listOf()
+            this.stringPlaceholders?.map { Placeholder.parsed(it.key, it.value) } ?: listOf()
         val componentConverted =
             this.componentPlaceholders?.map {
                 Placeholder.component(
@@ -63,7 +61,7 @@ public val Placeholders?.placeholderResolver: PlaceholderResolver
                 )
             }
                 ?: listOf()
-        return PlaceholderResolver.placeholders(stringConverted + componentConverted)
+        return TagResolver.resolver(stringConverted + componentConverted)
     }
 
 /** Entry-point for MiniMessage Viewer. */
@@ -94,14 +92,14 @@ public fun Application.minimessage() {
         // set up other routing
         route(URL_API) {
             webSocket(URL_MINI_TO_HTML) {
-                var templateResolver = PlaceholderResolver.empty()
+                var tagResolver = TagResolver.empty()
                 var miniMessage: String? = null
 
                 for (frame in incoming) {
                     if (frame is Frame.Text) {
                         when (val packet = Serializers.json.tryDecodeFromString<Packet>(frame.readText())) {
                             is Call -> miniMessage = packet.miniMessage
-                            is Placeholders -> templateResolver = packet.placeholderResolver
+                            is Placeholders -> tagResolver = packet.tagResolver
                             null -> continue
                         }
 
@@ -115,7 +113,7 @@ public fun Application.minimessage() {
                                     .map { line -> HookManager.render(line) }
                                     .map { line ->
                                         MiniMessage.miniMessage()
-                                            .deserialize(line, templateResolver)
+                                            .deserialize(line, tagResolver)
                                     }
                                     .map { component -> HookManager.render(component) }
                                     .forEach { component ->
@@ -144,7 +142,7 @@ public fun Application.minimessage() {
                     GsonComponentSerializer.gson()
                         .serialize(
                             MiniMessage.miniMessage()
-                                .deserialize(input, structure.placeholders.placeholderResolver)
+                                .deserialize(input, structure.placeholders.tagResolver)
                         )
                 )
             }
@@ -152,7 +150,7 @@ public fun Application.minimessage() {
             post(URL_MINI_TO_TREE) {
                 val structure = Serializers.json.tryDecodeFromString<Combined>(call.receiveText())
                 val input = structure?.miniMessage ?: return@post
-                val resolver = structure.placeholders.placeholderResolver
+                val resolver = structure.placeholders.tagResolver
                 val transformationFactory = { node: TagNode ->
                     try {
                         TransformationRegistry.standard()
