@@ -3,5 +3,3 @@ plugins {
 }
 
 rootProject.name = "adventure-webui"
-
-enableFeaturePreview("VERSION_CATALOGS")
