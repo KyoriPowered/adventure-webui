@@ -15,10 +15,7 @@ import io.ktor.routing.route
 import io.ktor.routing.routing
 import io.ktor.websocket.webSocket
 import kotlinx.serialization.encodeToString
-import net.kyori.adventure.text.minimessage.Context
 import net.kyori.adventure.text.minimessage.MiniMessage
-import net.kyori.adventure.text.minimessage.parser.TokenParser
-import net.kyori.adventure.text.minimessage.parser.node.TagNode
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
@@ -47,7 +44,6 @@ import net.kyori.adventure.webui.websocket.Packet
 import net.kyori.adventure.webui.websocket.ParseResult
 import net.kyori.adventure.webui.websocket.Placeholders
 import net.kyori.adventure.webui.websocket.Response
-import java.util.function.BiPredicate
 
 public val Placeholders?.tagResolver: TagResolver
     get() {
@@ -151,24 +147,7 @@ public fun Application.minimessage() {
                 val structure = Serializers.json.tryDecodeFromString<Combined>(call.receiveText())
                 val input = structure?.miniMessage ?: return@post
                 val resolver = structure.placeholders.tagResolver
-                val transformationFactory = { node: TagNode ->
-                    try {
-                        TransformationRegistry.standard()
-                            .get(
-                                node.name().lowercase(),
-                                node.parts(),
-                                resolver,
-                                Context.of(false, input, MiniMessage.miniMessage())
-                            )
-                    } catch (ignored: ParsingException) {
-                        null
-                    }
-                }
-                val tagNameChecker = BiPredicate { name: String?, _: Boolean ->
-                    TransformationRegistry.standard().exists(name, resolver)
-                }
-                val root =
-                    TokenParser.parse(transformationFactory, tagNameChecker, resolver, input, false)
+                val root = MiniMessage.miniMessage().deserializeToTree(input, resolver)
                 call.respondText(root.toString())
             }
 
