@@ -49,19 +49,18 @@ public val Placeholders?.tagResolver: TagResolver
     get() {
         if (this == null) return TagResolver.empty()
         val stringConverted =
-            this.stringPlaceholders?.map { Placeholder.parsed(it.key, it.value) } ?: listOf()
+            this.stringPlaceholders?.map { (key, value) ->
+                Placeholder.parsed(key, value)
+            } ?: listOf()
         val componentConverted =
-            this.componentPlaceholders?.map {
-                Placeholder.component(
-                    it.key, GsonComponentSerializer.gson().deserialize(it.value.toString())
-                )
-            }
-                ?: listOf()
+            this.componentPlaceholders?.map { (key, value) ->
+                Placeholder.component(key, GsonComponentSerializer.gson().deserialize(value.toString()))
+            } ?: listOf()
         return TagResolver.resolver(stringConverted + componentConverted)
     }
 
 /** Entry-point for MiniMessage Viewer. */
-public fun Application.minimessage() {
+public fun Application.miniMessage() {
     // add standard renderers
     HookManager.apply {
         component(HOVER_EVENT_RENDER_HOOK)
