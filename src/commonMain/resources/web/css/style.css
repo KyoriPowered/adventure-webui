@@ -151,6 +151,8 @@
 #output-pre.mode-lore {
     display: inline-flex;
     flex-direction: column;
+    color: #AA00AA;
+    font-style: italic;
 }
 #output-pre.mode-lore, #hover-tooltip {
     background-color: rgba(1, 1, 1, 0.8);
@@ -168,6 +170,8 @@
     line-height: 25px;
     background: none;
     padding-left: 10px;
+    color: #555555;
+    text-shadow: none !important;
 }
 #output-pre.mode-server-list span {
     font-size: 20px;
