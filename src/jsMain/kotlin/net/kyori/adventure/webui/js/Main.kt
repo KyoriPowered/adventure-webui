@@ -54,7 +54,6 @@ private const val PARAM_INPUT: String = "input"
 private const val PARAM_MODE: String = "mode"
 public const val PARAM_BACKGROUND: String = "bg"
 private const val PARAM_STRING_PLACEHOLDERS: String = "st"
-private const val PARAM_COMPONENT_PLACEHOLDERS: String = "ct"
 
 private var isInEditorMode: Boolean = false
 private lateinit var editorInput: EditorInput
@@ -182,9 +181,6 @@ public fun main() {
                             window.localStorage[PARAM_STRING_PLACEHOLDERS] = Serializers.json.encodeToString(
                                 newPlaceholders.stringPlaceholders
                             )
-                            window.localStorage[PARAM_COMPONENT_PLACEHOLDERS] = Serializers.json.encodeToString(
-                                newPlaceholders.miniMessagePlaceholders
-                            )
                             webSocket.send(newPlaceholders)
                         }
                     }
@@ -267,15 +263,6 @@ public fun main() {
                         link +=
                             encodeURIComponent(
                                 Serializers.json.encodeToString(placeholders.stringPlaceholders)
-                            )
-                    }
-                    if (!placeholders.miniMessagePlaceholders.isNullOrEmpty()) {
-                        link += "&$PARAM_COMPONENT_PLACEHOLDERS="
-                        link +=
-                            encodeURIComponent(
-                                Serializers.json.encodeToString(
-                                    placeholders.miniMessagePlaceholders
-                                )
                             )
                     }
                     window.navigator.clipboard.writeText(link).then {
@@ -374,13 +361,10 @@ public fun main() {
 private fun readPlaceholders(): Placeholders {
     val userPlaceholders = UserPlaceholder.allInList()
     val stringPlaceholders = mutableMapOf<String, String>()
-    val miniMessagePlaceholders = mutableMapOf<String, String>()
     userPlaceholders.filter { t -> t.key.isNotEmpty() && t.value.isNotEmpty() }.forEach { t ->
-        (if (t.isMiniMessage) miniMessagePlaceholders else stringPlaceholders)[t.key] = t.value
+        stringPlaceholders[t.key] = t.value
     }
-    return Placeholders(
-        stringPlaceholders = stringPlaceholders, miniMessagePlaceholders = miniMessagePlaceholders
-    )
+    return Placeholders(stringPlaceholders = stringPlaceholders)
 }
 
 private fun onWebsocketReady() {
@@ -392,12 +376,8 @@ private fun onWebsocketReady() {
             inputBox.value = inputString
         }
         var stringPlaceholders: Map<String, String>? = null
-        var miniMessagePlaceholders: Map<String, String>? = null
         urlParams.getFromParamsOrLocalStorage(PARAM_STRING_PLACEHOLDERS)?.also { inputString ->
             stringPlaceholders = Serializers.json.tryDecodeFromString(inputString)
-        }
-        urlParams.getFromParamsOrLocalStorage(PARAM_COMPONENT_PLACEHOLDERS)?.also { inputString ->
-            miniMessagePlaceholders = Serializers.json.tryDecodeFromString(inputString)
         }
         stringPlaceholders?.forEach { (k, v) ->
             UserPlaceholder.addToList().apply {
@@ -405,18 +385,8 @@ private fun onWebsocketReady() {
                 value = v
             }
         }
-        miniMessagePlaceholders?.forEach { (k, v) ->
-            UserPlaceholder.addToList().apply {
-                isMiniMessage = true
-                key = k
-                value = v
-            }
-        }
         webSocket.send(
-            Placeholders(
-                stringPlaceholders = stringPlaceholders,
-                miniMessagePlaceholders = miniMessagePlaceholders
-            )
+            Placeholders(stringPlaceholders = stringPlaceholders)
         )
     }
 

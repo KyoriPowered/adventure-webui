@@ -15,14 +15,9 @@ import io.ktor.routing.route
 import io.ktor.routing.routing
 import io.ktor.websocket.webSocket
 import kotlinx.serialization.encodeToString
-import net.kyori.adventure.text.minimessage.Context
 import net.kyori.adventure.text.minimessage.MiniMessage
-import net.kyori.adventure.text.minimessage.Template
-import net.kyori.adventure.text.minimessage.parser.ParsingException
-import net.kyori.adventure.text.minimessage.parser.TokenParser
-import net.kyori.adventure.text.minimessage.parser.node.TagNode
-import net.kyori.adventure.text.minimessage.template.TemplateResolver
-import net.kyori.adventure.text.minimessage.transformation.TransformationRegistry
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 import net.kyori.adventure.webui.Serializers
 import net.kyori.adventure.webui.URL_API
@@ -49,32 +44,23 @@ import net.kyori.adventure.webui.websocket.Packet
 import net.kyori.adventure.webui.websocket.ParseResult
 import net.kyori.adventure.webui.websocket.Placeholders
 import net.kyori.adventure.webui.websocket.Response
-import java.util.function.BiPredicate
 
-public val Placeholders?.placeholderResolver: TemplateResolver
+public val Placeholders?.tagResolver: TagResolver
     get() {
-        if (this == null) return TemplateResolver.empty()
+        if (this == null) return TagResolver.empty()
         val stringConverted =
-            this.stringPlaceholders?.map { Template.template(it.key, it.value) } ?: listOf()
+            this.stringPlaceholders?.map { (key, value) ->
+                Placeholder.parsed(key, value)
+            } ?: listOf()
         val componentConverted =
-            this.componentPlaceholders?.map {
-                Template.template(
-                    it.key, GsonComponentSerializer.gson().deserialize(it.value.toString())
-                )
-            }
-                ?: listOf()
-        val miniMessageConverted =
-            this.miniMessagePlaceholders?.map {
-                Template.template(it.key, MiniMessage.miniMessage().deserialize(it.value))
-            }
-                ?: listOf()
-        return TemplateResolver.templates(
-            stringConverted + componentConverted + miniMessageConverted
-        )
+            this.componentPlaceholders?.map { (key, value) ->
+                Placeholder.component(key, GsonComponentSerializer.gson().deserialize(value.toString()))
+            } ?: listOf()
+        return TagResolver.resolver(stringConverted + componentConverted)
     }
 
 /** Entry-point for MiniMessage Viewer. */
-public fun Application.minimessage() {
+public fun Application.miniMessage() {
     // add standard renderers
     HookManager.apply {
         component(HOVER_EVENT_RENDER_HOOK)
@@ -101,14 +87,14 @@ public fun Application.minimessage() {
         // set up other routing
         route(URL_API) {
             webSocket(URL_MINI_TO_HTML) {
-                var templateResolver = TemplateResolver.empty()
+                var tagResolver = TagResolver.empty()
                 var miniMessage: String? = null
 
                 for (frame in incoming) {
                     if (frame is Frame.Text) {
                         when (val packet = Serializers.json.tryDecodeFromString<Packet>(frame.readText())) {
                             is Call -> miniMessage = packet.miniMessage
-                            is Placeholders -> templateResolver = packet.placeholderResolver
+                            is Placeholders -> tagResolver = packet.tagResolver
                             null -> continue
                         }
 
@@ -122,7 +108,7 @@ public fun Application.minimessage() {
                                     .map { line -> HookManager.render(line) }
                                     .map { line ->
                                         MiniMessage.miniMessage()
-                                            .deserialize(line, templateResolver)
+                                            .deserialize(line, tagResolver)
                                     }
                                     .map { component -> HookManager.render(component) }
                                     .forEach { component ->
@@ -151,7 +137,7 @@ public fun Application.minimessage() {
                     GsonComponentSerializer.gson()
                         .serialize(
                             MiniMessage.miniMessage()
-                                .deserialize(input, structure.placeholders.placeholderResolver)
+                                .deserialize(input, structure.placeholders.tagResolver)
                         )
                 )
             }
@@ -159,25 +145,8 @@ public fun Application.minimessage() {
             post(URL_MINI_TO_TREE) {
                 val structure = Serializers.json.tryDecodeFromString<Combined>(call.receiveText())
                 val input = structure?.miniMessage ?: return@post
-                val resolver = structure.placeholders.placeholderResolver
-                val transformationFactory = { node: TagNode ->
-                    try {
-                        TransformationRegistry.standard()
-                            .get(
-                                node.name(),
-                                node.parts(),
-                                resolver,
-                                Context.of(false, input, MiniMessage.miniMessage())
-                            )
-                    } catch (ignored: ParsingException) {
-                        null
-                    }
-                }
-                val tagNameChecker = BiPredicate { name: String?, _: Boolean ->
-                    TransformationRegistry.standard().exists(name, resolver)
-                }
-                val root =
-                    TokenParser.parse(transformationFactory, tagNameChecker, resolver, input, false)
+                val resolver = structure.placeholders.tagResolver
+                val root = MiniMessage.miniMessage().deserializeToTree(input, resolver)
                 call.respondText(root.toString())
             }
 
