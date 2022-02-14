@@ -171,6 +171,7 @@
     background: none;
     padding-left: 10px;
     color: #555555;
+    text-shadow: none !important;
 }
 #output-pre.mode-server-list span {
     font-size: 20px;
