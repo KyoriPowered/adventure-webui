@@ -182,12 +182,20 @@
           <div hidden id="hover-tooltip" class="mc-font"></div>
           <div class="column is-full is-flex is-flex-direction-column">
             <label for="output-pane">Output: </label>
-            <div id="output-pane" class="is-flex-grow-1 is-flex-shrink-0">
+            <div id="output-pane" class="is-flex is-flex-grow-1 is-flex-shrink-0">
               <div id="chat-entry-box">_</div>
               <div id="server-list-icon">
                 <img id="server-list-image" src="img/kyori.png" alt="Example server icon">
               </div>
-              <pre id="output-pre" class="mc-font"></pre>
+              <div id="output-lines" class="is-flex-grow-1 is-flex-shrink-0">
+                <div id="server-list-header" class="mc-font">
+                  <span style="color: white;">KyoriCraft</span>
+                  <span style="color: #aaaaaa;margin-left: auto;">
+                    0<span style="color: #555555;">/</span>20
+                  </span>
+                </div>
+                <pre id="output-pre" class="mc-font"></pre>
+              </div>
             </div>
           </div>
         </div>

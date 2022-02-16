@@ -41,17 +41,21 @@
     background-image: url("../img/grass.jpg");
     background-size: cover;
 }
-#output-pane #server-list-icon {
+#output-pane #server-list-icon,
+#output-pane #server-list-header {
     display: none;
 }
-#output-pane.mode-chat-open, #output-pane.mode-chat-closed {
+#output-pane.mode-chat-open > #output-lines,
+#output-pane.mode-chat-closed > #output-lines {
     background-position: bottom left;
     display: flex;
     align-items: flex-end;
 }
-#output-pane.mode-chat-open {
+#output-pane.mode-chat-open,
+#output-pane.mode-chat-open > #output-lines {
     flex-direction: column-reverse;
     align-items: flex-start;
+    width: 100%;
 }
 #output-pane:not(.mode-chat-open) > #chat-entry-box {
     display: none;
@@ -66,14 +70,14 @@
     font-size: 32px;
     padding-left: 5px;
 }
-#output-pane.mode-hologram {
+#output-pane.mode-hologram > #output-lines {
     background-position: center center;
     align-items: center;
     display: flex;
     justify-content: center;
     align-content: center;
 }
-#output-pane.mode-lore {
+#output-pane.mode-lore > #output-lines {
     background-position: center center;
     align-items: center;
     display: flex;
@@ -84,12 +88,23 @@
     background-image: url("../img/server_list_background.jpg");
     background-size: auto;
     align-items: center;
-    display: flex;
     align-content: center;
     justify-content: center;
 }
+#output-pane.mode-server-list > #output-lines {
+    align-items: flex-start;
+    flex-direction: column;
+    display: inline-flex;
+    line-height: 25px;
+    padding-left: 10px;
+    max-width: 546px;
+}
 #output-pane.mode-server-list #server-list-icon {
     display: block;
+}
+#output-pane.mode-server-list #server-list-header {
+    display: flex;
+    width: 100%;
 }
 /* output pre */
 #output-pre:empty {
@@ -167,15 +182,17 @@
 #output-pre.mode-server-list {
     display: inline-flex;
     flex-direction: column;
-    line-height: 25px;
     background: none;
-    padding-left: 10px;
+    padding: 0;
+    margin-bottom: 0;
+    max-width: 100%;
+    overflow: hidden;
     color: #555555;
-    text-shadow: none !important;
 }
 #output-pre.mode-server-list span {
     font-size: 20px;
     line-height: 20px;
+    text-shadow: none !important;
 }
 #hover-tooltip {
     position: fixed;
