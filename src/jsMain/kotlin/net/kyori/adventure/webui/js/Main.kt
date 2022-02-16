@@ -229,9 +229,6 @@ public fun main() {
                         }
 
                         updateBackground()
-
-                        // re-parse to remove the horrible server list header line hack
-                        parse()
                     }
                 )
             }
@@ -510,10 +507,7 @@ private fun parse() {
                     when (currentMode) {
                         Mode.CHAT_CLOSED -> list.safeSubList(0, 10)
                         Mode.SERVER_LIST ->
-                            buildList(3) {
-                                add(
-                                    "KyoriCraft                                                 <gray>0<dark_gray>/</dark_gray>20"
-                                )
+                            buildList(2) {
                                 add(list.getOrNull(0) ?: "\u200B")
                                 add(list.getOrNull(1) ?: "\u200B")
                             }
