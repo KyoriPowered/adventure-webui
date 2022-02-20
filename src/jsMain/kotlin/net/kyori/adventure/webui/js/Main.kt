@@ -20,6 +20,7 @@ import net.kyori.adventure.webui.URL_MINI_TO_TREE
 import net.kyori.adventure.webui.editor.EditorInput
 import net.kyori.adventure.webui.tryDecodeFromString
 import net.kyori.adventure.webui.websocket.Call
+import net.kyori.adventure.webui.websocket.Combined
 import net.kyori.adventure.webui.websocket.Packet
 import net.kyori.adventure.webui.websocket.Placeholders
 import net.kyori.adventure.webui.websocket.Response
@@ -279,7 +280,7 @@ public fun main() {
                 {
                     window.postPacket(
                         "$URL_API$URL_MINI_TO_JSON",
-                        Call(miniMessage = input.value)
+                        Combined(miniMessage = input.value, placeholders = readPlaceholders())
                     )
                         .then { response ->
                             response.text().then { text ->
@@ -296,7 +297,7 @@ public fun main() {
                 {
                     window.postPacket(
                         "$URL_API$URL_MINI_TO_TREE",
-                        Call(miniMessage = input.value)
+                        Combined(miniMessage = input.value, placeholders = readPlaceholders())
                     ).then { response ->
                         response.text().then { text ->
                             val escaped =
@@ -533,7 +534,7 @@ private fun WebSocket.send(packet: Packet) {
     this.send(Serializers.json.encodeToString(packet))
 }
 
-private inline fun <reified T : Packet> Window.postPacket(url: String, packet: T): Promise<org.w3c.fetch.Response> {
+private inline fun <reified T> Window.postPacket(url: String, packet: T): Promise<org.w3c.fetch.Response> {
     return this.fetch(
         url,
         RequestInit(
