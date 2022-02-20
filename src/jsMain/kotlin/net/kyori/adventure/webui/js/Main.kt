@@ -400,13 +400,9 @@ private fun onWebsocketReady() {
                     if (result.success && result.dom != null) {
                         output.textContent = ""
 
-                        result.dom.split("\n").forEach { line ->
-                            if (line.isNotEmpty()) {
-                                document.createElement("div").also { div ->
-                                    div.innerHTML = line
-                                    output.append(div)
-                                }
-                            }
+                        document.createElement("div").also { div ->
+                            div.innerHTML = result.dom.replace("\n", "<br>")
+                            output.append(div)
                         }
 
                         // reset scroll to bottom (like how chat works)
@@ -522,7 +518,7 @@ private fun parse() {
                     if (line == "") "\u200B" else line
                 }
 
-            webSocket.send(Call(combinedLines))
+            webSocket.send(Call(combinedLines, isolateNewlines = currentMode == Mode.LORE))
         }
     }
 }
