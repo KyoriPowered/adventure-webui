@@ -9,7 +9,10 @@ public sealed interface Packet
 
 @Serializable
 @SerialName("call")
-public data class Call(public val miniMessage: String? = null) : Packet
+public data class Call(
+    public val miniMessage: String? = null,
+    public val isolateNewlines: Boolean = false
+) : Packet
 
 @Serializable
 @SerialName("placeholders")

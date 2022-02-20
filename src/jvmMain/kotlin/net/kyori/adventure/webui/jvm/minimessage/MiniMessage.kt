@@ -89,11 +89,15 @@ public fun Application.miniMessage() {
             webSocket(URL_MINI_TO_HTML) {
                 var tagResolver = TagResolver.empty()
                 var miniMessage: String? = null
+                var isolateNewlines = false
 
                 for (frame in incoming) {
                     if (frame is Frame.Text) {
                         when (val packet = Serializers.json.tryDecodeFromString<Packet>(frame.readText())) {
-                            is Call -> miniMessage = packet.miniMessage
+                            is Call -> {
+                                miniMessage = packet.miniMessage
+                                isolateNewlines = packet.isolateNewlines
+                            }
                             is Placeholders -> tagResolver = packet.tagResolver
                             null -> continue
                         }
@@ -103,18 +107,23 @@ public fun Application.miniMessage() {
                             try {
                                 val result = StringBuilder()
 
-                                miniMessage
-                                    .split("\n")
-                                    .map { line -> HookManager.render(line) }
-                                    .map { line ->
-                                        MiniMessage.miniMessage()
-                                            .deserialize(line, tagResolver)
-                                    }
-                                    .map { component -> HookManager.render(component) }
-                                    .forEach { component ->
-                                        result.appendComponent(component)
-                                        result.append("\n")
-                                    }
+                                if (isolateNewlines) {
+                                    miniMessage
+                                        .split("\n")
+                                        .map { line -> HookManager.render(line) }
+                                        .map { line ->
+                                            MiniMessage.miniMessage()
+                                                .deserialize(line, tagResolver)
+                                        }
+                                        .map { component -> HookManager.render(component) }
+                                        .forEach { component ->
+                                            result.appendComponent(component)
+                                            result.append("\n")
+                                        }
+                                } else {
+                                    val component = MiniMessage.miniMessage().deserialize(HookManager.render(miniMessage), tagResolver)
+                                    result.appendComponent(HookManager.render(component))
+                                }
 
                                 Response(ParseResult(true, result.toString()))
                             } catch (e: Exception) {
