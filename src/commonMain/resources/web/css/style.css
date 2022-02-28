@@ -229,6 +229,12 @@ html {
 #server-list-image {
     width: 65px;
 }
+#server-list-ping {
+    height: 20px;
+    image-rendering: pixelated;
+    flex-shrink: 0;
+    margin-left: 4px;
+}
 .swatch {
     border-top-left-radius: 4px;
     border-bottom-left-radius: 4px;
