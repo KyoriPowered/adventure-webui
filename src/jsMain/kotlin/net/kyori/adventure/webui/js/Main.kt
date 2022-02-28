@@ -230,6 +230,7 @@ public fun main() {
                         }
 
                         updateBackground()
+                        parse()
                     }
                 )
             }
