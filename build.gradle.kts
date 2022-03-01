@@ -1,12 +1,13 @@
 import net.kyori.indra.git.IndraGitExtension
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
 
+@Suppress("DSL_SCOPE_VIOLATION") // https://youtrack.jetbrains.com/issue/KTIJ-19369
 plugins {
     application
-    id("net.kyori.indra.git")
-    id("org.jetbrains.kotlin.multiplatform")
-    id("org.jetbrains.kotlin.plugin.serialization")
-    id("org.jlleitschuh.gradle.ktlint")
+    alias(libs.plugins.indra.git)
+    alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.kotlinx.serialization)
+    alias(libs.plugins.ktlint)
 }
 
 configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
