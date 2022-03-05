@@ -239,6 +239,12 @@ html {
     border-top-left-radius: 4px;
     border-bottom-left-radius: 4px;
 }
+input.placeholder-key:invalid {
+    border: 2px red solid;
+}
+input.placeholder-key:valid + .placeholder-tip {
+    display: none;
+}
 @media (prefers-color-scheme: light) {
     body {
         background-color: #E6E6E6;

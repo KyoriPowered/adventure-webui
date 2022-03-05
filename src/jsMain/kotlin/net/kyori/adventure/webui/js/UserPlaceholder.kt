@@ -1,10 +1,12 @@
 package net.kyori.adventure.webui.js
 
 import kotlinx.browser.document
+import kotlinx.html.code
 import kotlinx.html.dom.append
 import kotlinx.html.js.a
 import kotlinx.html.js.i
 import kotlinx.html.js.input
+import kotlinx.html.js.p
 import kotlinx.html.js.span
 import kotlinx.html.js.td
 import kotlinx.html.js.tr
@@ -30,7 +32,24 @@ public class UserPlaceholder(
             lateinit var deleteButton: HTMLAnchorElement
             list.append {
                 row = tr {
-                    td(classes = "control") { key = input(classes = "input placeholder-key") }
+                    td(classes = "control") {
+                        key = input(classes = "input placeholder-key") {
+                            pattern = "[!?#]?[a-z0-9_-]*" // Can this be less of a magic value?
+                        }
+                        p(classes = "help is-danger placeholder-tip") {
+                            text("Tag names must only contain the characters ")
+                            code { text("a-z") }
+                            text(", ")
+                            code { text("0-9") }
+                            text(", ")
+                            code { text("_") }
+                            text(" and ")
+                            code { text("-") }
+                            text(". They can also optionally start with any of ")
+                            code { text("!?#") }
+                            text(".")
+                        }
+                    }
                     td(classes = "control") { value = input(classes = "input placeholder-value") }
                     td(classes = "control") {
                         deleteButton = a(classes = "button is-danger") {
