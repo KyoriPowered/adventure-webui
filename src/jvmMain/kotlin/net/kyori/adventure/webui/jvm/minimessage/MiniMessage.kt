@@ -50,13 +50,21 @@ public val Placeholders?.tagResolver: TagResolver
         if (this == null) return TagResolver.empty()
         val stringConverted =
             this.stringPlaceholders?.map { (key, value) ->
-                Placeholder.parsed(key, value)
+                try {
+                    Placeholder.parsed(key, value)
+                } catch (_: java.lang.IllegalArgumentException) {
+                    null
+                }
             } ?: listOf()
         val componentConverted =
             this.componentPlaceholders?.map { (key, value) ->
-                Placeholder.component(key, GsonComponentSerializer.gson().deserialize(value.toString()))
+                try {
+                    Placeholder.component(key, GsonComponentSerializer.gson().deserialize(value.toString()))
+                } catch (_: java.lang.IllegalArgumentException) {
+                    null
+                }
             } ?: listOf()
-        return TagResolver.resolver(stringConverted + componentConverted)
+        return TagResolver.resolver((stringConverted + componentConverted).filterNotNull())
     }
 
 /** Entry-point for MiniMessage Viewer. */

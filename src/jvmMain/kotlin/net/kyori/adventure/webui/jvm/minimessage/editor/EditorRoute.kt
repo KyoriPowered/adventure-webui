@@ -18,12 +18,12 @@ import net.kyori.adventure.webui.URL_EDITOR_OUTPUT
 import net.kyori.adventure.webui.editor.EditorInput
 import net.kyori.adventure.webui.tryDecodeFromString
 import java.util.UUID
-import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
 
 private val inputSessions: Cache<String, EditorInput> =
-    Cache.Builder().expireAfterWrite(Duration.minutes(5)).build()
+    Cache.Builder().expireAfterWrite(5.minutes).build()
 private val outputSessions: Cache<String, String> =
-    Cache.Builder().expireAfterWrite(Duration.minutes(5)).build()
+    Cache.Builder().expireAfterWrite(5.minutes).build()
 
 /** Installs routes for the editor system */
 public fun Route.installEditor() {
