@@ -242,7 +242,7 @@ html {
 input.placeholder-key:invalid {
     border: 2px red solid;
 }
-input.placeholder-key:valid + .placeholder-tip {
+#placeholder-tip {
     display: none;
 }
 @media (prefers-color-scheme: light) {
