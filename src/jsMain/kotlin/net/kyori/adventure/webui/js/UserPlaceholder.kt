@@ -11,6 +11,7 @@ import kotlinx.html.js.tr
 import kotlinx.html.title
 import org.w3c.dom.HTMLAnchorElement
 import org.w3c.dom.HTMLInputElement
+import org.w3c.dom.HTMLParagraphElement
 import org.w3c.dom.HTMLTableRowElement
 import org.w3c.dom.asList
 
@@ -30,7 +31,11 @@ public class UserPlaceholder(
             lateinit var deleteButton: HTMLAnchorElement
             list.append {
                 row = tr {
-                    td(classes = "control") { key = input(classes = "input placeholder-key") }
+                    td(classes = "control") {
+                        key = input(classes = "input placeholder-key") {
+                            pattern = "[!?#]?[a-z0-9_-]*" // Can this be less of a magic value?
+                        }
+                    }
                     td(classes = "control") { value = input(classes = "input placeholder-value") }
                     td(classes = "control") {
                         deleteButton = a(classes = "button is-danger") {
@@ -43,6 +48,15 @@ public class UserPlaceholder(
                     }
                 }
             }
+            key.addEventListener("input", {
+                val activeKeys = document.getElementsByClassName("placeholder-key").asList().map { it as HTMLInputElement }
+                val tip = document.getElementById("placeholder-tip") as HTMLParagraphElement
+                if (activeKeys.all { it.checkValidity() }) {
+                    tip.style.display = "none"
+                } else {
+                    tip.style.display = "block"
+                }
+            })
             deleteButton.addEventListener("click", { row.remove() })
             return UserPlaceholder(key, value)
         }
@@ -57,7 +71,7 @@ public class UserPlaceholder(
                 placeholdersBox.getElementsByClassName("placeholder-value").asList().map {
                     it.unsafeCast<HTMLInputElement>()
                 }
-            return placeholderKeys.mapIndexed { i, _ ->
+            return List(placeholderKeys.size) { i ->
                 UserPlaceholder(placeholderKeys[i], placeholderValues[i])
             }
         }
