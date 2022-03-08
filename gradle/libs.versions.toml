@@ -1,7 +1,7 @@
 [versions]
 kotlin = "1.6.10"
 ktor = "1.6.7"
-adventure = "4.10.0"
+adventure = "4.10.1"
 
 [plugins]
 indra-git = { id = "net.kyori.indra.git", version = "2.1.1" }
