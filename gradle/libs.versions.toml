@@ -1,6 +1,6 @@
 [versions]
 kotlin = "1.6.10"
-ktor = "1.6.7"
+ktor = "1.6.8"
 adventure = "4.10.1"
 
 [plugins]
