@@ -3,6 +3,10 @@ package net.kyori.adventure.webui.js
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.dom.hasClass
+import kotlinx.html.b
+import kotlinx.html.i
+import kotlinx.html.p
+import kotlinx.html.stream.appendHTML
 import kotlinx.serialization.encodeToString
 import net.kyori.adventure.webui.COMPONENT_CLASS
 import net.kyori.adventure.webui.DATA_CLICK_EVENT_ACTION
@@ -433,7 +437,19 @@ private fun checkClickEvents(target: EventTarget?, typesToCheck: Collection<Even
                 val content = target.dataset[DATA_CLICK_EVENT_VALUE.camel] ?: ""
                 val actionName = clickAction.replace('_', ' ').replaceFirstChar(Char::uppercase)
                 bulmaToast.toast(
-                    "<p><b>Click Event</b></p><p>Action: <i>$actionName</i></p><p>Content: <i>$content</i></p>",
+                    buildString {
+                        appendHTML().p {
+                            b { text("Click Event") }
+                        }
+                        appendHTML().p {
+                            text("Action: ")
+                            i { text(actionName) }
+                        }
+                        appendHTML().p {
+                            text("Content: ")
+                            i { text(content) }
+                        }
+                    },
                     type = "is-info"
                 )
             }
