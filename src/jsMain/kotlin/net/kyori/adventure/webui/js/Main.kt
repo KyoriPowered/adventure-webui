@@ -59,6 +59,7 @@ private const val PARAM_INPUT: String = "input"
 private const val PARAM_MODE: String = "mode"
 public const val PARAM_BACKGROUND: String = "bg"
 private const val PARAM_STRING_PLACEHOLDERS: String = "st"
+private const val PARAM_SHORT_LINK: String = "x"
 
 private var isInEditorMode: Boolean = false
 private lateinit var editorInput: EditorInput
@@ -263,7 +264,7 @@ public fun main() {
                             )
                     }
                     window.navigator.clipboard.writeText(link).then {
-                        bulmaToast.toast("Shareable link copied to clipboard!")
+                        bulmaToast.toast("Shareable permanent link copied to clipboard!")
                     }
                 }
             )
@@ -274,7 +275,15 @@ public fun main() {
                     window.postPacket(
                         "$URL_API$URL_MINI_SHORTEN",
                         Combined(miniMessage = input.value, placeholders = readPlaceholders())
-                    ).then { response -> response.text().then { text -> console.log(text) } }
+                    )
+                        .then { response ->
+                            response.text().then { text ->
+                                val link = "$homeUrl?$PARAM_SHORT_LINK=$text"
+                                window.navigator.clipboard.writeText(link).then {
+                                    bulmaToast.toast("Shareable short link copied to clipboard!")
+                                }
+                            }
+                        }
                 }
             )
             document.getElementById("copy-button")!!.addEventListener(
@@ -363,22 +372,59 @@ private fun onWebsocketReady() {
     val inputBox = document.getElementById("input")!!.unsafeCast<HTMLTextAreaElement>()
 
     if (!isInEditorMode) {
-        urlParams.getFromParamsOrLocalStorage(PARAM_INPUT)?.also { inputString ->
-            inputBox.value = inputString
-        }
-        var stringPlaceholders: Map<String, String>? = null
-        urlParams.getFromParamsOrLocalStorage(PARAM_STRING_PLACEHOLDERS)?.also { inputString ->
-            stringPlaceholders = Serializers.json.tryDecodeFromString(inputString)
-        }
-        stringPlaceholders?.forEach { (k, v) ->
-            UserPlaceholder.addToList().apply {
-                key = k
-                value = v
+        // TODO(rymiel): Separate this logic and "install" it like with the style buttons
+        // TODO(rymiel): Maybe put it with the client-side bytebin logic whenever I add that...
+        if (urlParams.has(PARAM_SHORT_LINK)) {
+            window.fetch(
+                "$URL_API$URL_MINI_SHORTEN?code=${urlParams.get(PARAM_SHORT_LINK)}",
+                RequestInit(method = "GET")
+            )
+                .then { response ->
+                    // TODO(rymiel): Handle the 404 case
+                    response.text().then { text ->
+                        val structure: Combined? = Serializers.json.tryDecodeFromString(text)
+                        // This is rather duplicated from below :(
+                        structure.getFromCombinedOrLocalStorage(PARAM_INPUT, Combined::miniMessage)?.also { inputString ->
+                            inputBox.value = inputString
+                        }
+                        val stringPlaceholders = structure.getFromCombinedOrLocalStorage(
+                            PARAM_STRING_PLACEHOLDERS,
+                            { c -> c.placeholders?.stringPlaceholders },
+                            { inputString -> Serializers.json.tryDecodeFromString(inputString) } // WTF
+                        )
+                        stringPlaceholders?.forEach { (k, v) ->
+                            UserPlaceholder.addToList().apply {
+                                key = k
+                                value = v
+                            }
+                        }
+                        webSocket.send(
+                            Placeholders(stringPlaceholders = stringPlaceholders)
+                        )
+
+                        // Probably causes weird delayed jumps in the output?
+                        // TODO(rymiel): Perhaps it could show some loading thing while it fetches the data for a short code
+                        parse()
+                    }
+                }
+        } else {
+            urlParams.getFromParamsOrLocalStorage(PARAM_INPUT)?.also { inputString ->
+                inputBox.value = inputString
             }
+            var stringPlaceholders: Map<String, String>? = null
+            urlParams.getFromParamsOrLocalStorage(PARAM_STRING_PLACEHOLDERS)?.also { inputString ->
+                stringPlaceholders = Serializers.json.tryDecodeFromString(inputString)
+            }
+            stringPlaceholders?.forEach { (k, v) ->
+                UserPlaceholder.addToList().apply {
+                    key = k
+                    value = v
+                }
+            }
+            webSocket.send(
+                Placeholders(stringPlaceholders = stringPlaceholders)
+            )
         }
-        webSocket.send(
-            Placeholders(stringPlaceholders = stringPlaceholders)
-        )
     }
 
     parse()
