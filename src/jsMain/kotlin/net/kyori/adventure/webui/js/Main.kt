@@ -18,6 +18,7 @@ import net.kyori.adventure.webui.URL_API
 import net.kyori.adventure.webui.URL_EDITOR
 import net.kyori.adventure.webui.URL_EDITOR_INPUT
 import net.kyori.adventure.webui.URL_EDITOR_OUTPUT
+import net.kyori.adventure.webui.URL_MINI_SHORTEN
 import net.kyori.adventure.webui.URL_MINI_TO_HTML
 import net.kyori.adventure.webui.URL_MINI_TO_JSON
 import net.kyori.adventure.webui.URL_MINI_TO_TREE
@@ -264,6 +265,16 @@ public fun main() {
                     window.navigator.clipboard.writeText(link).then {
                         bulmaToast.toast("Shareable link copied to clipboard!")
                     }
+                }
+            )
+            // CLIPBOARD
+            document.getElementById("temporary-short-link-share-button")!!.addEventListener(
+                "click",
+                {
+                    window.postPacket(
+                        "$URL_API$URL_MINI_SHORTEN",
+                        Combined(miniMessage = input.value, placeholders = readPlaceholders())
+                    ).then { response -> response.text().then { text -> console.log(text) } }
                 }
             )
             document.getElementById("copy-button")!!.addEventListener(

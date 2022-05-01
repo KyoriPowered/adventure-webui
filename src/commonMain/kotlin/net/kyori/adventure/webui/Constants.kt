@@ -38,3 +38,6 @@ public const val URL_EDITOR_OUTPUT: String = "/output"
 
 /** Parameter for obtaining editor data. */
 public const val PARAM_EDITOR_TOKEN: String = "token"
+
+/** Path for getting a short link for a MiniMessage input. */
+public const val URL_MINI_SHORTEN: String = "/mini-shorten"
