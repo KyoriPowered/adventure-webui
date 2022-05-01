@@ -1,17 +1,19 @@
 package net.kyori.adventure.webui.jvm.minimessage.storage
 
 import io.ktor.client.HttpClient
+import io.ktor.client.request.get
 import io.ktor.client.request.headers
 import io.ktor.client.request.post
 import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.readText
 import io.ktor.http.HttpHeaders
 import io.ktor.http.isSuccess
 import kotlinx.serialization.encodeToString
 import net.kyori.adventure.webui.Serializers
+import net.kyori.adventure.webui.tryDecodeFromString
 import net.kyori.adventure.webui.websocket.Combined
 
 public object BytebinStorage {
-    /** The Bytebin instance being used */
     private const val BYTEBIN_INSTANCE: String = "https://bytebin.lucko.me"
 
     private val client = HttpClient()
@@ -27,6 +29,19 @@ public object BytebinStorage {
         }
         if (response.status.isSuccess()) {
             return response.headers[HttpHeaders.Location]
+        }
+        return null
+    }
+
+    public suspend fun bytebinLoad(code: String): Combined? {
+        val response: HttpResponse = client.get("$BYTEBIN_INSTANCE/$code") {
+            headers {
+                append(HttpHeaders.Accept, "application/json")
+                append(HttpHeaders.UserAgent, "KyoriPowered/adventure-webui")
+            }
+        }
+        if (response.status.isSuccess()) {
+            return Serializers.json.tryDecodeFromString(response.readText())
         }
         return null
     }

@@ -11,6 +11,7 @@ import io.ktor.http.content.resources
 import io.ktor.http.content.static
 import io.ktor.request.receiveText
 import io.ktor.response.respondText
+import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.routing.route
 import io.ktor.routing.routing
@@ -177,6 +178,17 @@ public fun Application.miniMessage() {
                     call.respondText(code)
                 } else {
                     call.response.status(HttpStatusCode.InternalServerError)
+                }
+            }
+
+            get(URL_MINI_SHORTEN) {
+                val code = call.parameters["code"]
+                val structure = BytebinStorage.bytebinLoad(code ?: return@get)
+                if (structure != null) {
+                    // Pretty sure this is pointlessly decoding from json and then re-encoding to the same thing
+                    call.respondText(Serializers.json.encodeToString(structure))
+                } else {
+                    call.response.status(HttpStatusCode.NotFound)
                 }
             }
 
