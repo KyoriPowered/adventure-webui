@@ -126,18 +126,12 @@ public fun main() {
                         window.fetch(
                             "$URL_API$URL_EDITOR$URL_EDITOR_OUTPUT",
                             RequestInit("POST", body = input.value)
-                        ).then { response ->
-                            response.text().then { token ->
-                                window.navigator.clipboard.writeText(
-                                    editorInput.command.replace("{token}", token)
-                                )
-                                    .then {
-                                        bulmaToast.toast(
-                                            "The command to run in-game has been copied to your clipboard!"
-                                        )
-                                    }
+                        )
+                            .then { response -> response.text() }
+                            .then { token ->
+                                window.navigator.clipboard.writeText(editorInput.command.replace("{token}", token))
                             }
-                        }
+                            .then { bulmaToast.toast("The command to run in-game has been copied to your clipboard!") }
                     }
                 }
             )
@@ -287,13 +281,9 @@ public fun main() {
                         "$URL_API$URL_MINI_TO_JSON",
                         Combined(miniMessage = input.value, placeholders = readPlaceholders())
                     )
-                        .then { response ->
-                            response.text().then { text ->
-                                window.navigator.clipboard.writeText(text).then {
-                                    bulmaToast.toast("JSON copied to clipboard!")
-                                }
-                            }
-                        }
+                        .then { response -> response.text() }
+                        .then { text -> window.navigator.clipboard.writeText(text) }
+                        .then { bulmaToast.toast("JSON copied to clipboard!") }
                 }
             )
 
@@ -303,15 +293,15 @@ public fun main() {
                     window.postPacket(
                         "$URL_API$URL_MINI_TO_TREE",
                         Combined(miniMessage = input.value, placeholders = readPlaceholders())
-                    ).then { response ->
-                        response.text().then { text ->
+                    )
+                        .then { response -> response.text() }
+                        .then { text ->
                             val escaped =
                                 text.replace("&", "&amp;")
                                     .replace("<", "&lt;")
                                     .replace(">", "&gt;")
                             bulmaToast.toast("<pre>$escaped</pre>")
                         }
-                    }
                 }
             )
 
