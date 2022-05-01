@@ -18,7 +18,6 @@ import net.kyori.adventure.webui.URL_API
 import net.kyori.adventure.webui.URL_EDITOR
 import net.kyori.adventure.webui.URL_EDITOR_INPUT
 import net.kyori.adventure.webui.URL_EDITOR_OUTPUT
-import net.kyori.adventure.webui.URL_MINI_SHORTEN
 import net.kyori.adventure.webui.URL_MINI_TO_HTML
 import net.kyori.adventure.webui.URL_MINI_TO_JSON
 import net.kyori.adventure.webui.URL_MINI_TO_TREE
@@ -55,11 +54,11 @@ import kotlin.js.json
 private val homeUrl: String by lazy { window.location.href.split('?')[0] }
 private val urlParams: URLSearchParams by lazy { URLSearchParams(window.location.search) }
 
-private const val PARAM_INPUT: String = "input"
+public const val PARAM_INPUT: String = "input"
 private const val PARAM_MODE: String = "mode"
 public const val PARAM_BACKGROUND: String = "bg"
-private const val PARAM_STRING_PLACEHOLDERS: String = "st"
-private const val PARAM_SHORT_LINK: String = "x"
+public const val PARAM_STRING_PLACEHOLDERS: String = "st"
+public const val PARAM_SHORT_LINK: String = "x"
 
 private var isInEditorMode: Boolean = false
 private lateinit var editorInput: EditorInput
@@ -272,18 +271,9 @@ public fun main() {
             document.getElementById("temporary-short-link-share-button")!!.addEventListener(
                 "click",
                 {
-                    window.postPacket(
-                        "$URL_API$URL_MINI_SHORTEN",
-                        Combined(miniMessage = input.value, placeholders = readPlaceholders())
-                    )
-                        .then { response ->
-                            response.text().then { text ->
-                                val link = "$homeUrl?$PARAM_SHORT_LINK=$text"
-                                window.navigator.clipboard.writeText(link).then {
-                                    bulmaToast.toast("Shareable short link copied to clipboard!")
-                                }
-                            }
-                        }
+                    bytebinStore(Combined(miniMessage = input.value, placeholders = readPlaceholders()))
+                        .then { code -> window.navigator.clipboard.writeText("$homeUrl?$PARAM_SHORT_LINK=$code") }
+                        .then { bulmaToast.toast("Shareable short link copied to clipboard!") }
                 }
             )
             document.getElementById("copy-button")!!.addEventListener(
@@ -372,41 +362,8 @@ private fun onWebsocketReady() {
     val inputBox = document.getElementById("input")!!.unsafeCast<HTMLTextAreaElement>()
 
     if (!isInEditorMode) {
-        // TODO(rymiel): Separate this logic and "install" it like with the style buttons
-        // TODO(rymiel): Maybe put it with the client-side bytebin logic whenever I add that...
         if (urlParams.has(PARAM_SHORT_LINK)) {
-            window.fetch(
-                "$URL_API$URL_MINI_SHORTEN?code=${urlParams.get(PARAM_SHORT_LINK)}",
-                RequestInit(method = "GET")
-            )
-                .then { response ->
-                    // TODO(rymiel): Handle the 404 case
-                    response.text().then { text ->
-                        val structure: Combined? = Serializers.json.tryDecodeFromString(text)
-                        // This is rather duplicated from below :(
-                        structure.getFromCombinedOrLocalStorage(PARAM_INPUT, Combined::miniMessage)?.also { inputString ->
-                            inputBox.value = inputString
-                        }
-                        val stringPlaceholders = structure.getFromCombinedOrLocalStorage(
-                            PARAM_STRING_PLACEHOLDERS,
-                            { c -> c.placeholders?.stringPlaceholders },
-                            { inputString -> Serializers.json.tryDecodeFromString(inputString) } // WTF
-                        )
-                        stringPlaceholders?.forEach { (k, v) ->
-                            UserPlaceholder.addToList().apply {
-                                key = k
-                                value = v
-                            }
-                        }
-                        webSocket.send(
-                            Placeholders(stringPlaceholders = stringPlaceholders)
-                        )
-
-                        // Probably causes weird delayed jumps in the output?
-                        // TODO(rymiel): Perhaps it could show some loading thing while it fetches the data for a short code
-                        parse()
-                    }
-                }
+            restoreFromShortLink(urlParams, inputBox, webSocket).then { parse() }
         } else {
             urlParams.getFromParamsOrLocalStorage(PARAM_INPUT)?.also { inputString ->
                 inputBox.value = inputString
@@ -590,11 +547,11 @@ private fun parse() {
 private inline fun <reified T> List<T>.safeSubList(startIndex: Int, endIndex: Int): List<T> =
     if (endIndex > size) this else this.subList(startIndex, endIndex)
 
-private fun WebSocket.send(packet: Packet) {
+public fun WebSocket.send(packet: Packet) {
     this.send(Serializers.json.encodeToString(packet))
 }
 
-private inline fun <reified T> Window.postPacket(url: String, packet: T): Promise<org.w3c.fetch.Response> {
+public inline fun <reified T> Window.postPacket(url: String, packet: T): Promise<org.w3c.fetch.Response> {
     return this.fetch(
         url,
         RequestInit(
