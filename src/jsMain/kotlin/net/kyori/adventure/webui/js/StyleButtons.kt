@@ -70,6 +70,7 @@ public fun installStyleButtons() {
         )
     }
 
+    // TODO(rymiel): move this thing out of this file as it handles *all* dropdowns, not just the style button ones
     document.getElementsByClassName("dropdown-trigger").asList().forEach { element ->
         element.addEventListener(
             "click",

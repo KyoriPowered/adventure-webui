@@ -218,6 +218,9 @@ html {
 .hero {
     padding-bottom: 15px;
 }
+.share-dropdown {
+    margin-right: .5rem;
+}
 .notification {
     display: flex;
     align-items: center;

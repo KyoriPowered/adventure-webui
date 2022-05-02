@@ -244,8 +244,8 @@ public fun main() {
                 }
             )
 
-            // CLIPBOARD
-            document.getElementById("link-share-button")!!.addEventListener(
+            // SHARING
+            document.getElementById("full-link-share-button")!!.addEventListener(
                 "click",
                 {
                     val inputValue = encodeURIComponent(input.value)
@@ -267,8 +267,7 @@ public fun main() {
                     }
                 }
             )
-            // CLIPBOARD
-            document.getElementById("temporary-short-link-share-button")!!.addEventListener(
+            document.getElementById("short-link-share-button")!!.addEventListener(
                 "click",
                 {
                     bytebinStore(Combined(miniMessage = input.value, placeholders = readPlaceholders()))
@@ -276,6 +275,17 @@ public fun main() {
                         .then { bulmaToast.toast("Shareable short link copied to clipboard!") }
                 }
             )
+            // Roll up the share dropdown after making a choice
+            document.getElementsByClassName("share-button").asList().forEach { element ->
+                element.addEventListener(
+                    "click",
+                    {
+                        element.closest(".dropdown")!!.classList.toggle("is-active")
+                    }
+                )
+            }
+
+            // CLIPBOARD
             document.getElementById("copy-button")!!.addEventListener(
                 "click",
                 {
