@@ -31,7 +31,6 @@ import net.kyori.adventure.webui.websocket.Response
 import org.w3c.dom.Element
 import org.w3c.dom.HTMLAnchorElement
 import org.w3c.dom.HTMLDivElement
-import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLPreElement
 import org.w3c.dom.HTMLSelectElement
 import org.w3c.dom.HTMLSpanElement
@@ -53,9 +52,10 @@ import kotlin.js.json
 
 private val homeUrl: String by lazy { window.location.href.split('?')[0] }
 private val urlParams: URLSearchParams by lazy { URLSearchParams(window.location.search) }
+private val modeButtons: List<HTMLAnchorElement> by lazy { document.getElementsByClassName("mc-mode").asList().unsafeCast<List<HTMLAnchorElement>>() }
 
 public const val PARAM_INPUT: String = "input"
-private const val PARAM_MODE: String = "mode"
+public const val PARAM_MODE: String = "mode"
 public const val PARAM_BACKGROUND: String = "bg"
 public const val PARAM_STRING_PLACEHOLDERS: String = "st"
 public const val PARAM_SHORT_LINK: String = "x"
@@ -190,12 +190,11 @@ public fun main() {
             }
 
             // MODES
-            val urlParams = URLSearchParams(window.location.search)
-            currentMode = Mode.fromString(urlParams.getFromParamsOrLocalStorage(PARAM_MODE))
+            currentMode = Mode.DEFAULT
             outputPre.classList.add(currentMode.className)
             outputPane.classList.add(currentMode.className)
 
-            val modeButtons = document.getElementsByClassName("mc-mode").asList().unsafeCast<List<HTMLElement>>()
+            val modeButtons = document.getElementsByClassName("mc-mode").asList().unsafeCast<List<HTMLAnchorElement>>()
             modeButtons.forEach { element ->
                 // set is-active on the current mode first
                 val mode = Mode.valueOf(element.dataset["mode"]!!)
@@ -206,28 +205,8 @@ public fun main() {
                 // then add event listeners for the rest
                 element.addEventListener(
                     "click",
-                    { event ->
-                        // remove active
-                        modeButtons.forEach { button -> button.classList.remove("is-active") }
-
-                        // now add it again lmao 10/10 code
-                        val button = event.target!!.unsafeCast<HTMLAnchorElement>()
-                        button.classList.add("is-active")
-                        currentMode = mode
-                        // Store current mode for persistence
-                        window.localStorage[PARAM_MODE] = currentMode.paramName
-
-                        // swap the class for the pane
-                        Mode.MODES.forEach { mode ->
-                            if (currentMode == mode) {
-                                outputPre.classList.add(mode.className)
-                                outputPane.classList.add(mode.className)
-                            } else {
-                                outputPre.classList.remove(mode.className)
-                                outputPane.classList.remove(mode.className)
-                            }
-                        }
-
+                    {
+                        setMode(mode)
                         updateBackground()
                         parse()
                     }
@@ -236,7 +215,7 @@ public fun main() {
 
             // SETTINGS
             val settingBackground = document.getElementById("setting-background")!!.unsafeCast<HTMLSelectElement>()
-            currentBackground = urlParams.getFromParamsOrLocalStorage(PARAM_BACKGROUND) ?: settingBackground.value
+            currentBackground = settingBackground.value
             settingBackground.addEventListener(
                 "change",
                 {
@@ -270,7 +249,14 @@ public fun main() {
             document.getElementById("short-link-share-button")!!.addEventListener(
                 "click",
                 {
-                    bytebinStore(Combined(miniMessage = input.value, placeholders = readPlaceholders()))
+                    bytebinStore(
+                        Combined(
+                            miniMessage = input.value,
+                            placeholders = readPlaceholders(),
+                            background = if (currentMode != Mode.SERVER_LIST) currentBackground else null,
+                            mode = currentMode.paramName
+                        )
+                    )
                         .then { code -> window.navigator.clipboard.writeText("$homeUrl?$PARAM_SHORT_LINK=$code") }
                         .then { bulmaToast.toast("Shareable short link copied to clipboard!") }
                 }
@@ -358,6 +344,33 @@ public fun main() {
     )
 }
 
+// TODO(rymiel): This could maybe go into the Mode.kt file like how Background.kt has its logic
+public fun setMode(newMode: Mode) {
+    val outputPre = document.getElementById("output-pre")!!.unsafeCast<HTMLPreElement>()
+    val outputPane = document.getElementById("output-pane")!!.unsafeCast<HTMLDivElement>()
+
+    // remove active
+    modeButtons.forEach { button -> button.classList.remove("is-active") }
+
+    // now add it again lmao 10/10 code
+    val newModeButton = modeButtons.first { button -> button.dataset["mode"]!! == newMode.toString() }
+    newModeButton.classList.add("is-active")
+    currentMode = newMode
+    // Store current mode for persistence
+    window.localStorage[PARAM_MODE] = currentMode.paramName
+
+    // swap the class for the pane
+    Mode.MODES.forEach { mode ->
+        if (newMode == mode) {
+            outputPre.classList.add(mode.className)
+            outputPane.classList.add(mode.className)
+        } else {
+            outputPre.classList.remove(mode.className)
+            outputPane.classList.remove(mode.className)
+        }
+    }
+}
+
 private fun readPlaceholders(): Placeholders {
     val userPlaceholders = UserPlaceholder.allInList()
     val stringPlaceholders = mutableMapOf<String, String>()
@@ -388,6 +401,12 @@ private fun onWebsocketReady() {
                     key = k
                     value = v
                 }
+            }
+            urlParams.getFromParamsOrLocalStorage(PARAM_BACKGROUND)?.also { background ->
+                currentBackground = background
+            }
+            urlParams.getFromParamsOrLocalStorage(PARAM_MODE)?.also { mode ->
+                setMode(Mode.fromString(mode))
             }
             webSocket.send(
                 Placeholders(stringPlaceholders = stringPlaceholders)

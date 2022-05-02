@@ -24,5 +24,7 @@ public data class Placeholders(
 @Serializable
 public data class Combined(
     public val miniMessage: String? = null,
-    public val placeholders: Placeholders? = null
+    public val placeholders: Placeholders? = null,
+    public val background: String? = null,
+    public val mode: String? = null
 )

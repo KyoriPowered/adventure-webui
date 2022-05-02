@@ -8,7 +8,6 @@ import net.kyori.adventure.webui.websocket.Combined
 import net.kyori.adventure.webui.websocket.Placeholders
 import org.w3c.dom.HTMLTextAreaElement
 import org.w3c.dom.WebSocket
-import org.w3c.dom.url.URLSearchParams
 import org.w3c.fetch.Headers
 import org.w3c.fetch.RequestInit
 import kotlin.js.Json
@@ -52,13 +51,19 @@ public fun restoreFromShortLink(shortCode: String, inputBox: HTMLTextAreaElement
         val stringPlaceholders = structure.getFromCombinedOrLocalStorage(
             PARAM_STRING_PLACEHOLDERS,
             { c -> c.placeholders?.stringPlaceholders },
-            { inputString -> Serializers.json.tryDecodeFromString(inputString) } // WTF
+            { str -> Serializers.json.tryDecodeFromString(str) } // WTF
         )
         stringPlaceholders?.forEach { (k, v) ->
             UserPlaceholder.addToList().apply {
                 key = k
                 value = v
             }
+        }
+        structure.getFromCombinedOrLocalStorage(PARAM_BACKGROUND, Combined::background)?.also { background ->
+            currentBackground = background
+        }
+        structure.getFromCombinedOrLocalStorage(PARAM_MODE, Combined::mode)?.also { mode ->
+            setMode(Mode.fromString(mode))
         }
         webSocket.send(
             Placeholders(stringPlaceholders = stringPlaceholders)
