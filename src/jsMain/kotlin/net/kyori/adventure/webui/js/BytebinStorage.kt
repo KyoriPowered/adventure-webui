@@ -17,6 +17,7 @@ import kotlin.js.json
 private const val BYTEBIN_INSTANCE: String = "https://bytebin.lucko.me"
 
 public fun bytebinStore(payload: Combined): Promise<String?> {
+    // TODO(rymiel): maybe this can fail?
     return window.fetch(
         "$BYTEBIN_INSTANCE/post",
         RequestInit(
@@ -30,13 +31,15 @@ public fun bytebinStore(payload: Combined): Promise<String?> {
 }
 
 private fun bytebinLoad(code: String): Promise<Combined?> {
-    // TODO(rymiel): handle the 404 case
     return window.fetch(
         "$BYTEBIN_INSTANCE/$code",
         RequestInit(method = "GET")
     )
         .then { response -> response.text() }
-        .then { text -> Serializers.json.tryDecodeFromString(text) }
+        .then(
+            { text -> Serializers.json.tryDecodeFromString(text) },
+            { null } // Look, mom! I handled the error!
+        )
 }
 
 // TODO(rymiel): This probably shouldn't return a promise...?
@@ -44,6 +47,9 @@ private fun bytebinLoad(code: String): Promise<Combined?> {
 // TODO(rymiel): Perhaps it could show some loading thing while it fetches the data for a short code. This could apply to the site loading as a whole, it's not exactly blazing fast
 public fun restoreFromShortLink(shortCode: String, inputBox: HTMLTextAreaElement, webSocket: WebSocket): Promise<Unit> {
     return bytebinLoad(shortCode).then { structure ->
+        if (structure == null) {
+            bulmaToast.toast("Failed to load from the short link! The link may have expired.", type = "is-danger")
+        }
         // This is rather duplicated from Main.kt :(
         /*
         TODO(rymiel): since the `Combined` class is really being abused here, since that was made for websocket communication, this should be separated out to its own data class,
