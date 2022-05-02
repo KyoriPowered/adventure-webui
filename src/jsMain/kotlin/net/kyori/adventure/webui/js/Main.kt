@@ -4,8 +4,13 @@ import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.dom.hasClass
 import kotlinx.html.b
+import kotlinx.html.code
+import kotlinx.html.div
+import kotlinx.html.dom.create
 import kotlinx.html.i
+import kotlinx.html.js.onClickFunction
 import kotlinx.html.p
+import kotlinx.html.span
 import kotlinx.html.stream.appendHTML
 import kotlinx.serialization.encodeToString
 import net.kyori.adventure.webui.COMPONENT_CLASS
@@ -257,8 +262,28 @@ public fun main() {
                             mode = currentMode.paramName
                         )
                     )
-                        .then { code -> window.navigator.clipboard.writeText("$homeUrl?$PARAM_SHORT_LINK=$code") }
-                        .then { bulmaToast.toast("Shareable short link copied to clipboard!") }
+                        .then { code -> "$homeUrl?$PARAM_SHORT_LINK=$code" }
+                        .then { link ->
+                            window.navigator.clipboard.writeText(link).then(
+                                { bulmaToast.toast("Shareable short link copied to clipboard!") },
+                                {
+                                    // This is run when writing to the clipboard is rejected (by Safari)
+                                    // TODO(rymiel): pretty sure the editor API suffers the same issue, so this logic could be abstracted out and used there too
+                                    bulmaToast.toast(
+                                        document.create.div {
+                                            span { text("Short link (click to copy)") }
+                                            code { text(link) }
+                                            onClickFunction = {
+                                                window.navigator.clipboard.writeText(link).catch { error ->
+                                                    console.log(error) // Give up on trying to copy the thing
+                                                }
+                                            }
+                                        },
+                                        "is-warning"
+                                    )
+                                }
+                            )
+                        }
                 }
             )
             // Roll up the share dropdown after making a choice

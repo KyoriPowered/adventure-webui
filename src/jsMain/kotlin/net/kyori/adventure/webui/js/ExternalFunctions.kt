@@ -3,6 +3,7 @@
 
 package net.kyori.adventure.webui.js
 
+import org.w3c.dom.HTMLElement
 import kotlin.js.Json
 import kotlin.js.json
 
@@ -20,5 +21,8 @@ public external class bulmaToast {
 }
 
 public fun bulmaToast.Companion.toast(message: String, type: String = "is-success") {
+    this.toast(json("message" to message, "type" to type))
+}
+public fun bulmaToast.Companion.toast(message: HTMLElement, type: String = "is-success") {
     this.toast(json("message" to message, "type" to type))
 }
