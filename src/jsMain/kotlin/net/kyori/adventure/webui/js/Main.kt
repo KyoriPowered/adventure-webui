@@ -363,6 +363,21 @@ public fun main() {
                 }
             )
 
+            // DROPDOWNS
+            document.getElementsByClassName("dropdown-trigger").asList().forEach { element ->
+                element.addEventListener(
+                    "click",
+                    {
+                        if (element.classList.contains("swatch-trigger")) {
+                            // This should hopefully make it so any text selected before pressing the color dropdown should stay visually selected
+                            val inputBox = document.getElementById("input")!!.unsafeCast<HTMLTextAreaElement>()
+                            inputBox.focus()
+                        }
+                        element.parentElement!!.classList.toggle("is-active")
+                    }
+                )
+            }
+
             installHoverManager()
             installStyleButtons()
         }
