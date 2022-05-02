@@ -5,8 +5,6 @@ import kotlinx.browser.window
 import kotlinx.dom.hasClass
 import kotlinx.html.b
 import kotlinx.html.code
-import kotlinx.html.div
-import kotlinx.html.dom.create
 import kotlinx.html.i
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.p
@@ -268,18 +266,15 @@ public fun main() {
                                 {
                                     // This is run when writing to the clipboard is rejected (by Safari)
                                     // TODO(rymiel): pretty sure the editor API suffers the same issue, so this logic could be abstracted out and used there too
-                                    bulmaToast.toast(
-                                        document.create.div {
-                                            span { text("Short link (click to copy)") }
-                                            code { text(link) }
-                                            onClickFunction = {
-                                                window.navigator.clipboard.writeText(link).catch { error ->
-                                                    console.log(error) // Give up on trying to copy the thing
-                                                }
+                                    bulmaToast.toast(type = "is-warning") {
+                                        span { text("Short link (click to copy)") }
+                                        code { text(link) }
+                                        onClickFunction = {
+                                            window.navigator.clipboard.writeText(link).catch { error ->
+                                                console.log(error) // Give up on trying to copy the thing
                                             }
-                                        },
-                                        type = "is-warning"
-                                    )
+                                        }
+                                    }
                                 }
                             )
                         }
@@ -500,22 +495,19 @@ private fun checkClickEvents(target: EventTarget?, typesToCheck: Collection<Even
             } else {
                 val content = target.dataset[DATA_CLICK_EVENT_VALUE.camel] ?: ""
                 val actionName = clickAction.replace('_', ' ').replaceFirstChar(Char::uppercase)
-                bulmaToast.toast(
-                    document.create.div {
-                        p {
-                            b { text("Click Event") }
-                        }
-                        p {
-                            text("Action: ")
-                            i { text(actionName) }
-                        }
-                        p {
-                            text("Content: ")
-                            i { text(content) }
-                        }
-                    },
-                    type = "is-info"
-                )
+                bulmaToast.toast(type = "is-info") {
+                    p {
+                        b { text("Click Event") }
+                    }
+                    p {
+                        text("Action: ")
+                        i { text(actionName) }
+                    }
+                    p {
+                        text("Content: ")
+                        i { text(content) }
+                    }
+                }
             }
         }
 

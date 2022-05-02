@@ -3,7 +3,10 @@
 
 package net.kyori.adventure.webui.js
 
-import org.w3c.dom.HTMLElement
+import kotlinx.browser.document
+import kotlinx.html.DIV
+import kotlinx.html.div
+import kotlinx.html.dom.create
 import kotlin.js.Json
 import kotlin.js.json
 
@@ -23,7 +26,8 @@ public external class bulmaToast {
 public fun bulmaToast.Companion.toast(message: String, type: String = "is-success") {
     this.toast(json("message" to message, "type" to type))
 }
-// TODO: this could instead yield a DIV allowing it to be used like `toast { ... }`
-public fun bulmaToast.Companion.toast(message: HTMLElement, type: String = "is-success") {
-    this.toast(json("message" to message, "type" to type))
+
+public inline fun bulmaToast.Companion.toast(type: String = "is-success", crossinline block: DIV.() -> Unit) {
+    val element = document.create.div(block = block)
+    this.toast(json("message" to element, "type" to type))
 }
