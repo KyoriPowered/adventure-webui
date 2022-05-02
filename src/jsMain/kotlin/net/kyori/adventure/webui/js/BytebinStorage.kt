@@ -13,6 +13,7 @@ import org.w3c.dom.WebSocket
 import org.w3c.dom.url.URLSearchParams
 import org.w3c.fetch.Headers
 import org.w3c.fetch.RequestInit
+import kotlin.js.Json
 import kotlin.js.Promise
 import kotlin.js.json
 
@@ -34,7 +35,9 @@ public fun bytebinStore(payload: Combined): Promise<String?> {
                 headers = Headers(json("Content-Type" to "application/json; charset=UTF-8")),
                 body = Serializers.json.encodeToString(payload)
             )
-        ).then { response -> response.headers.get("Location") }
+        )
+            .then { response -> response.json() }
+            .then { json -> json.unsafeCast<Json>()["key"].unsafeCast<String>() } // :I
     } else {
         window.postPacket("$URL_API$URL_MINI_SHORTEN", payload)
             .then { response -> response.text() }
