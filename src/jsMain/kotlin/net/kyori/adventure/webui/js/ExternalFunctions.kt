@@ -23,6 +23,7 @@ public external class bulmaToast {
 public fun bulmaToast.Companion.toast(message: String, type: String = "is-success") {
     this.toast(json("message" to message, "type" to type))
 }
+// TODO: this could instead yield a DIV allowing it to be used like `toast { ... }`
 public fun bulmaToast.Companion.toast(message: HTMLElement, type: String = "is-success") {
     this.toast(json("message" to message, "type" to type))
 }

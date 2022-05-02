@@ -278,7 +278,7 @@ public fun main() {
                                                 }
                                             }
                                         },
-                                        "is-warning"
+                                        type = "is-warning"
                                     )
                                 }
                             )
@@ -286,6 +286,12 @@ public fun main() {
                 }
             )
             // Roll up the share dropdown after making a choice
+            /*
+            TODO(rymiel): Perhaps the dropdown could stay open when the "short link" option is selected, instead turning
+              into a loading wheel, then the dropdown can close once that loading is done. Then, in the Safari case, when
+              writing to the clipboard is rejected, the link and it's "click to copy" can appear in that same dropdown
+              while it's still open, instead of in a toast somewhere else on the screen.
+             */
             document.getElementsByClassName("share-button").asList().forEach { element ->
                 element.addEventListener(
                     "click",
@@ -521,6 +527,7 @@ private fun checkClickEvents(target: EventTarget?, typesToCheck: Collection<Even
             if (insertion == null) {
                 typesToCheck + EventType.INSERTION
             } else {
+                // TODO: match the HTML builder above?
                 bulmaToast.toast(
                     "<p><b>Insertion</b></p><p>Content: <i>$insertion</i></p>",
                     type = "is-info"
