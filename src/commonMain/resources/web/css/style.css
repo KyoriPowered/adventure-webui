@@ -221,7 +221,8 @@ html {
 .share-dropdown {
     margin-right: .5rem;
 }
-.notification {
+.notification,
+.notification > div {
     display: flex;
     align-items: center;
     flex-direction: column;

@@ -11,7 +11,6 @@ import kotlinx.html.i
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.p
 import kotlinx.html.span
-import kotlinx.html.stream.appendHTML
 import kotlinx.serialization.encodeToString
 import net.kyori.adventure.webui.COMPONENT_CLASS
 import net.kyori.adventure.webui.DATA_CLICK_EVENT_ACTION
@@ -496,15 +495,15 @@ private fun checkClickEvents(target: EventTarget?, typesToCheck: Collection<Even
                 val content = target.dataset[DATA_CLICK_EVENT_VALUE.camel] ?: ""
                 val actionName = clickAction.replace('_', ' ').replaceFirstChar(Char::uppercase)
                 bulmaToast.toast(
-                    buildString {
-                        appendHTML().p {
+                    document.create.div {
+                        p {
                             b { text("Click Event") }
                         }
-                        appendHTML().p {
+                        p {
                             text("Action: ")
                             i { text(actionName) }
                         }
-                        appendHTML().p {
+                        p {
                             text("Content: ")
                             i { text(content) }
                         }
