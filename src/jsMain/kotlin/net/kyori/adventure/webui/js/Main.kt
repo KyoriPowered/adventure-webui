@@ -519,11 +519,15 @@ private fun checkClickEvents(target: EventTarget?, typesToCheck: Collection<Even
             if (insertion == null) {
                 typesToCheck + EventType.INSERTION
             } else {
-                // TODO: match the HTML builder above?
-                bulmaToast.toast(
-                    "<p><b>Insertion</b></p><p>Content: <i>$insertion</i></p>",
-                    type = "is-info"
-                )
+                bulmaToast.toast(type = "is-info") {
+                    p {
+                        b { text("Insertion") }
+                    }
+                    p {
+                        text("Content: ")
+                        i { text(insertion) }
+                    }
+                }
             }
         }
 
