@@ -372,8 +372,9 @@ private fun onWebsocketReady() {
     val inputBox = document.getElementById("input")!!.unsafeCast<HTMLTextAreaElement>()
 
     if (!isInEditorMode) {
-        if (urlParams.has(PARAM_SHORT_LINK)) {
-            restoreFromShortLink(urlParams, inputBox, webSocket).then { parse() }
+        val shortCode = urlParams.get(PARAM_SHORT_LINK)
+        if (shortCode != null) {
+            restoreFromShortLink(shortCode, inputBox, webSocket).then { parse() }
         } else {
             urlParams.getFromParamsOrLocalStorage(PARAM_INPUT)?.also { inputString ->
                 inputBox.value = inputString

@@ -43,8 +43,8 @@ private fun bytebinLoad(code: String): Promise<Combined?> {
 // TODO(rymiel): This probably shouldn't return a promise...?
 // The fact that this makes an additional web request probably causes weird delayed jumps in the output once it loads?
 // TODO(rymiel): Perhaps it could show some loading thing while it fetches the data for a short code
-public fun restoreFromShortLink(urlParams: URLSearchParams, inputBox: HTMLTextAreaElement, webSocket: WebSocket): Promise<Unit> {
-    return bytebinLoad(urlParams.get(PARAM_SHORT_LINK)!!).then { structure ->
+public fun restoreFromShortLink(shortCode: String, inputBox: HTMLTextAreaElement, webSocket: WebSocket): Promise<Unit> {
+    return bytebinLoad(shortCode).then { structure ->
         // This is rather duplicated from Main.kt :(
         structure.getFromCombinedOrLocalStorage(PARAM_INPUT, Combined::miniMessage)?.also { inputString ->
             inputBox.value = inputString
