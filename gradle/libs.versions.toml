@@ -1,6 +1,6 @@
 [versions]
 kotlin = "1.6.10"
-ktor = "1.6.8"
+ktor = "2.0.1"
 adventure = "4.10.1"
 
 [plugins]
@@ -19,9 +19,11 @@ ktor-server-core = { group = "io.ktor", name = "ktor-server-core", version.ref =
 ktor-server-netty = { group = "io.ktor", name = "ktor-server-netty", version.ref = "ktor" }
 ktor-client-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
 ktor-client-okhttp = { group = "io.ktor", name = "ktor-client-okhttp", version.ref = "ktor" }
-ktor-websockets = { group = "io.ktor", name = "ktor-websockets", version.ref = "ktor" }
+ktor-server-websockets = { group = "io.ktor", name = "ktor-server-websockets", version.ref = "ktor" }
+ktor-server-caching-headers = { group = "io.ktor", name = "ktor-server-caching-headers", version.ref = "ktor" }
+ktor-server-compression = { group = "io.ktor", name = "ktor-server-compression", version.ref = "ktor" }
 logback-classic = { group = "ch.qos.logback", name = "logback-classic", version = "1.2.11" }
 
 [bundles]
-ktor-server = [ "ktor-server-core", "ktor-server-netty", "ktor-websockets" ]
+ktor-server = [ "ktor-server-core", "ktor-server-netty", "ktor-server-websockets", "ktor-server-caching-headers", "ktor-server-compression" ]
 ktor-client = [ "ktor-client-core", "ktor-client-okhttp" ]

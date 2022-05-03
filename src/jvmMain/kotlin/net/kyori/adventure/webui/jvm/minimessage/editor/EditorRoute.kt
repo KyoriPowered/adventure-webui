@@ -3,14 +3,14 @@
 package net.kyori.adventure.webui.jvm.minimessage.editor
 
 import io.github.reactivecircus.cache4k.Cache
-import io.ktor.application.call
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
-import io.ktor.request.receiveText
-import io.ktor.response.respondText
-import io.ktor.routing.Route
-import io.ktor.routing.get
-import io.ktor.routing.post
+import io.ktor.server.application.call
+import io.ktor.server.request.receiveText
+import io.ktor.server.response.respondText
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.get
+import io.ktor.server.routing.post
 import kotlinx.serialization.encodeToString
 import net.kyori.adventure.webui.Serializers
 import net.kyori.adventure.webui.URL_EDITOR_INPUT
