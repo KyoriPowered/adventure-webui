@@ -4,11 +4,8 @@ import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.dom.hasClass
 import kotlinx.html.b
-import kotlinx.html.code
 import kotlinx.html.i
-import kotlinx.html.js.onClickFunction
 import kotlinx.html.p
-import kotlinx.html.span
 import kotlinx.serialization.encodeToString
 import net.kyori.adventure.webui.COMPONENT_CLASS
 import net.kyori.adventure.webui.DATA_CLICK_EVENT_ACTION
@@ -265,16 +262,7 @@ public fun main() {
                                 { bulmaToast.toast("Shareable short link copied to clipboard!") },
                                 {
                                     // This is run when writing to the clipboard is rejected (by Safari)
-                                    // TODO(rymiel): pretty sure the editor API suffers the same issue, so this logic could be abstracted out and used there too
-                                    bulmaToast.toast(type = "is-warning") {
-                                        span { text("Short link (click to copy)") }
-                                        code { text(link) }
-                                        onClickFunction = {
-                                            window.navigator.clipboard.writeText(link).catch { error ->
-                                                console.log(error) // Give up on trying to copy the thing
-                                            }
-                                        }
-                                    }
+                                    createCopyModal("Short link generated", link)
                                 }
                             )
                         }
@@ -283,9 +271,7 @@ public fun main() {
             // Roll up the share dropdown after making a choice
             /*
             TODO(rymiel): Perhaps the dropdown could stay open when the "short link" option is selected, instead turning
-              into a loading wheel, then the dropdown can close once that loading is done. Then, in the Safari case, when
-              writing to the clipboard is rejected, the link and it's "click to copy" can appear in that same dropdown
-              while it's still open, instead of in a toast somewhere else on the screen.
+              into a loading wheel, then the dropdown can close once that loading is done.
              */
             document.getElementsByClassName("share-button").asList().forEach { element ->
                 element.addEventListener(

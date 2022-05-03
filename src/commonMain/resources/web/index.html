@@ -229,6 +229,7 @@
       </div>
     </section>
 
+    <!-- MODALS -->
     <div id="placeholders-box" class="modal">
       <div class="modal-background placeholders-button"></div>
       <div class="modal-card">
@@ -257,6 +258,24 @@
         <footer class="modal-card-foot">
           <a class="button add-placeholder-button" aria-label="Add placeholder" title="Add placeholder">
             <span class="icon is-small"><i class="fas fa-plus"></i></span><span> Add placeholder</span>
+          </a>
+        </footer>
+      </div>
+    </div>
+
+    <div id="copy-modal" class="modal">
+      <div class="modal-background close-copy-modal"></div>
+      <div class="modal-card">
+        <header class="modal-card-head">
+          <p id="copy-modal-title" class="modal-card-title"></p>
+          <button class="delete close-copy-modal"></button>
+        </header>
+        <section class="modal-card-body">
+          <pre id="copy-modal-body"></pre>
+        </section>
+        <footer class="modal-card-foot">
+          <a id="copy-modal-button" class="button close-copy-modal" aria-label="Click to copy" title="Click to copy">
+            <span class="icon is-small"><i class="fas fa-copy"></i></span><span> Click to copy</span>
           </a>
         </footer>
       </div>
