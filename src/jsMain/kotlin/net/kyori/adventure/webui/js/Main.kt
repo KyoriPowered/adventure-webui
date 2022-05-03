@@ -6,7 +6,6 @@ import kotlinx.dom.hasClass
 import kotlinx.html.b
 import kotlinx.html.i
 import kotlinx.html.p
-import kotlinx.html.stream.appendHTML
 import kotlinx.serialization.encodeToString
 import net.kyori.adventure.webui.COMPONENT_CLASS
 import net.kyori.adventure.webui.DATA_CLICK_EVENT_ACTION
@@ -31,7 +30,6 @@ import net.kyori.adventure.webui.websocket.Response
 import org.w3c.dom.Element
 import org.w3c.dom.HTMLAnchorElement
 import org.w3c.dom.HTMLDivElement
-import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLPreElement
 import org.w3c.dom.HTMLSelectElement
 import org.w3c.dom.HTMLSpanElement
@@ -53,11 +51,13 @@ import kotlin.js.json
 
 private val homeUrl: String by lazy { window.location.href.split('?')[0] }
 private val urlParams: URLSearchParams by lazy { URLSearchParams(window.location.search) }
+private val modeButtons: List<HTMLAnchorElement> by lazy { document.getElementsByClassName("mc-mode").asList().unsafeCast<List<HTMLAnchorElement>>() }
 
-private const val PARAM_INPUT: String = "input"
-private const val PARAM_MODE: String = "mode"
+public const val PARAM_INPUT: String = "input"
+public const val PARAM_MODE: String = "mode"
 public const val PARAM_BACKGROUND: String = "bg"
-private const val PARAM_STRING_PLACEHOLDERS: String = "st"
+public const val PARAM_STRING_PLACEHOLDERS: String = "st"
+public const val PARAM_SHORT_LINK: String = "x"
 
 private var isInEditorMode: Boolean = false
 private lateinit var editorInput: EditorInput
@@ -189,12 +189,11 @@ public fun main() {
             }
 
             // MODES
-            val urlParams = URLSearchParams(window.location.search)
-            currentMode = Mode.fromString(urlParams.getFromParamsOrLocalStorage(PARAM_MODE))
+            currentMode = Mode.DEFAULT
             outputPre.classList.add(currentMode.className)
             outputPane.classList.add(currentMode.className)
 
-            val modeButtons = document.getElementsByClassName("mc-mode").asList().unsafeCast<List<HTMLElement>>()
+            val modeButtons = document.getElementsByClassName("mc-mode").asList().unsafeCast<List<HTMLAnchorElement>>()
             modeButtons.forEach { element ->
                 // set is-active on the current mode first
                 val mode = Mode.valueOf(element.dataset["mode"]!!)
@@ -205,28 +204,8 @@ public fun main() {
                 // then add event listeners for the rest
                 element.addEventListener(
                     "click",
-                    { event ->
-                        // remove active
-                        modeButtons.forEach { button -> button.classList.remove("is-active") }
-
-                        // now add it again lmao 10/10 code
-                        val button = event.target!!.unsafeCast<HTMLAnchorElement>()
-                        button.classList.add("is-active")
-                        currentMode = mode
-                        // Store current mode for persistence
-                        window.localStorage[PARAM_MODE] = currentMode.paramName
-
-                        // swap the class for the pane
-                        Mode.MODES.forEach { mode ->
-                            if (currentMode == mode) {
-                                outputPre.classList.add(mode.className)
-                                outputPane.classList.add(mode.className)
-                            } else {
-                                outputPre.classList.remove(mode.className)
-                                outputPane.classList.remove(mode.className)
-                            }
-                        }
-
+                    {
+                        setMode(mode)
                         updateBackground()
                         parse()
                     }
@@ -235,7 +214,7 @@ public fun main() {
 
             // SETTINGS
             val settingBackground = document.getElementById("setting-background")!!.unsafeCast<HTMLSelectElement>()
-            currentBackground = urlParams.getFromParamsOrLocalStorage(PARAM_BACKGROUND) ?: settingBackground.value
+            currentBackground = settingBackground.value
             settingBackground.addEventListener(
                 "change",
                 {
@@ -243,8 +222,8 @@ public fun main() {
                 }
             )
 
-            // CLIPBOARD
-            document.getElementById("link-share-button")!!.addEventListener(
+            // SHARING
+            document.getElementById("full-link-share-button")!!.addEventListener(
                 "click",
                 {
                     val inputValue = encodeURIComponent(input.value)
@@ -262,10 +241,48 @@ public fun main() {
                             )
                     }
                     window.navigator.clipboard.writeText(link).then {
-                        bulmaToast.toast("Shareable link copied to clipboard!")
+                        bulmaToast.toast("Shareable permanent link copied to clipboard!")
                     }
                 }
             )
+            document.getElementById("short-link-share-button")!!.addEventListener(
+                "click",
+                {
+                    bytebinStore(
+                        Combined(
+                            miniMessage = input.value,
+                            placeholders = readPlaceholders(),
+                            background = if (currentMode != Mode.SERVER_LIST) currentBackground else null,
+                            mode = currentMode.paramName
+                        )
+                    )
+                        .then { code -> "$homeUrl?$PARAM_SHORT_LINK=$code" }
+                        .then { link ->
+                            window.navigator.clipboard.writeText(link).then(
+                                { bulmaToast.toast("Shareable short link copied to clipboard!") },
+                                {
+                                    // This is run when writing to the clipboard is rejected (by Safari)
+                                    createCopyModal("Short link generated", link)
+                                }
+                            )
+                        }
+                }
+            )
+            // Roll up the share dropdown after making a choice
+            /*
+            TODO(rymiel): Perhaps the dropdown could stay open when the "short link" option is selected, instead turning
+              into a loading wheel, then the dropdown can close once that loading is done.
+             */
+            document.getElementsByClassName("share-button").asList().forEach { element ->
+                element.addEventListener(
+                    "click",
+                    {
+                        element.closest(".dropdown")!!.classList.toggle("is-active")
+                    }
+                )
+            }
+
+            // CLIPBOARD
             document.getElementById("copy-button")!!.addEventListener(
                 "click",
                 {
@@ -332,10 +349,52 @@ public fun main() {
                 }
             )
 
+            // DROPDOWNS
+            document.getElementsByClassName("dropdown-trigger").asList().forEach { element ->
+                element.addEventListener(
+                    "click",
+                    {
+                        if (element.classList.contains("swatch-trigger")) {
+                            // This should hopefully make it so any text selected before pressing the color dropdown should stay visually selected
+                            val inputBox = document.getElementById("input")!!.unsafeCast<HTMLTextAreaElement>()
+                            inputBox.focus()
+                        }
+                        element.parentElement!!.classList.toggle("is-active")
+                    }
+                )
+            }
+
             installHoverManager()
             installStyleButtons()
         }
     )
+}
+
+// TODO(rymiel): This could maybe go into the Mode.kt file like how Background.kt has its logic
+public fun setMode(newMode: Mode) {
+    val outputPre = document.getElementById("output-pre")!!.unsafeCast<HTMLPreElement>()
+    val outputPane = document.getElementById("output-pane")!!.unsafeCast<HTMLDivElement>()
+
+    // remove active
+    modeButtons.forEach { button -> button.classList.remove("is-active") }
+
+    // now add it again lmao 10/10 code
+    val newModeButton = modeButtons.first { button -> button.dataset["mode"]!! == newMode.toString() }
+    newModeButton.classList.add("is-active")
+    currentMode = newMode
+    // Store current mode for persistence
+    window.localStorage[PARAM_MODE] = currentMode.paramName
+
+    // swap the class for the pane
+    Mode.MODES.forEach { mode ->
+        if (newMode == mode) {
+            outputPre.classList.add(mode.className)
+            outputPane.classList.add(mode.className)
+        } else {
+            outputPre.classList.remove(mode.className)
+            outputPane.classList.remove(mode.className)
+        }
+    }
 }
 
 private fun readPlaceholders(): Placeholders {
@@ -352,22 +411,33 @@ private fun onWebsocketReady() {
     val inputBox = document.getElementById("input")!!.unsafeCast<HTMLTextAreaElement>()
 
     if (!isInEditorMode) {
-        urlParams.getFromParamsOrLocalStorage(PARAM_INPUT)?.also { inputString ->
-            inputBox.value = inputString
-        }
-        var stringPlaceholders: Map<String, String>? = null
-        urlParams.getFromParamsOrLocalStorage(PARAM_STRING_PLACEHOLDERS)?.also { inputString ->
-            stringPlaceholders = Serializers.json.tryDecodeFromString(inputString)
-        }
-        stringPlaceholders?.forEach { (k, v) ->
-            UserPlaceholder.addToList().apply {
-                key = k
-                value = v
+        val shortCode = urlParams.get(PARAM_SHORT_LINK)
+        if (shortCode != null) {
+            restoreFromShortLink(shortCode, inputBox, webSocket).then { parse() }
+        } else {
+            urlParams.getFromParamsOrLocalStorage(PARAM_INPUT)?.also { inputString ->
+                inputBox.value = inputString
             }
+            var stringPlaceholders: Map<String, String>? = null
+            urlParams.getFromParamsOrLocalStorage(PARAM_STRING_PLACEHOLDERS)?.also { inputString ->
+                stringPlaceholders = Serializers.json.tryDecodeFromString(inputString)
+            }
+            stringPlaceholders?.forEach { (k, v) ->
+                UserPlaceholder.addToList().apply {
+                    key = k
+                    value = v
+                }
+            }
+            urlParams.getFromParamsOrLocalStorage(PARAM_BACKGROUND)?.also { background ->
+                currentBackground = background
+            }
+            urlParams.getFromParamsOrLocalStorage(PARAM_MODE)?.also { mode ->
+                setMode(Mode.fromString(mode))
+            }
+            webSocket.send(
+                Placeholders(stringPlaceholders = stringPlaceholders)
+            )
         }
-        webSocket.send(
-            Placeholders(stringPlaceholders = stringPlaceholders)
-        )
     }
 
     parse()
@@ -426,22 +496,19 @@ private fun checkClickEvents(target: EventTarget?, typesToCheck: Collection<Even
             } else {
                 val content = target.dataset[DATA_CLICK_EVENT_VALUE.camel] ?: ""
                 val actionName = clickAction.replace('_', ' ').replaceFirstChar(Char::uppercase)
-                bulmaToast.toast(
-                    buildString {
-                        appendHTML().p {
-                            b { text("Click Event") }
-                        }
-                        appendHTML().p {
-                            text("Action: ")
-                            i { text(actionName) }
-                        }
-                        appendHTML().p {
-                            text("Content: ")
-                            i { text(content) }
-                        }
-                    },
-                    type = "is-info"
-                )
+                bulmaToast.toast(type = "is-info") {
+                    p {
+                        b { text("Click Event") }
+                    }
+                    p {
+                        text("Action: ")
+                        i { text(actionName) }
+                    }
+                    p {
+                        text("Content: ")
+                        i { text(content) }
+                    }
+                }
             }
         }
 
@@ -453,10 +520,15 @@ private fun checkClickEvents(target: EventTarget?, typesToCheck: Collection<Even
             if (insertion == null) {
                 typesToCheck + EventType.INSERTION
             } else {
-                bulmaToast.toast(
-                    "<p><b>Insertion</b></p><p>Content: <i>$insertion</i></p>",
-                    type = "is-info"
-                )
+                bulmaToast.toast(type = "is-info") {
+                    p {
+                        b { text("Insertion") }
+                    }
+                    p {
+                        text("Content: ")
+                        i { text(insertion) }
+                    }
+                }
             }
         }
 
@@ -533,11 +605,11 @@ private fun parse() {
 private inline fun <reified T> List<T>.safeSubList(startIndex: Int, endIndex: Int): List<T> =
     if (endIndex > size) this else this.subList(startIndex, endIndex)
 
-private fun WebSocket.send(packet: Packet) {
+public fun WebSocket.send(packet: Packet) {
     this.send(Serializers.json.encodeToString(packet))
 }
 
-private inline fun <reified T> Window.postPacket(url: String, packet: T): Promise<org.w3c.fetch.Response> {
+public inline fun <reified T> Window.postPacket(url: String, packet: T): Promise<org.w3c.fetch.Response> {
     return this.fetch(
         url,
         RequestInit(

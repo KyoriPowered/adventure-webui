@@ -28,7 +28,7 @@
             integrity="sha256-XQju26ya9yEvX99+M2rrLah6xHsjZIGK1LvX/L3RjQ0=" crossorigin="anonymous"></script>
   </head>
   <body>
-    <header class="navbar is-clipped">
+    <header class="navbar">
       <div class="navbar-brand">
         <a class="navbar-item" id="home-link">
           <h1 class="title mc-font">MiniMessage Viewer</h1>
@@ -61,9 +61,33 @@
               <button class="button" id="copy-button" aria-label="Copy input" title="Copy input">
                 <span class="icon is-small"><i class="fas fa-copy"></i></span>
               </button>
-              <button class="button" id="link-share-button" aria-label="Share" title="Share">
-                <span class="icon is-small"><i class="fas fa-share-alt"></i></span>
-              </button>
+              <div class="dropdown share-dropdown">
+                <div class="dropdown-trigger">
+                  <button class="button" aria-haspopup="true" aria-controls="share-dropdown-menu">
+                    <span class="icon is-small">
+                      <i class="fas fa-share-alt"></i>
+                    </span>
+                    <span class="icon is-small">
+                      <i class="fas fa-angle-down" aria-hidden="true"></i>
+                    </span>
+                  </button>
+                </div>
+                <div class="dropdown-menu" id="share-dropdown-menu" role="menu">
+                  <div class="dropdown-content">
+                    <div class="dropdown-item">
+                      <p>Short links expire after 6 months!</p>
+                    </div>
+                    <div class="dropdown-item">
+                      <button class="button is-info share-button" id="short-link-share-button" aria-label="Share short link" title="Share short link">
+                        Share short link
+                      </button>
+                      <button class="button is-info share-button" id="full-link-share-button" aria-label="Share full link" title="Share full link">
+                        Share full link
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
               <button class="button" id="export-to-json-button" aria-label="Export to JSON" title="Export to JSON">
                 <span class="icon is-small"><i class="fas fa-file-export"></i></span>
               </button>
@@ -99,14 +123,14 @@
               <label for="input">Input: </label>
               <div class="is-flex ml-auto">
                 <div class="dropdown">
-                  <div class="dropdown-trigger">
-                    <button class="button" aria-haspopup="true" aria-controls="dropdown-menu">
+                  <div class="dropdown-trigger swatch-trigger">
+                    <button class="button" aria-haspopup="true" aria-controls="palette-dropdown-menu">
                       <span class="icon is-small">
                         <i class="fas fa-palette" aria-hidden="true"></i>
                       </span>
                     </button>
                   </div>
-                  <div class="dropdown-menu" id="dropdown-menu" role="menu">
+                  <div class="dropdown-menu" id="palette-dropdown-menu" role="menu">
                     <div class="dropdown-content">
                       <div class="dropdown-item">
                         <div id="picker"></div>
@@ -142,6 +166,7 @@
                   </button>
                 </div>
               </div>
+              <!-- TODO(rymiel): These decorations which don't work in non-chat contexts should probably be hidden when in that mode -->
               <div class="is-flex ml-1">
                 <div class="buttons has-addons is-right">
                   <button class="button" id="editor-open-url-button" aria-label="Open URL" title="Add clickable URL">
@@ -203,6 +228,7 @@
       </div>
     </section>
 
+    <!-- MODALS -->
     <div id="placeholders-box" class="modal">
       <div class="modal-background placeholders-button"></div>
       <div class="modal-card">
@@ -231,6 +257,24 @@
         <footer class="modal-card-foot">
           <a class="button add-placeholder-button" aria-label="Add placeholder" title="Add placeholder">
             <span class="icon is-small"><i class="fas fa-plus"></i></span><span> Add placeholder</span>
+          </a>
+        </footer>
+      </div>
+    </div>
+
+    <div id="copy-modal" class="modal">
+      <div class="modal-background close-copy-modal"></div>
+      <div class="modal-card">
+        <header class="modal-card-head">
+          <p id="copy-modal-title" class="modal-card-title"></p>
+          <button class="delete close-copy-modal"></button>
+        </header>
+        <section class="modal-card-body">
+          <pre id="copy-modal-body"></pre>
+        </section>
+        <footer class="modal-card-foot">
+          <a id="copy-modal-button" class="button close-copy-modal" aria-label="Click to copy" title="Click to copy">
+            <span class="icon is-small"><i class="fas fa-copy"></i></span><span> Click to copy</span>
           </a>
         </footer>
       </div>

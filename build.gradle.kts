@@ -54,6 +54,7 @@ kotlin {
         val jvmMain by getting {
             dependencies {
                 implementation(libs.bundles.ktor.server)
+                implementation(libs.bundles.ktor.client)
 
                 implementation(libs.adventure.minimessage)
                 implementation(libs.adventure.text.serializer.gson)

@@ -7,7 +7,6 @@ import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLTextAreaElement
-import org.w3c.dom.asList
 
 // https://iro.js.org/colorPicker_api.html
 private external interface ColorPicker {
@@ -66,17 +65,6 @@ public fun installStyleButtons() {
             "click",
             {
                 handleStyleButton(inputBox, tag)
-            }
-        )
-    }
-
-    document.getElementsByClassName("dropdown-trigger").asList().forEach { element ->
-        element.addEventListener(
-            "click",
-            {
-                // This should hopefully make it so any text selected before pressing the color dropdown should stay visually selected
-                inputBox.focus()
-                element.parentElement!!.classList.toggle("is-active")
             }
         )
     }

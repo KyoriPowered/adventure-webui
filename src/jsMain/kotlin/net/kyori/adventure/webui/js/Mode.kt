@@ -19,7 +19,7 @@ public enum class Mode {
         /** A collection of all modes. */
         public val MODES: Collection<Mode> = values().asList()
 
-        private val DEFAULT: Mode = CHAT_CLOSED
+        public val DEFAULT: Mode = CHAT_CLOSED
         private val INDEX: Map<String, Mode> = MODES.associateBy { mode -> mode.name }
 
         /** Gets a mode from [string], returning [CHAT_CLOSED] as a default. */
