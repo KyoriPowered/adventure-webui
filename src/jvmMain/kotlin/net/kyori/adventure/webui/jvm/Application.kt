@@ -1,24 +1,22 @@
 package net.kyori.adventure.webui.jvm
 
-import io.ktor.application.Application
-import io.ktor.application.install
-import io.ktor.application.log
-import io.ktor.features.CachingHeaders
-import io.ktor.features.Compression
-import io.ktor.features.deflate
-import io.ktor.features.gzip
 import io.ktor.http.CacheControl
 import io.ktor.http.ContentType
-import io.ktor.http.cio.websocket.ExperimentalWebSocketExtensionApi
-import io.ktor.http.cio.websocket.WebSocketDeflateExtension
-import io.ktor.http.cio.websocket.pingPeriod
-import io.ktor.http.cio.websocket.timeout
 import io.ktor.http.content.CachingOptions
-import io.ktor.routing.routing
-import io.ktor.websocket.WebSockets
+import io.ktor.server.application.Application
+import io.ktor.server.application.install
+import io.ktor.server.application.log
+import io.ktor.server.plugins.cachingheaders.CachingHeaders
+import io.ktor.server.plugins.compression.Compression
+import io.ktor.server.plugins.compression.deflate
+import io.ktor.server.plugins.compression.gzip
+import io.ktor.server.routing.routing
+import io.ktor.server.websocket.WebSockets
+import io.ktor.server.websocket.pingPeriod
+import io.ktor.server.websocket.timeout
+import io.ktor.websocket.WebSocketDeflateExtension
 import java.time.Duration
 
-@OptIn(ExperimentalWebSocketExtensionApi::class)
 public fun Application.main() {
     install(Compression) {
         gzip()
@@ -26,7 +24,7 @@ public fun Application.main() {
     }
 
     install(CachingHeaders) {
-        options { outgoingContent ->
+        options { _, outgoingContent ->
             when (outgoingContent.contentType?.withoutParameters()) {
                 ContentType.Image.JPEG, ContentType.parse("application/x-font-woff") ->
                     CachingOptions(CacheControl.MaxAge(maxAgeSeconds = 31536000))
@@ -47,7 +45,7 @@ public fun Application.main() {
     routing {
         // enable trace routing if in dev mode
         if (developmentMode) {
-            trace { route -> log.debug(route.buildText()) }
+            trace { route -> this@main.log.debug(route.buildText()) }
         }
     }
 }

@@ -4,8 +4,9 @@ import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
 import io.ktor.client.request.post
+import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
-import io.ktor.client.statement.readText
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
 import io.ktor.http.isSuccess
 import kotlinx.serialization.encodeToString
@@ -25,7 +26,7 @@ public object BytebinStorage {
                 append(HttpHeaders.Accept, "application/json")
                 append(HttpHeaders.UserAgent, "KyoriPowered/adventure-webui")
             }
-            body = Serializers.json.encodeToString(payload)
+            setBody(Serializers.json.encodeToString(payload))
         }
         if (response.status.isSuccess()) {
             return response.headers[HttpHeaders.Location]
@@ -41,7 +42,7 @@ public object BytebinStorage {
             }
         }
         if (response.status.isSuccess()) {
-            return Serializers.json.tryDecodeFromString(response.readText())
+            return Serializers.json.tryDecodeFromString(response.bodyAsText())
         }
         return null
     }
