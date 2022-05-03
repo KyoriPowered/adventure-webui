@@ -18,16 +18,16 @@ public var currentBackground: String? = null
     }
 
 public fun updateBackground() {
-    val bg = currentBackground ?: return
-    if (!validBackgrounds.contains(currentBackground)) return
-    window.localStorage[PARAM_BACKGROUND] = bg
-    settingBackground.value = bg
     if (currentMode == Mode.SERVER_LIST) {
         // Remove the current background if we are switching to "server list"
         // as it has a black background that is otherwise overridden
         outputPane.style.removeProperty("background-image")
     } else {
         // Otherwise, try to put back the background from before
+        val bg = currentBackground ?: return
+        if (!validBackgrounds.contains(currentBackground)) return
+        window.localStorage[PARAM_BACKGROUND] = bg
+        settingBackground.value = bg
         outputPane.style.backgroundImage = "url(\"img/$bg.jpg\")"
     }
 }

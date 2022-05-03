@@ -203,7 +203,6 @@ public fun mainLoaded() {
             "click",
             {
                 setMode(mode)
-                updateBackground()
                 parse()
             }
         )
@@ -399,6 +398,8 @@ public fun setMode(newMode: Mode) {
             outputPane.classList.remove(mode.className)
         }
     }
+
+    updateBackground()
 }
 
 private fun readPlaceholders(): Placeholders {
