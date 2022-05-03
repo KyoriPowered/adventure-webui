@@ -65,307 +65,311 @@ private lateinit var editorInput: EditorInput
 public lateinit var currentMode: Mode
 private lateinit var webSocket: WebSocket
 
-public fun main() {
-    document.addEventListener(
-        "DOMContentLoaded",
-        {
-            // Defaults for all toast messages
-            bulmaToast.setDefaults(
-                json(
-                    "position" to "bottom-right",
-                    "dismissible" to true,
-                    "pauseOnHover" to true,
-                    "duration" to 6000,
-                    "animate" to json("in" to "fadeIn", "out" to "fadeOut")
+public fun mainLoaded() {
+    // Defaults for all toast messages
+    bulmaToast.setDefaults(
+        json(
+            "position" to "bottom-right",
+            "dismissible" to true,
+            "pauseOnHover" to true,
+            "duration" to 6000,
+            "animate" to json("in" to "fadeIn", "out" to "fadeOut")
+        )
+    )
+
+    // EDITOR
+    val input = document.getElementById("input")!!.unsafeCast<HTMLTextAreaElement>()
+    val saveButton = document.getElementById("editor-save")!!
+    urlParams.get(PARAM_EDITOR_TOKEN)?.let { token ->
+        isInEditorMode = true
+
+        window.fetch(
+            "$URL_API$URL_EDITOR$URL_EDITOR_INPUT?$PARAM_EDITOR_TOKEN=$token",
+            RequestInit("GET")
+        ).then { response ->
+            if (!response.ok) {
+                isInEditorMode = false
+                bulmaToast.toast(
+                    "Could not load editor session!",
+                    type = "is-error"
                 )
-            )
-
-            // EDITOR
-            val input = document.getElementById("input")!!.unsafeCast<HTMLTextAreaElement>()
-            val saveButton = document.getElementById("editor-save")!!
-            urlParams.get(PARAM_EDITOR_TOKEN)?.let { token ->
-                isInEditorMode = true
-
-                window.fetch(
-                    "$URL_API$URL_EDITOR$URL_EDITOR_INPUT?$PARAM_EDITOR_TOKEN=$token",
-                    RequestInit("GET")
-                ).then { response ->
-                    if (!response.ok) {
+            } else {
+                response.text().then { text ->
+                    val possibleEditorInput =
+                        Serializers.json.tryDecodeFromString<EditorInput>(text)
+                    if (possibleEditorInput == null) {
                         isInEditorMode = false
                         bulmaToast.toast(
                             "Could not load editor session!",
                             type = "is-error"
                         )
                     } else {
-                        response.text().then { text ->
-                            val possibleEditorInput =
-                                Serializers.json.tryDecodeFromString<EditorInput>(text)
-                            if (possibleEditorInput == null) {
-                                isInEditorMode = false
-                                bulmaToast.toast(
-                                    "Could not load editor session!",
-                                    type = "is-error"
-                                )
-                            } else {
-                                isInEditorMode = true
-                                editorInput = possibleEditorInput
-                                input.value = editorInput.input
-                                bulmaToast.toast(
-                                    "Loaded editor session! Press the save icon to generate a command to save the message to ${editorInput.application}."
-                                )
-                                saveButton.classList.remove("is-hidden")
-                            }
-                        }
-                    }
-                }
-            }
-            saveButton.addEventListener(
-                "click",
-                {
-                    if (isInEditorMode && ::editorInput.isInitialized) {
-                        window.fetch(
-                            "$URL_API$URL_EDITOR$URL_EDITOR_OUTPUT",
-                            RequestInit("POST", body = input.value)
+                        isInEditorMode = true
+                        editorInput = possibleEditorInput
+                        input.value = editorInput.input
+                        bulmaToast.toast(
+                            "Loaded editor session! Press the save icon to generate a command to save the message to ${editorInput.application}."
                         )
-                            .then { response -> response.text() }
-                            .then { token ->
-                                window.navigator.clipboard.writeText(editorInput.command.replace("{token}", token))
-                            }
-                            .then { bulmaToast.toast("The command to run in-game has been copied to your clipboard!") }
+                        saveButton.classList.remove("is-hidden")
                     }
                 }
-            )
-
-            // WEBSOCKET
-            webSocket =
-                if (window.location.hostname == "localhost" ||
-                    window.location.hostname == "127.0.0.1"
-                ) {
-                    WebSocket("ws://${window.location.host}$URL_API$URL_MINI_TO_HTML")
-                } else {
-                    WebSocket("wss://${window.location.host}$URL_API$URL_MINI_TO_HTML")
-                }
-            webSocket.onopen = { onWebsocketReady() }
-
-            // CORRECT HOME LINK
-            document.getElementById("home-link")!!.unsafeCast<HTMLAnchorElement>().href = homeUrl
-
-            // OBFUSCATION
-            window.setInterval({ obfuscateAll() }, 10)
-
-            // OUTPUT BOXES
-            val outputPre = document.getElementById("output-pre")!!.unsafeCast<HTMLPreElement>()
-            val outputPane = document.getElementById("output-pane")!!.unsafeCast<HTMLDivElement>()
-
-            // CARET
-            val chatBox = document.getElementById("chat-entry-box")!!.unsafeCast<HTMLDivElement>()
-            window.setInterval({ chatBox.innerHTML = if (chatBox.innerHTML == "_") " " else "_" }, 380)
-
-            // BUTTONS
-            val settingsBox = document.getElementById("settings-box")
-            document.getElementsByClassName("settings-button").asList().forEach { element ->
-                element.addEventListener("click", { settingsBox!!.classList.toggle("is-active") })
             }
-            val placeholdersBox = document.getElementById("placeholders-box")
-            document.getElementsByClassName("placeholders-button").asList().forEach { element ->
-                element.addEventListener(
-                    "click",
-                    {
-                        // classList.toggle returns whether the class is in the classlist after the operation
-                        // Since we care about updating everything after the uses closes the modal, we must negate the result.
-                        val opened = placeholdersBox!!.classList.toggle("is-active")
-                        if (!opened) {
-                            val newPlaceholders = readPlaceholders()
-                            window.localStorage[PARAM_STRING_PLACEHOLDERS] = Serializers.json.encodeToString(
-                                newPlaceholders.stringPlaceholders
-                            )
-                            webSocket.send(newPlaceholders)
-                        }
-                    }
+        }
+    }
+    saveButton.addEventListener(
+        "click",
+        {
+            if (isInEditorMode && ::editorInput.isInitialized) {
+                window.fetch(
+                    "$URL_API$URL_EDITOR$URL_EDITOR_OUTPUT",
+                    RequestInit("POST", body = input.value)
                 )
-            }
-            document.getElementsByClassName("add-placeholder-button").asList().forEach { element ->
-                element.addEventListener("click", { UserPlaceholder.addToList() })
-            }
-
-            // MODES
-            currentMode = Mode.DEFAULT
-            outputPre.classList.add(currentMode.className)
-            outputPane.classList.add(currentMode.className)
-
-            val modeButtons = document.getElementsByClassName("mc-mode").asList().unsafeCast<List<HTMLAnchorElement>>()
-            modeButtons.forEach { element ->
-                // set is-active on the current mode first
-                val mode = Mode.valueOf(element.dataset["mode"]!!)
-                if (currentMode == mode) {
-                    element.classList.add("is-active")
-                }
-
-                // then add event listeners for the rest
-                element.addEventListener(
-                    "click",
-                    {
-                        setMode(mode)
-                        updateBackground()
-                        parse()
+                    .then { response -> response.text() }
+                    .then { token ->
+                        window.navigator.clipboard.writeText(editorInput.command.replace("{token}", token))
                     }
-                )
+                    .then { bulmaToast.toast("The command to run in-game has been copied to your clipboard!") }
             }
+        }
+    )
 
-            // SETTINGS
-            val settingBackground = document.getElementById("setting-background")!!.unsafeCast<HTMLSelectElement>()
+    // WEBSOCKET
+    webSocket =
+        if (window.location.hostname == "localhost" ||
+            window.location.hostname == "127.0.0.1"
+        ) {
+            WebSocket("ws://${window.location.host}$URL_API$URL_MINI_TO_HTML")
+        } else {
+            WebSocket("wss://${window.location.host}$URL_API$URL_MINI_TO_HTML")
+        }
+    webSocket.onopen = { onWebsocketReady() }
+
+    // CORRECT HOME LINK
+    document.getElementById("home-link")!!.unsafeCast<HTMLAnchorElement>().href = homeUrl
+
+    // OBFUSCATION
+    window.setInterval({ obfuscateAll() }, 10)
+
+    // OUTPUT BOXES
+    val outputPre = document.getElementById("output-pre")!!.unsafeCast<HTMLPreElement>()
+    val outputPane = document.getElementById("output-pane")!!.unsafeCast<HTMLDivElement>()
+
+    // CARET
+    val chatBox = document.getElementById("chat-entry-box")!!.unsafeCast<HTMLDivElement>()
+    window.setInterval({ chatBox.innerHTML = if (chatBox.innerHTML == "_") " " else "_" }, 380)
+
+    // BUTTONS
+    val settingsBox = document.getElementById("settings-box")
+    document.getElementsByClassName("settings-button").asList().forEach { element ->
+        element.addEventListener("click", { settingsBox!!.classList.toggle("is-active") })
+    }
+    val placeholdersBox = document.getElementById("placeholders-box")
+    document.getElementsByClassName("placeholders-button").asList().forEach { element ->
+        element.addEventListener(
+            "click",
+            {
+                // classList.toggle returns whether the class is in the classlist after the operation
+                // Since we care about updating everything after the uses closes the modal, we must negate the result.
+                val opened = placeholdersBox!!.classList.toggle("is-active")
+                if (!opened) {
+                    val newPlaceholders = readPlaceholders()
+                    window.localStorage[PARAM_STRING_PLACEHOLDERS] = Serializers.json.encodeToString(
+                        newPlaceholders.stringPlaceholders
+                    )
+                    webSocket.send(newPlaceholders)
+                }
+            }
+        )
+    }
+    document.getElementsByClassName("add-placeholder-button").asList().forEach { element ->
+        element.addEventListener("click", { UserPlaceholder.addToList() })
+    }
+
+    // MODES
+    currentMode = Mode.DEFAULT
+    outputPre.classList.add(currentMode.className)
+    outputPane.classList.add(currentMode.className)
+
+    val modeButtons = document.getElementsByClassName("mc-mode").asList().unsafeCast<List<HTMLAnchorElement>>()
+    modeButtons.forEach { element ->
+        // set is-active on the current mode first
+        val mode = Mode.valueOf(element.dataset["mode"]!!)
+        if (currentMode == mode) {
+            element.classList.add("is-active")
+        }
+
+        // then add event listeners for the rest
+        element.addEventListener(
+            "click",
+            {
+                setMode(mode)
+                updateBackground()
+                parse()
+            }
+        )
+    }
+
+    // SETTINGS
+    val settingBackground = document.getElementById("setting-background")!!.unsafeCast<HTMLSelectElement>()
+    currentBackground = settingBackground.value
+    settingBackground.addEventListener(
+        "change",
+        {
             currentBackground = settingBackground.value
-            settingBackground.addEventListener(
-                "change",
-                {
-                    currentBackground = settingBackground.value
-                }
-            )
+        }
+    )
 
-            // SHARING
-            document.getElementById("full-link-share-button")!!.addEventListener(
-                "click",
-                {
-                    val inputValue = encodeURIComponent(input.value)
-                    val placeholders = readPlaceholders()
-                    var link =
-                        "$homeUrl?$PARAM_MODE=${currentMode.paramName}&$PARAM_INPUT=$inputValue"
-                    if (currentMode != Mode.SERVER_LIST) {
-                        link += "&$PARAM_BACKGROUND=$currentBackground"
-                    }
-                    if (!placeholders.stringPlaceholders.isNullOrEmpty()) {
-                        link += "&$PARAM_STRING_PLACEHOLDERS="
-                        link +=
-                            encodeURIComponent(
-                                Serializers.json.encodeToString(placeholders.stringPlaceholders)
-                            )
-                    }
-                    window.navigator.clipboard.writeText(link).then {
-                        bulmaToast.toast("Shareable permanent link copied to clipboard!")
-                    }
-                }
-            )
-            document.getElementById("short-link-share-button")!!.addEventListener(
-                "click",
-                {
-                    bytebinStore(
-                        Combined(
-                            miniMessage = input.value,
-                            placeholders = readPlaceholders(),
-                            background = if (currentMode != Mode.SERVER_LIST) currentBackground else null,
-                            mode = currentMode.paramName
-                        )
-                    )
-                        .then { code -> "$homeUrl?$PARAM_SHORT_LINK=$code" }
-                        .then { link ->
-                            window.navigator.clipboard.writeText(link).then(
-                                { bulmaToast.toast("Shareable short link copied to clipboard!") },
-                                {
-                                    // This is run when writing to the clipboard is rejected (by Safari)
-                                    createCopyModal("Short link generated", link)
-                                }
-                            )
-                        }
-                }
-            )
-            // Roll up the share dropdown after making a choice
-            /*
-            TODO(rymiel): Perhaps the dropdown could stay open when the "short link" option is selected, instead turning
-              into a loading wheel, then the dropdown can close once that loading is done.
-             */
-            document.getElementsByClassName("share-button").asList().forEach { element ->
-                element.addEventListener(
-                    "click",
-                    {
-                        element.closest(".dropdown")!!.classList.toggle("is-active")
-                    }
-                )
+    // SHARING
+    document.getElementById("full-link-share-button")!!.addEventListener(
+        "click",
+        {
+            val inputValue = encodeURIComponent(input.value)
+            val placeholders = readPlaceholders()
+            var link =
+                "$homeUrl?$PARAM_MODE=${currentMode.paramName}&$PARAM_INPUT=$inputValue"
+            if (currentMode != Mode.SERVER_LIST) {
+                link += "&$PARAM_BACKGROUND=$currentBackground"
             }
-
-            // CLIPBOARD
-            document.getElementById("copy-button")!!.addEventListener(
-                "click",
-                {
-                    window.navigator.clipboard.writeText(input.value.replace("\n", "\\n")).then {
-                        bulmaToast.toast("Input text copied to clipboard!")
-                    }
-                }
-            )
-            document.getElementById("export-to-json-button")!!.addEventListener(
-                "click",
-                {
-                    window.postPacket(
-                        "$URL_API$URL_MINI_TO_JSON",
-                        Combined(miniMessage = input.value, placeholders = readPlaceholders())
+            if (!placeholders.stringPlaceholders.isNullOrEmpty()) {
+                link += "&$PARAM_STRING_PLACEHOLDERS="
+                link +=
+                    encodeURIComponent(
+                        Serializers.json.encodeToString(placeholders.stringPlaceholders)
                     )
-                        .then { response -> response.text() }
-                        .then { text -> window.navigator.clipboard.writeText(text) }
-                        .then { bulmaToast.toast("JSON copied to clipboard!") }
-                }
-            )
-
-            document.getElementById("show-tree-button")!!.addEventListener(
-                "click",
-                {
-                    window.postPacket(
-                        "$URL_API$URL_MINI_TO_TREE",
-                        Combined(miniMessage = input.value, placeholders = readPlaceholders())
-                    )
-                        .then { response -> response.text() }
-                        .then { text ->
-                            val escaped =
-                                text.replace("&", "&amp;")
-                                    .replace("<", "&lt;")
-                                    .replace(">", "&gt;")
-                            bulmaToast.toast("<pre>$escaped</pre>")
-                        }
-                }
-            )
-
-            // EDITOR
-
-            // BURGER MENU
-            val burgerMenu = document.getElementById("burger-menu")!!
-            val navbarMenu = document.getElementById("navbar-menu")!!
-            burgerMenu.addEventListener(
-                "click",
-                {
-                    burgerMenu.classList.toggle("is-active")
-                    navbarMenu.classList.toggle("is-active")
-                }
-            )
-
-            // EVENTS
-            document.addEventListener(
-                "click",
-                { event ->
-                    val target = event.target
-                    if (target is HTMLSpanElement && target.classList.contains(COMPONENT_CLASS)) {
-                        checkClickEvents(target, EventType.all())
-
-                        // we need to prevent propagation as we do that ourselves manually
-                        event.stopPropagation()
-                    }
-                }
-            )
-
-            // DROPDOWNS
-            document.getElementsByClassName("dropdown-trigger").asList().forEach { element ->
-                element.addEventListener(
-                    "click",
-                    {
-                        if (element.classList.contains("swatch-trigger")) {
-                            // This should hopefully make it so any text selected before pressing the color dropdown should stay visually selected
-                            val inputBox = document.getElementById("input")!!.unsafeCast<HTMLTextAreaElement>()
-                            inputBox.focus()
-                        }
-                        element.parentElement!!.classList.toggle("is-active")
-                    }
-                )
             }
+            window.navigator.clipboard.writeText(link).then {
+                bulmaToast.toast("Shareable permanent link copied to clipboard!")
+            }
+        }
+    )
+    document.getElementById("short-link-share-button")!!.addEventListener(
+        "click",
+        {
+            bytebinStore(
+                Combined(
+                    miniMessage = input.value,
+                    placeholders = readPlaceholders(),
+                    background = if (currentMode != Mode.SERVER_LIST) currentBackground else null,
+                    mode = currentMode.paramName
+                )
+            )
+                .then { code -> "$homeUrl?$PARAM_SHORT_LINK=$code" }
+                .then { link ->
+                    window.navigator.clipboard.writeText(link).then(
+                        { bulmaToast.toast("Shareable short link copied to clipboard!") },
+                        {
+                            // This is run when writing to the clipboard is rejected (by Safari)
+                            createCopyModal("Short link generated", link)
+                        }
+                    )
+                }
+        }
+    )
+    // Roll up the share dropdown after making a choice
+    /*
+    TODO(rymiel): Perhaps the dropdown could stay open when the "short link" option is selected, instead turning
+      into a loading wheel, then the dropdown can close once that loading is done.
+     */
+    document.getElementsByClassName("share-button").asList().forEach { element ->
+        element.addEventListener(
+            "click",
+            {
+                element.closest(".dropdown")!!.classList.toggle("is-active")
+            }
+        )
+    }
 
-            installHoverManager()
-            installStyleButtons()
+    // CLIPBOARD
+    document.getElementById("copy-button")!!.addEventListener(
+        "click",
+        {
+            window.navigator.clipboard.writeText(input.value.replace("\n", "\\n")).then {
+                bulmaToast.toast("Input text copied to clipboard!")
+            }
+        }
+    )
+    document.getElementById("export-to-json-button")!!.addEventListener(
+        "click",
+        {
+            window.postPacket(
+                "$URL_API$URL_MINI_TO_JSON",
+                Combined(miniMessage = input.value, placeholders = readPlaceholders())
+            )
+                .then { response -> response.text() }
+                .then { text -> window.navigator.clipboard.writeText(text) }
+                .then { bulmaToast.toast("JSON copied to clipboard!") }
+        }
+    )
+
+    document.getElementById("show-tree-button")!!.addEventListener(
+        "click",
+        {
+            window.postPacket(
+                "$URL_API$URL_MINI_TO_TREE",
+                Combined(miniMessage = input.value, placeholders = readPlaceholders())
+            )
+                .then { response -> response.text() }
+                .then { text ->
+                    val escaped =
+                        text.replace("&", "&amp;")
+                            .replace("<", "&lt;")
+                            .replace(">", "&gt;")
+                    bulmaToast.toast("<pre>$escaped</pre>")
+                }
+        }
+    )
+
+    // EDITOR
+
+    // BURGER MENU
+    val burgerMenu = document.getElementById("burger-menu")!!
+    val navbarMenu = document.getElementById("navbar-menu")!!
+    burgerMenu.addEventListener(
+        "click",
+        {
+            burgerMenu.classList.toggle("is-active")
+            navbarMenu.classList.toggle("is-active")
+        }
+    )
+
+    // EVENTS
+    document.addEventListener(
+        "click",
+        { event ->
+            val target = event.target
+            if (target is HTMLSpanElement && target.classList.contains(COMPONENT_CLASS)) {
+                checkClickEvents(target, EventType.all())
+
+                // we need to prevent propagation as we do that ourselves manually
+                event.stopPropagation()
+            }
+        }
+    )
+
+    // DROPDOWNS
+    document.getElementsByClassName("dropdown-trigger").asList().forEach { element ->
+        element.addEventListener(
+            "click",
+            {
+                if (element.classList.contains("swatch-trigger")) {
+                    // This should hopefully make it so any text selected before pressing the color dropdown should stay visually selected
+                    val inputBox = document.getElementById("input")!!.unsafeCast<HTMLTextAreaElement>()
+                    inputBox.focus()
+                }
+                element.parentElement!!.classList.toggle("is-active")
+            }
+        )
+    }
+
+    installHoverManager()
+    installStyleButtons()
+}
+
+public fun main() {
+    document.addEventListener(
+        "DOMContentLoaded",
+        {
+            mainLoaded()
         }
     )
 }
