@@ -62,12 +62,12 @@ public fun installHoverManager() {
                 if (top < 0) {
                     top += hoverHeight + 47
                 }
-                // Don't go off the top of the screen
             } else if (top < 0) {
+                // Don't go off the top of the screen
                 top = 0
-                // Don't go off the bottom of the screen
             } else if (top + hoverHeight > windowHeight) {
-                top = windowHeight - windowWidth
+                // Don't go off the bottom of the screen
+                top = windowHeight - hoverHeight
             }
 
             hoverTooltip.style.top = "${top}px"
