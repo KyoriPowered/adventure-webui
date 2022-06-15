@@ -106,7 +106,11 @@ tasks.getByName<AbstractCopyTask>("jvmProcessResources") {
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
 
     filesMatching("application.conf") {
-        expand("jsScriptFile" to "${rootProject.name}.js")
+        expand(
+            "jsScriptFile" to "${rootProject.name}.js",
+            "miniMessageVersion" to libs.adventure.minimessage.get().versionConstraint.requiredVersion,
+            "commitHash" to rootProject.extensions.findByType<IndraGitExtension>()!!.commit()?.name.orEmpty()
+        )
     }
 }
 

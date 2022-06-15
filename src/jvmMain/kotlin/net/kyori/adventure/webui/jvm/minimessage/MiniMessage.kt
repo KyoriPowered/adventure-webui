@@ -21,8 +21,10 @@ import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
+import net.kyori.adventure.webui.BuildInfo
 import net.kyori.adventure.webui.Serializers
 import net.kyori.adventure.webui.URL_API
+import net.kyori.adventure.webui.URL_BUILD_INFO
 import net.kyori.adventure.webui.URL_EDITOR
 import net.kyori.adventure.webui.URL_MINI_SHORTEN
 import net.kyori.adventure.webui.URL_MINI_TO_HTML
@@ -48,6 +50,9 @@ import net.kyori.adventure.webui.websocket.Packet
 import net.kyori.adventure.webui.websocket.ParseResult
 import net.kyori.adventure.webui.websocket.Placeholders
 import net.kyori.adventure.webui.websocket.Response
+import java.time.Instant
+
+private val startedAt = Instant.now()
 
 public val Placeholders?.tagResolver: TagResolver
     get() {
@@ -84,6 +89,8 @@ public fun Application.miniMessage() {
         component(FONT_RENDER_HOOK)
         component(TEXT_RENDER_HOOK, 500) // content needs to be set last
     }
+
+    BytebinStorage.BYTEBIN_INSTANCE = this.getConfigString("bytebinInstance")
 
     routing {
         // define static path to resources
@@ -190,6 +197,16 @@ public fun Application.miniMessage() {
                 } else {
                     call.response.status(HttpStatusCode.NotFound)
                 }
+            }
+
+            get(URL_BUILD_INFO) {
+                val info = BuildInfo(
+                    startedAt = startedAt.toString(),
+                    version = this@miniMessage.getConfigString("miniMessageVersion"),
+                    commit = this@miniMessage.getConfigString("commitHash"),
+                    bytebinInstance = BytebinStorage.BYTEBIN_INSTANCE,
+                )
+                call.respondText(Serializers.json.encodeToString(info))
             }
 
             route(URL_EDITOR) { installEditor() }
