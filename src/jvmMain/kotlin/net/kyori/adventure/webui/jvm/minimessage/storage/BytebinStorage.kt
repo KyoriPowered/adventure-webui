@@ -15,7 +15,7 @@ import net.kyori.adventure.webui.tryDecodeFromString
 import net.kyori.adventure.webui.websocket.Combined
 
 public object BytebinStorage {
-    private const val BYTEBIN_INSTANCE: String = "https://bytebin.lucko.me"
+    public lateinit var BYTEBIN_INSTANCE: String
 
     private val client = HttpClient()
 

@@ -41,3 +41,7 @@ public const val PARAM_EDITOR_TOKEN: String = "token"
 
 /** Path for getting a short link for a MiniMessage input. */
 public const val URL_MINI_SHORTEN: String = "/mini-shorten"
+
+/** Path for getting the configuration of this WebUI instance */
+public const val URL_BUILD_INFO: String = "/build"
+
