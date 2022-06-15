@@ -258,6 +258,10 @@ html {
     border-top-right-radius: 4px;
     border-bottom-right-radius: 4px;
 }
+#palette-dropdown-menu {
+    left: -4rem;
+    right: auto;
+}
 input.placeholder-key:invalid {
     border: 2px red solid;
 }
