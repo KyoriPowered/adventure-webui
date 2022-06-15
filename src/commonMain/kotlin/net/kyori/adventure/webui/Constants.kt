@@ -44,4 +44,3 @@ public const val URL_MINI_SHORTEN: String = "/mini-shorten"
 
 /** Path for getting the configuration of this WebUI instance */
 public const val URL_BUILD_INFO: String = "/build"
-
