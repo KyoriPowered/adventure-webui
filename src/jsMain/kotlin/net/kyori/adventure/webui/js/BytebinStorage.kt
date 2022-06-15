@@ -1,8 +1,12 @@
 package net.kyori.adventure.webui.js
 
 import kotlinx.browser.window
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
+import net.kyori.adventure.webui.BuildInfo
 import net.kyori.adventure.webui.Serializers
+import net.kyori.adventure.webui.URL_API
+import net.kyori.adventure.webui.URL_BUILD_INFO
 import net.kyori.adventure.webui.tryDecodeFromString
 import net.kyori.adventure.webui.websocket.Combined
 import net.kyori.adventure.webui.websocket.Placeholders
@@ -14,27 +18,48 @@ import kotlin.js.Json
 import kotlin.js.Promise
 import kotlin.js.json
 
-private const val BYTEBIN_INSTANCE: String = "https://bytebin.lucko.me"
+private lateinit var BYTEBIN_INSTANCE: String
+
+private fun retrieveBytebinUrl(): Promise<String> {
+    if (::BYTEBIN_INSTANCE.isInitialized) {
+        return Promise.resolve(BYTEBIN_INSTANCE)
+    }
+
+    return window.fetch(
+        "$URL_API$URL_BUILD_INFO",
+        RequestInit(method = "GET")
+    )
+        .then { response -> response.text() }
+        .then { text -> Serializers.json.decodeFromString<BuildInfo>(text) }
+        .then { buildInfo ->
+            BYTEBIN_INSTANCE = buildInfo.bytebinInstance
+            BYTEBIN_INSTANCE
+        }
+}
 
 public fun bytebinStore(payload: Combined): Promise<String?> {
-    // TODO(rymiel): maybe this can fail?
-    return window.fetch(
-        "$BYTEBIN_INSTANCE/post",
-        RequestInit(
-            method = "POST",
-            headers = Headers(json("Content-Type" to "application/json; charset=UTF-8")),
-            body = Serializers.json.encodeToString(payload)
+    return retrieveBytebinUrl().then { bytebinInstance ->
+        // TODO(rymiel): maybe this can fail?
+        window.fetch(
+            "$bytebinInstance/post",
+            RequestInit(
+                method = "POST",
+                headers = Headers(json("Content-Type" to "application/json; charset=UTF-8")),
+                body = Serializers.json.encodeToString(payload)
+            )
         )
-    )
+    }
         .then { response -> response.json() }
         .then { json -> json.unsafeCast<Json>()["key"].unsafeCast<String>() } // :I
 }
 
 private fun bytebinLoad(code: String): Promise<Combined?> {
-    return window.fetch(
-        "$BYTEBIN_INSTANCE/$code",
-        RequestInit(method = "GET")
-    )
+    return retrieveBytebinUrl().then { bytebinInstance ->
+        window.fetch(
+            "$bytebinInstance/$code",
+            RequestInit(method = "GET")
+        )
+    }
         .then { response -> response.text() }
         .then(
             { text -> Serializers.json.tryDecodeFromString(text) },
