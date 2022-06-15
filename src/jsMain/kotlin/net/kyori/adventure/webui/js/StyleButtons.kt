@@ -7,6 +7,8 @@ import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLTextAreaElement
+import org.w3c.dom.asList
+import org.w3c.dom.get
 
 // https://iro.js.org/colorPicker_api.html
 private external interface ColorPicker {
@@ -105,6 +107,17 @@ public fun installStyleButtons() {
         }
     )
 
+    val namedSwatch = document.getElementById("named-swatch")!!.unsafeCast<HTMLDivElement>()
+    namedSwatch.children.asList().forEach { swatch ->
+        val swatchElement = swatch.unsafeCast<HTMLDivElement>()
+        swatchElement.addEventListener("click", {
+            colorPicker.color.hexString = swatchElement.dataset["color"].orEmpty()
+            // Clicking (on a swatch) takes away focus from the editor, put it back so the user still sees
+            // their selection and knows what they're about to modify.
+            inputBox.focus()
+        })
+    }
+
     val useColorButton = document.getElementById("use-color")!!.unsafeCast<HTMLButtonElement>()
     useColorButton.addEventListener(
         "click",
@@ -172,6 +185,13 @@ private fun handleStyleButton(inputBox: HTMLTextAreaElement, tag: StyleTag) {
 
     // This makes sure the websocket stuff is actually fired so the preview stays in sync.
     inputBox.dispatchEvent(CustomEvent("change", CustomEventInit(bubbles = true, cancelable = true)))
+
+    /*
+     TODO(rymiel): This focus() is problematic on mobile, as it'll most likely throw up the keyboard all of a sudden
+       which takes up a bunch of the screen. This isn't strictly a concern on the other focus() call above, as the
+       color swatches are hidden on mobile anyway, but still something to probably disable when an on-screen keyboard
+       is used
+     */
     inputBox.focus()
     inputBox.setSelectionRange(newSelStart, newSelEnd)
 }

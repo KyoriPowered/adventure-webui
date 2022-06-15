@@ -122,7 +122,7 @@
             <div class="is-horizontal is-flex">
               <label for="input">Input: </label>
               <div class="is-flex ml-auto">
-                <div class="dropdown">
+                <div class="dropdown is-right">
                   <div class="dropdown-trigger swatch-trigger">
                     <button class="button" aria-haspopup="true" aria-controls="palette-dropdown-menu">
                       <span class="icon is-small">
@@ -133,11 +133,32 @@
                   <div class="dropdown-menu" id="palette-dropdown-menu" role="menu">
                     <div class="dropdown-content">
                       <div class="dropdown-item">
-                        <div id="picker"></div>
+                        <div class="is-flex">
+                          <div id="named-swatch" class="is-flex-grow-1 is-hidden-mobile">
+                            <div class="swatch swatch-l" data-color="#000000" style="background: #000000;" title="Black"></div>
+                            <div class="swatch swatch-r" data-color="#555555" style="background: #555555;" title="Dark Gray"></div>
+                            <div class="swatch swatch-l" data-color="#0000aa" style="background: #0000aa;" title="Dark Blue"></div>
+                            <div class="swatch swatch-r" data-color="#5555ff" style="background: #5555ff;" title="Blue"></div>
+                            <div class="swatch swatch-l" data-color="#00aa00" style="background: #00aa00;" title="Dark Green"></div>
+                            <div class="swatch swatch-r" data-color="#55ff55" style="background: #55ff55;" title="Green"></div>
+                            <div class="swatch swatch-l" data-color="#00aaaa" style="background: #00aaaa;" title="Dark Aqua"></div>
+                            <div class="swatch swatch-r" data-color="#55ffff" style="background: #55ffff;" title="Aqua"></div>
+                            <div class="swatch swatch-l" data-color="#aa0000" style="background: #aa0000;" title="Dark Red"></div>
+                            <div class="swatch swatch-r" data-color="#ff5555" style="background: #ff5555;" title="Red"></div>
+                            <div class="swatch swatch-l" data-color="#aa00aa" style="background: #aa00aa;" title="Dark Purple"></div>
+                            <div class="swatch swatch-r" data-color="#ff55ff" style="background: #ff55ff;" title="Light Purple"></div>
+                            <div class="swatch swatch-l" data-color="#ffaa00" style="background: #ffaa00;" title="Gold"></div>
+                            <div class="swatch swatch-r" data-color="#ffff55" style="background: #ffff55;" title="Yellow"></div>
+                            <div class="swatch swatch-l" data-color="#aaaaaa" style="background: #aaaaaa;" title="Gray"></div>
+                            <div class="swatch swatch-r" data-color="#ffffff" style="background: #ffffff;" title="White"></div>
+                          </div>
+                          <div id="picker"></div>
+                        </div>
                       </div>
+                      <hr class="dropdown-divider">
                       <div class="dropdown-item is-flex">
                         <div class="field has-addons is-flex-grow-1">
-                          <div id="preview-swatch" class="swatch is-flex-grow-1" style="background: #ffffff;"></div>
+                          <div id="preview-swatch" class="swatch swatch-l is-flex-grow-1" style="background: #ffffff;"></div>
                           <div class="control">
                             <input id="preview-hex" class="input is-family-monospace has-text-centered" type="text" size="7" value="#ffffff">
                           </div>
