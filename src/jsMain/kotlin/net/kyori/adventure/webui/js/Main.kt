@@ -556,7 +556,7 @@ private fun obfuscate(input: Node) {
         childNodes.asList().forEach { obfuscate(it) }
     }
     if (input.nodeType == Node.TEXT_NODE) {
-        input.nodeValue = obfuscate(input.nodeValue!!)
+        input.nodeValue = obfuscate(input.nodeValue.orEmpty())
     }
 }
 
