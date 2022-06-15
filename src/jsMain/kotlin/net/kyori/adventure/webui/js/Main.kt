@@ -34,6 +34,7 @@ import org.w3c.dom.HTMLPreElement
 import org.w3c.dom.HTMLSelectElement
 import org.w3c.dom.HTMLSpanElement
 import org.w3c.dom.HTMLTextAreaElement
+import org.w3c.dom.Node
 import org.w3c.dom.WebSocket
 import org.w3c.dom.Window
 import org.w3c.dom.asList
@@ -548,12 +549,14 @@ private fun obfuscateAll() {
     document.getElementsByClassName("obfuscated").asList().forEach { obfuscate(it) }
 }
 
-private fun obfuscate(input: Element) {
-    if (input.hasClass("hover")) return
-    if (input.childElementCount > 0) {
-        input.children.asList().forEach { obfuscate(it) }
-    } else if (input.textContent != null) {
-        input.textContent = obfuscate(input.textContent!!)
+private fun obfuscate(input: Node) {
+    if (input is Element && input.hasClass("hover")) return
+    val childNodes = input.childNodes
+    if (childNodes.length > 0) {
+        childNodes.asList().forEach { obfuscate(it) }
+    }
+    if (input.nodeType == Node.TEXT_NODE) {
+        input.nodeValue = obfuscate(input.nodeValue.orEmpty())
     }
 }
 
