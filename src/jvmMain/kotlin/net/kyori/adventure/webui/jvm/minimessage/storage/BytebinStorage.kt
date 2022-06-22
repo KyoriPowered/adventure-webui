@@ -24,7 +24,7 @@ public object BytebinStorage {
             headers {
                 append(HttpHeaders.ContentType, "application/json")
                 append(HttpHeaders.Accept, "application/json")
-                append(HttpHeaders.UserAgent, "KyoriPowered/adventure-webui")
+                append(HttpHeaders.UserAgent, "adventure/webui")
             }
             setBody(Serializers.json.encodeToString(payload))
         }
@@ -38,7 +38,7 @@ public object BytebinStorage {
         val response: HttpResponse = client.get("$BYTEBIN_INSTANCE/$code") {
             headers {
                 append(HttpHeaders.Accept, "application/json")
-                append(HttpHeaders.UserAgent, "KyoriPowered/adventure-webui")
+                append(HttpHeaders.UserAgent, "adventure/webui")
             }
         }
         if (response.status.isSuccess()) {
