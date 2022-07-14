@@ -1,5 +1,5 @@
 [versions]
-kotlin = "1.6.21"
+kotlin = "1.7.10"
 ktor = "2.0.2"
 adventure = "4.11.0"
 
