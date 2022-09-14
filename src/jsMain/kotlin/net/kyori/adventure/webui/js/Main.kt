@@ -144,6 +144,9 @@ public fun mainLoaded() {
             WebSocket("wss://${window.location.host}$URL_API$URL_MINI_TO_HTML")
         }
     webSocket.onopen = { onWebsocketReady() }
+    webSocket.onclose = { onWebsocketClose() }
+    // A closed websocket will be handled by the above, but log the error to console for debugging sake
+    webSocket.onerror = { err -> console.log("Websocket error: $err") }
 
     // CORRECT HOME LINK
     document.getElementById("home-link")!!.unsafeCast<HTMLAnchorElement>().href = homeUrl
@@ -488,6 +491,16 @@ private fun onWebsocketReady() {
                 }
             }
         }
+}
+
+private fun onWebsocketClose() {
+    // We no longer have a working websocket connection, so any input changes would not go through. Display a little
+    // warning to the user and disable the input box to bring more attention to it, since changing the input would
+    // have no effect at this point anyway.
+    val warning = document.getElementById("connection-lost-warning")!!.unsafeCast<HTMLTextAreaElement>()
+    val inputBox = document.getElementById("input")!!.unsafeCast<HTMLTextAreaElement>()
+    warning.hidden = false
+    inputBox.disabled = true
 }
 
 private fun checkClickEvents(target: EventTarget?, typesToCheck: Collection<EventType>) {
