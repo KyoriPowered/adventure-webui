@@ -59,10 +59,10 @@ public val STYLE_WRAPPERS: Map<String, StyleTag> = mapOf(
 )
 
 public fun installStyleButtons() {
-    val inputBox = document.getElementById("input")!!.unsafeCast<HTMLTextAreaElement>()
+    val inputBox = document.element<HTMLTextAreaElement>("input")
 
     STYLE_WRAPPERS.forEach { (buttonName, tag) ->
-        val button = document.getElementById("editor-$buttonName-button")!!.unsafeCast<HTMLButtonElement>()
+        val button = document.element<HTMLButtonElement>("editor-$buttonName-button")
         button.addEventListener(
             "click",
             {
@@ -71,8 +71,8 @@ public fun installStyleButtons() {
         )
     }
 
-    val previewSwatch = document.getElementById("preview-swatch")!!.unsafeCast<HTMLDivElement>()
-    val previewHex = document.getElementById("preview-hex")!!.unsafeCast<HTMLInputElement>()
+    val previewSwatch = document.element<HTMLDivElement>("preview-swatch")
+    val previewHex = document.element<HTMLInputElement>("preview-hex")
 
     // I've given up on kotlin type safety
     val colorPicker = js("new iro.ColorPicker('#picker')").unsafeCast<ColorPicker>()
@@ -107,7 +107,7 @@ public fun installStyleButtons() {
         }
     )
 
-    val namedSwatch = document.getElementById("named-swatch")!!.unsafeCast<HTMLDivElement>()
+    val namedSwatch = document.element<HTMLDivElement>("named-swatch")
     namedSwatch.children.asList().forEach { swatch ->
         val swatchElement = swatch.unsafeCast<HTMLDivElement>()
         swatchElement.addEventListener("click", {
@@ -118,7 +118,7 @@ public fun installStyleButtons() {
         })
     }
 
-    val useColorButton = document.getElementById("use-color")!!.unsafeCast<HTMLButtonElement>()
+    val useColorButton = document.element<HTMLButtonElement>("use-color")
     useColorButton.addEventListener(
         "click",
         {
