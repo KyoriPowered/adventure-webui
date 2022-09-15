@@ -18,5 +18,5 @@ public fun <T : Element> NonElementParentNode.element(id: String): T {
  * A delegate factory for an element lazily fetched from the [document]. See [NonElementParentNode.element].
  */
 public fun <T : Element> lazyDocumentElement(id: String): Lazy<T> {
-    return lazy { document.element(id) }
+    return lazy(LazyThreadSafetyMode.NONE) { document.element(id) }
 }
