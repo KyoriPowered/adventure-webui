@@ -9,10 +9,10 @@ import org.w3c.dom.HTMLParagraphElement
 import org.w3c.dom.HTMLPreElement
 import org.w3c.dom.asList
 
-private val modal: HTMLDivElement by lazy { document.getElementById("copy-modal")!!.unsafeCast<HTMLDivElement>() }
-private val modalTitle: HTMLParagraphElement by lazy { document.getElementById("copy-modal-title")!!.unsafeCast<HTMLParagraphElement>() }
-private val modalBody: HTMLPreElement by lazy { document.getElementById("copy-modal-body")!!.unsafeCast<HTMLPreElement>() }
-private val modalButton: HTMLAnchorElement by lazy { document.getElementById("copy-modal-button")!!.unsafeCast<HTMLAnchorElement>() }
+private val modal: HTMLDivElement by lazyDocumentElement("copy-modal")
+private val modalTitle: HTMLParagraphElement by lazyDocumentElement("copy-modal-title")
+private val modalBody: HTMLPreElement by lazyDocumentElement("copy-modal-body")
+private val modalButton: HTMLAnchorElement by lazyDocumentElement("copy-modal-button")
 private val modalClose: List<Element> by lazy { document.getElementsByClassName("close-copy-modal").asList() }
 private var eventListenerSet = false
 

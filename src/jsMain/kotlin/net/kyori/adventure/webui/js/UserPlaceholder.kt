@@ -50,7 +50,7 @@ public class UserPlaceholder(
             }
             key.addEventListener("input", {
                 val activeKeys = document.getElementsByClassName("placeholder-key").asList().map { it as HTMLInputElement }
-                val tip = document.getElementById("placeholder-tip") as HTMLParagraphElement
+                val tip = document.element<HTMLParagraphElement>("placeholder-tip")
                 if (activeKeys.all { it.checkValidity() }) {
                     tip.style.display = "none"
                 } else {

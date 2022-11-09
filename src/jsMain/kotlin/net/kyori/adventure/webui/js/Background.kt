@@ -1,6 +1,5 @@
 package net.kyori.adventure.webui.js
 
-import kotlinx.browser.document
 import kotlinx.browser.window
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLOptionElement
@@ -8,8 +7,8 @@ import org.w3c.dom.HTMLSelectElement
 import org.w3c.dom.asList
 import org.w3c.dom.set
 
-private val outputPane: HTMLDivElement by lazy { document.getElementById("output-pane")!!.unsafeCast<HTMLDivElement>() }
-private val settingBackground: HTMLSelectElement by lazy { document.getElementById("setting-background")!!.unsafeCast<HTMLSelectElement>() }
+private val outputPane: HTMLDivElement by lazyDocumentElement("output-pane")
+private val settingBackground: HTMLSelectElement by lazyDocumentElement("setting-background")
 private val validBackgrounds: List<String> by lazy { settingBackground.options.asList().map { it.unsafeCast<HTMLOptionElement>().value } }
 public var currentBackground: String? = null
     set(value) {

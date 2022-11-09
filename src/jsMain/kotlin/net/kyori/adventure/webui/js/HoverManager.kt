@@ -11,7 +11,7 @@ import org.w3c.dom.events.MouseEvent
 import org.w3c.dom.get
 
 public fun installHoverManager() {
-    val hoverTooltip = document.getElementById("hover-tooltip").unsafeCast<HTMLDivElement>()
+    val hoverTooltip = document.element<HTMLDivElement>("hover-tooltip")
 
     document.addEventListener(
         "mouseover",

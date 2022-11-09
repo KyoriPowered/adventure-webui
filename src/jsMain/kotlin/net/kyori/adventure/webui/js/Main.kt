@@ -30,6 +30,7 @@ import net.kyori.adventure.webui.websocket.Response
 import org.w3c.dom.Element
 import org.w3c.dom.HTMLAnchorElement
 import org.w3c.dom.HTMLDivElement
+import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLPreElement
 import org.w3c.dom.HTMLSelectElement
 import org.w3c.dom.HTMLSpanElement
@@ -79,8 +80,8 @@ public fun mainLoaded() {
     )
 
     // EDITOR
-    val input = document.getElementById("input")!!.unsafeCast<HTMLTextAreaElement>()
-    val saveButton = document.getElementById("editor-save")!!
+    val input = document.element<HTMLTextAreaElement>("input")
+    val saveButton = document.element<HTMLInputElement>("editor-save")
     urlParams.get(PARAM_EDITOR_TOKEN)?.let { token ->
         isInEditorMode = true
 
@@ -149,17 +150,17 @@ public fun mainLoaded() {
     webSocket.onerror = { err -> console.log("Websocket error: $err") }
 
     // CORRECT HOME LINK
-    document.getElementById("home-link")!!.unsafeCast<HTMLAnchorElement>().href = homeUrl
+    document.element<HTMLAnchorElement>("home-link").href = homeUrl
 
     // OBFUSCATION
     window.setInterval({ obfuscateAll() }, 10)
 
     // OUTPUT BOXES
-    val outputPre = document.getElementById("output-pre")!!.unsafeCast<HTMLPreElement>()
-    val outputPane = document.getElementById("output-pane")!!.unsafeCast<HTMLDivElement>()
+    val outputPre = document.element<HTMLPreElement>("output-pre")
+    val outputPane = document.element<HTMLDivElement>("output-pane")
 
     // CARET
-    val chatBox = document.getElementById("chat-entry-box")!!.unsafeCast<HTMLDivElement>()
+    val chatBox = document.element<HTMLDivElement>("chat-entry-box")
     window.setInterval({ chatBox.innerHTML = if (chatBox.innerHTML == "_") " " else "_" }, 380)
 
     // BUTTONS
@@ -213,7 +214,7 @@ public fun mainLoaded() {
     }
 
     // SETTINGS
-    val settingBackground = document.getElementById("setting-background")!!.unsafeCast<HTMLSelectElement>()
+    val settingBackground = document.element<HTMLSelectElement>("setting-background")
     currentBackground = settingBackground.value
     settingBackground.addEventListener(
         "change",
@@ -356,7 +357,7 @@ public fun mainLoaded() {
             {
                 if (element.classList.contains("swatch-trigger")) {
                     // This should hopefully make it so any text selected before pressing the color dropdown should stay visually selected
-                    val inputBox = document.getElementById("input")!!.unsafeCast<HTMLTextAreaElement>()
+                    val inputBox = document.element<HTMLTextAreaElement>("input")
                     inputBox.focus()
                 }
                 element.parentElement!!.classList.toggle("is-active")
@@ -379,8 +380,8 @@ public fun main() {
 
 // TODO(rymiel): This could maybe go into the Mode.kt file like how Background.kt has its logic
 public fun setMode(newMode: Mode) {
-    val outputPre = document.getElementById("output-pre")!!.unsafeCast<HTMLPreElement>()
-    val outputPane = document.getElementById("output-pane")!!.unsafeCast<HTMLDivElement>()
+    val outputPre = document.element<HTMLPreElement>("output-pre")
+    val outputPane = document.element<HTMLDivElement>("output-pane")
 
     // remove active
     modeButtons.forEach { button -> button.classList.remove("is-active") }
@@ -417,7 +418,7 @@ private fun readPlaceholders(): Placeholders {
 
 private fun onWebsocketReady() {
     // SHARING
-    val inputBox = document.getElementById("input")!!.unsafeCast<HTMLTextAreaElement>()
+    val inputBox = document.element<HTMLTextAreaElement>("input")
 
     if (!isInEditorMode) {
         val shortCode = urlParams.get(PARAM_SHORT_LINK)
@@ -452,7 +453,7 @@ private fun onWebsocketReady() {
     parse()
 
     // INPUT
-    val input = document.getElementById("input")!!.unsafeCast<HTMLTextAreaElement>()
+    val input = document.element<HTMLTextAreaElement>("input")
     input.addEventListener("keyup", { parse() })
     input.addEventListener("change", { parse() })
     input.addEventListener(
@@ -497,8 +498,8 @@ private fun onWebsocketClose() {
     // We no longer have a working websocket connection, so any input changes would not go through. Display a little
     // warning to the user and disable the input box to bring more attention to it, since changing the input would
     // have no effect at this point anyway.
-    val warning = document.getElementById("connection-lost-warning")!!.unsafeCast<HTMLTextAreaElement>()
-    val inputBox = document.getElementById("input")!!.unsafeCast<HTMLTextAreaElement>()
+    val warning = document.element<HTMLTextAreaElement>("connection-lost-warning")
+    val inputBox = document.element<HTMLTextAreaElement>("input")
     warning.hidden = false
     inputBox.disabled = true
 }
@@ -590,7 +591,7 @@ private fun obfuscate(input: String): String {
 private fun parse() {
     // don't do anything if we're not initialised yet
     if (::webSocket.isInitialized) {
-        val input = document.getElementById("input")!!.unsafeCast<HTMLTextAreaElement>().value
+        val input = document.element<HTMLTextAreaElement>("input").value
         // Store current input for persistence
         window.localStorage[PARAM_INPUT] = input
 
