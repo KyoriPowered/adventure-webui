@@ -7,6 +7,9 @@ on:
       - "main"
   workflow_dispatch:
 
+env:
+  JAVA_VERSION: 11
+
 jobs:
   build:
     # Only run on PRs if the source branch is on someone else's repo
@@ -18,10 +21,15 @@ jobs:
     steps:
       - name: "checkout repository"
         uses: "actions/checkout@v3"
-      - name: "setup jdk 11"
+      - name: "validate gradle wrapper"
+        uses: "gradle/wrapper-validation-action@v1"
+      - name: "setup jdk ${{ env.JAVA_VERSION }}"
         uses: "actions/setup-java@v3"
         with:
-          distribution: "adopt"
-          java-version: "11"
+          distribution: "temurin"
+          java-version: "${{ env.JAVA_VERSION }}"
       - name: "build"
-        run: "./gradlew build"
+        uses: "gradle/gradle-build-action@v2"
+        with:
+          cache-read-only: ${{ github.event_name == 'pull_request' }} # don't write to the cache from PRs
+          arguments: "build"

@@ -10,19 +10,26 @@ concurrency:
   group: ${{ github.ref }}-build
   cancel-in-progress: true
 
+env:
+  JAVA_VERSION: 11
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: "checkout repository"
         uses: "actions/checkout@v3"
-      - name: "setup jdk 11"
+      - name: "setup jdk ${{ env.JAVA_VERSION }}"
         uses: "actions/setup-java@v3"
         with:
-          distribution: "adopt"
-          java-version: "11"
+          distribution: "temurin"
+          java-version: "${{ env.JAVA_VERSION }}"
+      - name: "validate gradle wrapper"
+        uses: "gradle/wrapper-validation-action@v1"
       - name: "build for deployment"
-        run: "./gradlew distTar"
+        uses: "gradle/gradle-build-action@v2"
+        with:
+          arguments: "distTar"
       - name: "setup ssh"
         uses: webfactory/ssh-agent@v0.7.0
         with:
