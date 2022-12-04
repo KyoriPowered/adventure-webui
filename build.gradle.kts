@@ -7,11 +7,7 @@ plugins {
     alias(libs.plugins.indra.git)
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.kotlinx.serialization)
-    alias(libs.plugins.ktlint)
-}
-
-configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
-    version.set("0.43.0")
+    alias(libs.plugins.spotless)
 }
 
 repositories {
@@ -21,6 +17,21 @@ repositories {
         mavenContent {
             snapshotsOnly()
         }
+    }
+}
+
+spotless {
+    fun com.diffplug.gradle.spotless.FormatExtension.setup() {
+        endWithNewline()
+        trimTrailingWhitespace()
+    }
+    kotlin {
+        setup()
+        ktlint(libs.versions.ktlint.get())
+    }
+    kotlinGradle {
+        setup()
+        ktlint(libs.versions.ktlint.get())
     }
 }
 
