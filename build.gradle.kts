@@ -125,5 +125,14 @@ tasks.named<AbstractCopyTask>("jvmProcessResources") {
     }
 }
 
+// Implicit task dependency issue?
+tasks.distTar {
+    dependsOn("allMetadataJar")
+}
+
+tasks.distZip {
+    dependsOn("allMetadataJar")
+}
+
 /** Checks if the development property is set. */
 fun isDevelopment(): Boolean = project.hasProperty("isDevelopment")
