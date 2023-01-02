@@ -120,7 +120,7 @@ tasks.named<AbstractCopyTask>("jvmProcessResources") {
         expand(
             "jsScriptFile" to "${rootProject.name}.js",
             "miniMessageVersion" to libs.adventure.minimessage.get().versionConstraint.requiredVersion,
-            "commitHash" to rootProject.extensions.findByType<IndraGitExtension>()!!.commit()?.name.orEmpty()
+            "commitHash" to rootProject.extensions.findByType<IndraGitExtension>()!!.commit()?.name.orEmpty(),
         )
     }
 }
