@@ -42,7 +42,7 @@ kotlin {
         withJava()
     }
 
-    js {
+    js(IR) {
         browser {
             binaries.executable()
         }
