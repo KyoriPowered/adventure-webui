@@ -9,12 +9,13 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.services.adventure-webui.loadbalancer.server.port=8080"
-      - "traefik.http.routers.adventure-webui.rule=Host(`webui.adventure.kyori.net`)"
+      - "traefik.http.routers.adventure-webui.rule=Host(`webui.adventure.kyori.net`) || Host(`webui.advntr.dev`)"
       - "traefik.http.routers.adventure-webui.entrypoints=web-secure"
       - "traefik.http.routers.adventure-webui.tls=true"
       - "traefik.http.routers.adventure-webui.tls.options=default"
       - "traefik.http.routers.adventure-webui.tls.certresolver=httpOnly"
       - "traefik.http.routers.adventure-webui.tls.domains[0].main=webui.adventure.kyori.net"
+      - "traefik.http.routers.adventure-webui.tls.domains[1].main=webui.advntr.dev"
     networks:
       - web
 
