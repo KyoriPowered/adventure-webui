@@ -4,7 +4,7 @@
 
 A web interface for [MiniMessage](https://github.com/KyoriPowered/adventure-text-minimessage).
 
-You can access it here: https://webui.adventure.kyori.net/
+You can access it here: https://webui.advntr.dev/
 
 ---
 
