@@ -1,5 +1,8 @@
 {
   "extends": [
     "local>KyoriPowered/.github:renovate-config"
+  ],
+  "ignoreDeps": [
+    "org.jetbrains.kotlinx:kotlinx-html"
   ]
 }
