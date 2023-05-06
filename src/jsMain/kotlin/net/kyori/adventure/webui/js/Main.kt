@@ -60,11 +60,13 @@ public const val PARAM_MODE: String = "mode"
 public const val PARAM_BACKGROUND: String = "bg"
 public const val PARAM_STRING_PLACEHOLDERS: String = "st"
 public const val PARAM_SHORT_LINK: String = "x"
+public const val PARAM_DOWNSAMPLE: String = "ds"
 
 private var isInEditorMode: Boolean = false
 private lateinit var editorInput: EditorInput
 
 public lateinit var currentMode: Mode
+public lateinit var currentDownsampler: String
 private lateinit var webSocket: WebSocket
 
 public fun mainLoaded() {
@@ -222,6 +224,16 @@ public fun mainLoaded() {
             currentBackground = settingBackground.value
         }
     )
+    val settingDownsample = document.element<HTMLSelectElement>("setting-downsample")
+    currentDownsampler = settingDownsample.value
+    settingDownsample.addEventListener(
+        "change",
+        {
+            console.log(settingDownsample)
+            currentDownsampler = settingDownsample.value
+            parse()
+        }
+    )
 
     // SHARING
     document.getElementById("full-link-share-button")!!.addEventListener(
@@ -234,6 +246,7 @@ public fun mainLoaded() {
             if (currentMode != Mode.SERVER_LIST) {
                 link += "&$PARAM_BACKGROUND=$currentBackground"
             }
+            link += "&$PARAM_DOWNSAMPLE=$currentDownsampler"
             if (!placeholders.stringPlaceholders.isNullOrEmpty()) {
                 link += "&$PARAM_STRING_PLACEHOLDERS="
                 link +=
@@ -254,7 +267,8 @@ public fun mainLoaded() {
                     miniMessage = input.value,
                     placeholders = readPlaceholders(),
                     background = if (currentMode != Mode.SERVER_LIST) currentBackground else null,
-                    mode = currentMode.paramName
+                    mode = currentMode.paramName,
+                    downsampler = currentDownsampler
                 )
             )
                 .then { code -> "$homeUrl?$PARAM_SHORT_LINK=$code" }
@@ -297,7 +311,7 @@ public fun mainLoaded() {
         {
             window.postPacket(
                 "$URL_API$URL_MINI_TO_JSON",
-                Combined(miniMessage = input.value, placeholders = readPlaceholders())
+                Combined(miniMessage = input.value, placeholders = readPlaceholders(), downsampler = currentDownsampler)
             )
                 .then { response -> response.text() }
                 .then { text -> window.navigator.clipboard.writeText(text) }
@@ -443,6 +457,10 @@ private fun onWebsocketReady() {
             }
             urlParams.getFromParamsOrLocalStorage(PARAM_MODE)?.also { mode ->
                 setMode(Mode.fromString(mode))
+            }
+            // TODO(rymiel): This does not currently set the dropdown to the correct value
+            urlParams.getFromParamsOrLocalStorage(PARAM_DOWNSAMPLE)?.also { downsampler ->
+                currentDownsampler = downsampler
             }
             webSocket.send(
                 Placeholders(stringPlaceholders = stringPlaceholders)
@@ -594,6 +612,7 @@ private fun parse() {
         val input = document.element<HTMLTextAreaElement>("input").value
         // Store current input for persistence
         window.localStorage[PARAM_INPUT] = input
+        window.localStorage[PARAM_DOWNSAMPLE] = currentDownsampler
 
         if (input.isEmpty() && currentMode != Mode.SERVER_LIST) {
             // we don't want to parse if input is empty (server list mode is an exception!)
@@ -619,7 +638,7 @@ private fun parse() {
                     if (line == "") "\u200B" else line
                 }
 
-            webSocket.send(Call(combinedLines, isolateNewlines = currentMode == Mode.LORE))
+            webSocket.send(Call(combinedLines, isolateNewlines = currentMode == Mode.LORE, downsampler = currentDownsampler))
         }
     }
 }

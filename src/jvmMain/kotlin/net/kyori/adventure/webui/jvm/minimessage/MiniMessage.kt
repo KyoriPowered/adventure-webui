@@ -108,6 +108,7 @@ public fun Application.miniMessage() {
             webSocket(URL_MINI_TO_HTML) {
                 var tagResolver = TagResolver.empty()
                 var miniMessage: String? = null
+                var downsampler: Downsampler = Downsampler.NONE
                 var isolateNewlines = false
 
                 for (frame in incoming) {
@@ -116,6 +117,7 @@ public fun Application.miniMessage() {
                             is Call -> {
                                 miniMessage = packet.miniMessage
                                 isolateNewlines = packet.isolateNewlines
+                                downsampler = Downsampler.of(packet.downsampler)
                             }
                             is Placeholders -> tagResolver = packet.tagResolver
                             null -> continue
@@ -131,16 +133,17 @@ public fun Application.miniMessage() {
                                         .split("\n")
                                         .map { line -> HookManager.render(line) }
                                         .map { line ->
-                                            MiniMessage.miniMessage()
-                                                .deserialize(line, tagResolver)
+                                            MiniMessage.miniMessage().deserialize(line, tagResolver)
                                         }
+                                        .map { component -> downsampler.apply(component) }
                                         .map { component -> HookManager.render(component) }
                                         .forEach { component ->
                                             result.appendComponent(component)
                                             result.append("\n")
                                         }
                                 } else {
-                                    val component = MiniMessage.miniMessage().deserialize(HookManager.render(miniMessage), tagResolver)
+                                    var component = MiniMessage.miniMessage().deserialize(HookManager.render(miniMessage), tagResolver)
+                                    component = downsampler.apply(component)
                                     result.appendComponent(HookManager.render(component))
                                 }
 
@@ -161,13 +164,10 @@ public fun Application.miniMessage() {
             post(URL_MINI_TO_JSON) {
                 val structure = Serializers.json.tryDecodeFromString<Combined>(call.receiveText())
                 val input = structure?.miniMessage ?: return@post
-                call.respondText(
-                    GsonComponentSerializer.gson()
-                        .serialize(
-                            MiniMessage.miniMessage()
-                                .deserialize(input, structure.placeholders.tagResolver)
-                        )
-                )
+
+                var component = MiniMessage.miniMessage().deserialize(input, structure.placeholders.tagResolver)
+                component = Downsampler.of(structure.downsampler).apply(component)
+                call.respondText(GsonComponentSerializer.gson().serialize(component))
             }
 
             post(URL_MINI_TO_TREE) {

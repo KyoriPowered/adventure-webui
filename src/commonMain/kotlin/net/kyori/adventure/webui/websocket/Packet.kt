@@ -11,7 +11,8 @@ public sealed interface Packet
 @SerialName("call")
 public data class Call(
     public val miniMessage: String? = null,
-    public val isolateNewlines: Boolean = false
+    public val isolateNewlines: Boolean = false,
+    public val downsampler: String? = null,
 ) : Packet
 
 @Serializable
@@ -26,5 +27,6 @@ public data class Combined(
     public val miniMessage: String? = null,
     public val placeholders: Placeholders? = null,
     public val background: String? = null,
-    public val mode: String? = null
+    public val mode: String? = null,
+    public val downsampler: String? = null,
 )

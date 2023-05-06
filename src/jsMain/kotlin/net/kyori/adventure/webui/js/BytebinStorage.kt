@@ -100,6 +100,9 @@ public fun restoreFromShortLink(shortCode: String, inputBox: HTMLTextAreaElement
         structure.getFromCombinedOrLocalStorage(PARAM_MODE, Combined::mode)?.also { mode ->
             setMode(Mode.fromString(mode))
         }
+        structure.getFromCombinedOrLocalStorage(PARAM_DOWNSAMPLE, Combined::downsampler)?.also { downsampler ->
+            currentDownsampler = downsampler
+        }
         webSocket.send(
             Placeholders(stringPlaceholders = stringPlaceholders)
         )
