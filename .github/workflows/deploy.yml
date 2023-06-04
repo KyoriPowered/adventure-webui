@@ -26,10 +26,10 @@ jobs:
           java-version: "${{ env.JAVA_VERSION }}"
       - name: "validate gradle wrapper"
         uses: "gradle/wrapper-validation-action@v1"
-      - name: "build for deployment"
+      - name: "build for production"
         uses: "gradle/gradle-build-action@v2"
         with:
-          arguments: "distTar"
+          arguments: "build"
       - name: "setup ssh"
         uses: webfactory/ssh-agent@v0.8.0
         with:
@@ -40,9 +40,11 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: "deploy docker"
+      - name: "publish / docker image"
+        run: ./gradlew jib
+      - name: "publish / deploy to production"
+        env:
+          DOCKER_HOST: "${{ secrets.DOCKER_HOST }}"
         run: |
           echo ${{ secrets.DOCKER_HOST_SSH_SIG }} > ~/.ssh/known_hosts
-          docker-compose build
-          docker-compose push
-          DOCKER_HOST="${{ secrets.DOCKER_HOST }}" docker stack deploy --with-registry-auth --compose-file=docker-compose.yml adventure-webui
+          docker stack deploy --with-registry-auth --compose-file=docker-compose.yml adventure-webui

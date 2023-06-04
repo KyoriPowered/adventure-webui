@@ -3,9 +3,6 @@ version: '3.7'
 services:
   webui:
     image: ghcr.io/kyoripowered/adventure-webui/webui:latest
-    build:
-      context: .
-      dockerfile: Dockerfile
     labels:
       - "traefik.enable=true"
       - "traefik.http.services.adventure-webui.loadbalancer.server.port=8080"

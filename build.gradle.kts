@@ -5,9 +5,21 @@ import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
 plugins {
     application
     alias(libs.plugins.indra.git)
+    alias(libs.plugins.jib)
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.kotlinx.serialization)
     alias(libs.plugins.spotless)
+}
+
+val javaTarget = 11
+java {
+    val targetVersion = JavaVersion.toVersion(javaTarget)
+    sourceCompatibility = targetVersion
+    targetCompatibility = targetVersion
+    if (JavaVersion.current() < targetVersion) {
+        toolchain { languageVersion.set(JavaLanguageVersion.of(javaTarget)) }
+        kotlin.jvmToolchain(javaTarget)
+    }
 }
 
 repositories {
@@ -40,6 +52,10 @@ kotlin {
 
     jvm {
         withJava()
+        compilations.configureEach {
+            kotlinOptions.jvmTarget = "$javaTarget"
+            kotlinOptions.freeCompilerArgs += "-Xjdk-release=$javaTarget"
+        }
     }
 
     js(IR) {
@@ -91,6 +107,39 @@ distributions {
     }
 }
 
+jib {
+    to.image = "ghcr.io/kyoripowered/adventure-webui/webui"
+    from {
+        image = "eclipse-temurin:$javaTarget-jre"
+        platforms {
+            // We can only build multi-arch images when pushing to a registry, not when building locally
+            val requestedTasks = gradle.startParameter.taskNames
+            if ("jibBuildTar" in requestedTasks || "jibDockerBuild" in requestedTasks) {
+                platform {
+                    // todo: better logic
+                    architecture = when (System.getProperty("os.arch")) {
+                        "aarch64" -> "arm64"
+                        else -> "amd64"
+                    }
+                    os = "linux"
+                }
+            } else {
+                platform {
+                    architecture = "amd64"
+                    os = "linux"
+                }
+                platform {
+                    architecture = "arm64"
+                    os = "linux"
+                }
+            }
+        }
+    }
+    container {
+        mainClass = application.mainClass.get()
+    }
+}
+
 tasks {
     val webpackTask = if (isDevelopment()) {
         "jsBrowserDevelopmentWebpack"
@@ -101,7 +150,6 @@ tasks {
     }
 
     named<Jar>("jvmJar") {
-        from(webpackTask.map { File(it.destinationDirectory, it.outputFileName) })
         rootProject.indraGit.applyVcsInformationToManifest(manifest)
     }
 
@@ -116,6 +164,7 @@ tasks {
     named<AbstractCopyTask>("jvmProcessResources") {
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
 
+        from(webpackTask.map { File(it.destinationDirectory, it.outputFileName) })
         filesMatching("application.conf") {
             expand(
                 "jsScriptFile" to "${rootProject.name}.js",
