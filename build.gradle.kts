@@ -137,6 +137,11 @@ jib {
     }
     container {
         setMainClass(application.mainClass)
+        labels.put(
+            "org.opencontainers.image.description",
+            """A Web UI for working with Adventure components. 
+            Built with Adventure ${libs.versions.adventure.get()}, from webui commit ${indraGit.commit()?.name ?: "<unknown>"}""",
+        )
     }
 }
 
