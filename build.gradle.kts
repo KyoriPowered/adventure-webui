@@ -136,7 +136,7 @@ jib {
         }
     }
     container {
-        mainClass = application.mainClass.get()
+        setMainClass(application.mainClass)
     }
 }
 
