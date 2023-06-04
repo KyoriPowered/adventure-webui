@@ -44,25 +44,25 @@ kotlin {
 
     js(IR) {
         browser {
-            binaries.executable()
         }
+        binaries.executable()
     }
 
     sourceSets {
-        all {
+        configureEach {
             languageSettings {
                 optIn("kotlin.RequiresOptIn")
             }
         }
 
-        val commonMain by getting {
+        named("commonMain") {
             dependencies {
                 implementation(libs.kotlinx.serialization.json)
                 implementation(libs.kotlinx.html)
             }
         }
 
-        val jvmMain by getting {
+        named("jvmMain") {
             dependencies {
                 implementation(libs.bundles.ktor.server)
                 implementation(libs.bundles.ktor.client)
@@ -91,47 +91,48 @@ distributions {
     }
 }
 
-tasks.named<Jar>("jvmJar") {
+tasks {
     val webpackTask = if (isDevelopment()) {
         "jsBrowserDevelopmentWebpack"
     } else {
         "jsBrowserProductionWebpack"
     }.let { taskName ->
-        tasks.getByName<KotlinWebpack>(taskName)
+        named<KotlinWebpack>(taskName)
     }
 
-    dependsOn("check", webpackTask)
-    from(File(webpackTask.destinationDirectory, webpackTask.outputFileName))
-    rootProject.indraGit.applyVcsInformationToManifest(manifest)
-}
-
-tasks.named<JavaExec>("run") {
-    if (isDevelopment()) {
-        jvmArgs("-Dio.ktor.development=true")
+    named<Jar>("jvmJar") {
+        from(webpackTask.map { File(it.destinationDirectory, it.outputFileName) })
+        rootProject.indraGit.applyVcsInformationToManifest(manifest)
     }
 
-    classpath(tasks.getByName<Jar>("jvmJar"))
-}
+    named<JavaExec>("run") {
+        if (isDevelopment()) {
+            jvmArgs("-Dio.ktor.development=true")
+        }
 
-tasks.named<AbstractCopyTask>("jvmProcessResources") {
-    duplicatesStrategy = DuplicatesStrategy.INCLUDE
-
-    filesMatching("application.conf") {
-        expand(
-            "jsScriptFile" to "${rootProject.name}.js",
-            "miniMessageVersion" to libs.adventure.minimessage.get().versionConstraint.requiredVersion,
-            "commitHash" to rootProject.extensions.findByType<IndraGitExtension>()!!.commit()?.name.orEmpty(),
-        )
+        classpath(named<Jar>("jvmJar"))
     }
-}
 
-// Implicit task dependency issue?
-tasks.distTar {
-    dependsOn("allMetadataJar")
-}
+    named<AbstractCopyTask>("jvmProcessResources") {
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
 
-tasks.distZip {
-    dependsOn("allMetadataJar")
+        filesMatching("application.conf") {
+            expand(
+                "jsScriptFile" to "${rootProject.name}.js",
+                "miniMessageVersion" to libs.adventure.minimessage.get().versionConstraint.requiredVersion,
+                "commitHash" to rootProject.extensions.getByType<IndraGitExtension>().commit()?.name.orEmpty(),
+            )
+        }
+    }
+
+    // Implicit task dependency issue?
+    distTar {
+        dependsOn("allMetadataJar", "jsJar")
+    }
+
+    distZip {
+        dependsOn("allMetadataJar", "jsJar")
+    }
 }
 
 /** Checks if the development property is set. */
