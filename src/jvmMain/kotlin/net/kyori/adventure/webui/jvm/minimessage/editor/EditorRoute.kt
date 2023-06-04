@@ -21,9 +21,9 @@ import java.util.UUID
 import kotlin.time.Duration.Companion.minutes
 
 private val inputSessions: Cache<String, EditorInput> =
-    Cache.Builder().expireAfterWrite(5.minutes).build()
+    Cache.Builder<String, EditorInput>().expireAfterWrite(5.minutes).build()
 private val outputSessions: Cache<String, String> =
-    Cache.Builder().expireAfterWrite(5.minutes).build()
+    Cache.Builder<String, String>().expireAfterWrite(5.minutes).build()
 
 /** Installs routes for the editor system */
 public fun Route.installEditor() {
