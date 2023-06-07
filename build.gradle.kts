@@ -11,7 +11,7 @@ plugins {
     alias(libs.plugins.spotless)
 }
 
-val javaTarget = 11
+val javaTarget = 17
 java {
     val targetVersion = JavaVersion.toVersion(javaTarget)
     sourceCompatibility = targetVersion
