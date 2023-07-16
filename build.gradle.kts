@@ -169,7 +169,7 @@ tasks {
     named<AbstractCopyTask>("jvmProcessResources") {
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
 
-        from(webpackTask.map { File(it.destinationDirectory, it.outputFileName) })
+        from(webpackTask.flatMap { it.mainOutputFile })
         filesMatching("application.conf") {
             expand(
                 "jsScriptFile" to "${rootProject.name}.js",
