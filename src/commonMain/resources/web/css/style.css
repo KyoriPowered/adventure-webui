@@ -268,6 +268,9 @@ input.placeholder-key:invalid {
 #placeholder-tip {
     display: none;
 }
+[data-click-event-action] {
+    cursor: pointer;
+}
 @media (prefers-color-scheme: light) {
     body {
         background-color: #E6E6E6;
