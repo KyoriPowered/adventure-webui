@@ -40,6 +40,7 @@
 #output-pane {
     background-image: url("../img/grass.jpg");
     background-size: cover;
+    background-position: bottom left;
 }
 #output-pane #server-list-icon,
 #output-pane #server-list-header {
