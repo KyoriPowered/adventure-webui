@@ -99,7 +99,7 @@ application {
 distributions {
     main {
         contents {
-            from("$buildDir/libs") {
+            from("${layout.buildDirectory.get().asFile}/libs") {
                 rename("${rootProject.name}-jvm", rootProject.name)
                 into("lib")
             }
