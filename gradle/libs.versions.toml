@@ -14,6 +14,7 @@ spotless = { id = "com.diffplug.spotless", version = "6.25.0" }
 [libraries]
 adventure-minimessage = { group = "net.kyori", name = "adventure-text-minimessage", version.ref = "adventure" }
 adventure-text-serializer-gson = { group = "net.kyori", name = "adventure-text-serializer-gson", version.ref = "adventure" }
+adventure-text-serializer-legacy = { group = "net.kyori", name = "adventure-text-serializer-legacy", version.ref = "adventure" }
 cache4k = { group = "io.github.reactivecircus.cache4k", name = "cache4k", version = "0.13.0" }
 kotlinx-html = { group = "org.jetbrains.kotlinx", name = "kotlinx-html", version = "0.8.0" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version = "1.7.3" }
@@ -24,6 +25,7 @@ ktor-client-okhttp = { group = "io.ktor", name = "ktor-client-okhttp", version.r
 ktor-server-websockets = { group = "io.ktor", name = "ktor-server-websockets", version.ref = "ktor" }
 ktor-server-caching-headers = { group = "io.ktor", name = "ktor-server-caching-headers", version.ref = "ktor" }
 ktor-server-compression = { group = "io.ktor", name = "ktor-server-compression", version.ref = "ktor" }
+ktor-network = { group = "io.ktor", name = "ktor-network", version.ref = "ktor" }
 logback-classic = { group = "ch.qos.logback", name = "logback-classic", version = "1.5.8" }
 
 zKtlint = { group = "com.pinterest", name = "ktlint", version.ref = "ktlint"}
