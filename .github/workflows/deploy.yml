@@ -41,7 +41,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: "publish / docker image"
-        run: ./gradlew jib
+        run: ./gradlew jib -Djib.console=plain
       - name: "publish / deploy to production"
         env:
           DOCKER_HOST: "${{ secrets.DOCKER_HOST }}"
