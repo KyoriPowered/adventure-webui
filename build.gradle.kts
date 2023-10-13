@@ -82,9 +82,11 @@ kotlin {
             dependencies {
                 implementation(libs.bundles.ktor.server)
                 implementation(libs.bundles.ktor.client)
+                implementation(libs.ktor.network)
 
                 implementation(libs.adventure.minimessage)
                 implementation(libs.adventure.text.serializer.gson)
+                implementation(libs.adventure.text.serializer.legacy)
                 implementation(libs.cache4k)
                 implementation(libs.logback.classic)
             }
