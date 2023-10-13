@@ -1,21 +1,21 @@
 package net.kyori.adventure.webui.jvm
 
-import io.ktor.http.*
-import io.ktor.http.content.*
-import io.ktor.network.selector.*
-import io.ktor.network.sockets.*
-import io.ktor.server.application.*
-import io.ktor.server.plugins.cachingheaders.*
-import io.ktor.server.plugins.compression.*
-import io.ktor.server.routing.*
-import io.ktor.server.websocket.*
-import io.ktor.utils.io.*
-import io.ktor.websocket.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import net.kyori.adventure.webui.jvm.minimessage.SocketTest
-import okhttp3.internal.and
+import io.ktor.http.CacheControl
+import io.ktor.http.ContentType
+import io.ktor.http.content.CachingOptions
+import io.ktor.server.application.Application
+import io.ktor.server.application.install
+import io.ktor.server.application.log
+import io.ktor.server.plugins.cachingheaders.CachingHeaders
+import io.ktor.server.plugins.compression.Compression
+import io.ktor.server.plugins.compression.deflate
+import io.ktor.server.plugins.compression.gzip
+import io.ktor.server.routing.routing
+import io.ktor.server.websocket.WebSockets
+import io.ktor.server.websocket.pingPeriod
+import io.ktor.server.websocket.timeout
+import io.ktor.websocket.WebSocketDeflateExtension
+import net.kyori.adventure.webui.jvm.minimessage.preview.ServerStatusPreviewManager
 import java.time.Duration
 
 public fun Application.main() {
@@ -50,7 +50,8 @@ public fun Application.main() {
         }
     }
 
-    SocketTest().main()
+    // Initialise the server status preview manager.
+    ServerStatusPreviewManager(this)
 }
 
 
