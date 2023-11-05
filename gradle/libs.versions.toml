@@ -1,6 +1,6 @@
 [versions]
 adventure = "4.14.0"
-kotlin = "1.9.10"
+kotlin = "1.9.20"
 ktlint = "0.50.0"
 ktor = "2.3.4"
 
