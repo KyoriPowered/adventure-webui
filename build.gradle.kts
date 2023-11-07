@@ -117,10 +117,11 @@ jib {
             if ("jibBuildTar" in requestedTasks || "jibDockerBuild" in requestedTasks) {
                 platform {
                     // todo: better logic
-                    architecture = when (System.getProperty("os.arch")) {
-                        "aarch64" -> "arm64"
-                        else -> "amd64"
-                    }
+                    architecture =
+                        when (System.getProperty("os.arch")) {
+                            "aarch64" -> "arm64"
+                            else -> "amd64"
+                        }
                     os = "linux"
                 }
             } else {
@@ -146,13 +147,14 @@ jib {
 }
 
 tasks {
-    val webpackTask = if (isDevelopment()) {
-        "jsBrowserDevelopmentWebpack"
-    } else {
-        "jsBrowserProductionWebpack"
-    }.let { taskName ->
-        named<KotlinWebpack>(taskName)
-    }
+    val webpackTask =
+        if (isDevelopment()) {
+            "jsBrowserDevelopmentWebpack"
+        } else {
+            "jsBrowserProductionWebpack"
+        }.let { taskName ->
+            named<KotlinWebpack>(taskName)
+        }
 
     named<Jar>("jvmJar") {
         rootProject.indraGit.applyVcsInformationToManifest(manifest)
