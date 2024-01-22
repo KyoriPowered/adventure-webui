@@ -3,12 +3,7 @@ name: "build"
 on:
   pull_request:
   push:
-    branches-ignore:
-      - "main"
-  workflow_dispatch:
-
-env:
-  JAVA_VERSION: 17
+    branches-ignore: [ "main" ]
 
 jobs:
   build:
@@ -19,17 +14,12 @@ jobs:
         os: ["ubuntu-latest", "windows-latest"]
     runs-on: "${{ matrix.os }}"
     steps:
-      - name: "checkout repository"
-        uses: "actions/checkout@v4"
-      - name: "validate gradle wrapper"
-        uses: "gradle/wrapper-validation-action@v1"
-      - name: "setup jdk ${{ env.JAVA_VERSION }}"
-        uses: "actions/setup-java@v4"
+      - name: "setup env"
+        id: "setup"
+        uses: "KyoriPowered/.github/.github/actions/setup-java-env@trunk"
         with:
-          distribution: "temurin"
-          java-version: "${{ env.JAVA_VERSION }}"
+          runtime_version: 17
+          publishing_branch_regex: 'main'
+          gradle_warning_mode: "all"
       - name: "build"
-        uses: "gradle/gradle-build-action@v2"
-        with:
-          cache-read-only: ${{ github.event_name == 'pull_request' }} # don't write to the cache from PRs
-          arguments: "build"
+        run: "./gradlew build"
