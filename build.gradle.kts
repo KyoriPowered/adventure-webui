@@ -110,7 +110,7 @@ distributions {
 jib {
     to.image = "ghcr.io/kyoripowered/adventure-webui/webui"
     from {
-        image = "eclipse-temurin:$javaTarget-jre"
+        image = "azul/zulu-openjdk-alpine:$javaTarget-jre"
         platforms {
             // We can only build multi-arch images when pushing to a registry, not when building locally
             val requestedTasks = gradle.startParameter.taskNames
