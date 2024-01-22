@@ -1,7 +1,6 @@
 import net.kyori.indra.git.IndraGitExtension
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
 
-@Suppress("DSL_SCOPE_VIOLATION") // https://youtrack.jetbrains.com/issue/KTIJ-19369
 plugins {
     application
     alias(libs.plugins.indra.git)
@@ -11,7 +10,7 @@ plugins {
     alias(libs.plugins.spotless)
 }
 
-val javaTarget = 17
+val javaTarget = 21
 java {
     val targetVersion = JavaVersion.toVersion(javaTarget)
     sourceCompatibility = targetVersion
