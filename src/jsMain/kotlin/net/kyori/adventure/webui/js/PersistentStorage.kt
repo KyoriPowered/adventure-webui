@@ -9,9 +9,8 @@ import org.w3c.dom.url.URLSearchParams
 public fun URLSearchParams.getFromParamsOrLocalStorage(key: String): String? {
     val shared = this.get(key)
     if (shared != null) {
-        val text = decodeURIComponent(shared)
-        println("SHARED $key: $text")
-        return text
+        println("SHARED $key: $shared")
+        return shared
     } else {
         window.localStorage[key]?.also { stored ->
             println("STORED $key: $stored")
