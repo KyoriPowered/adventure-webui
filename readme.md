@@ -23,7 +23,7 @@ This will create a server running at `http://localhost:8080`.
 
 For production usage, simply remove the development flag from the run task.
 Alternatively, the `distribution` tasks (for example, `distTar`) can be used to create or install archives that contain scripts to run the server.
-A Docker image is published at `ghrc.io/KyoriPowered/adventure-webui/webui`, or for local builds using `./gradlew jibBuildTar` (or `./gradlew jibDockerBuild` to push it to your local docker instance)
+A Docker image is published at `ghcr.io/kyoripowered/adventure-webui/webui:latest`, or for local builds using `./gradlew jibBuildTar` (or `./gradlew jibDockerBuild` to push it to your local docker instance)
 
 ### Contributing
 
