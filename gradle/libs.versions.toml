@@ -14,7 +14,7 @@ spotless = { id = "com.diffplug.spotless", version = "6.25.0" }
 [libraries]
 adventure-minimessage = { group = "net.kyori", name = "adventure-text-minimessage", version.ref = "adventure" }
 adventure-text-serializer-gson = { group = "net.kyori", name = "adventure-text-serializer-gson", version.ref = "adventure" }
-cache4k = { group = "io.github.reactivecircus.cache4k", name = "cache4k", version = "0.12.0" }
+cache4k = { group = "io.github.reactivecircus.cache4k", name = "cache4k", version = "0.13.0" }
 kotlinx-html = { group = "org.jetbrains.kotlinx", name = "kotlinx-html", version = "0.8.0" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version = "1.6.2" }
 ktor-server-core = { group = "io.ktor", name = "ktor-server-core", version.ref = "ktor" }
