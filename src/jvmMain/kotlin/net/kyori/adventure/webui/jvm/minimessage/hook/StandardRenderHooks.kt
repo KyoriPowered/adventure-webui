@@ -57,9 +57,9 @@ public val TEXT_COLOR_RENDER_HOOK: ComponentRenderHook = { component ->
     component.color()?.let { color ->
         addStyle("color: ${color.asHexString()}")
 
-        val r = color.red() / 4
-        val g = color.green() / 4
-        val b = color.blue() / 4
+        val r = color.red() / 4.0
+        val g = color.green() / 4.0
+        val b = color.blue() / 4.0
         addStyle("text-shadow: 3px 3px rgb($r, $g, $b)")
     }
 
