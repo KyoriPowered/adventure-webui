@@ -1,4 +1,7 @@
+@file:OptIn(ExperimentalKotlinGradlePluginApi::class)
+
 import net.kyori.indra.git.IndraGitExtension
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
 
 plugins {
@@ -51,14 +54,17 @@ kotlin {
 
     jvm {
         withJava()
-        compilations.configureEach {
-            kotlinOptions.jvmTarget = "$javaTarget"
-            kotlinOptions.freeCompilerArgs += "-Xjdk-release=$javaTarget"
+        compilerOptions {
+            jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.fromTarget("$javaTarget")
+            freeCompilerArgs.add("-Xjdk-release=$javaTarget")
         }
     }
 
-    js(IR) {
+    js {
         browser {
+        }
+        compilerOptions {
+            target = "es2015"
         }
         binaries.executable()
     }
