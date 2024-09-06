@@ -170,7 +170,7 @@ tasks {
     // the kotlin plugin creates this task super late for some reason?
     configureEach {
         if (name == "jvmRun" && isDevelopment()) {
-            (this as JavaExec).jvmArgs("-Dio.ktor.development=true")
+            (this as JavaExec).jvmArgs("-Dio.ktor.development=true", "-DwebuiLogLevel=trace")
         }
     }
 }
