@@ -5,7 +5,6 @@ import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
 
 plugins {
-    application
     alias(libs.plugins.indra.git)
     alias(libs.plugins.jib)
     alias(libs.plugins.kotlin.multiplatform)
@@ -14,6 +13,8 @@ plugins {
 }
 
 val javaTarget = 21
+val entryPoint = "io.ktor.server.netty.EngineMain"
+
 java {
     val targetVersion = JavaVersion.toVersion(javaTarget)
     sourceCompatibility = targetVersion
@@ -54,6 +55,9 @@ kotlin {
 
     jvm {
         withJava()
+        mainRun {
+            mainClass = entryPoint
+        }
         compilerOptions {
             jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.fromTarget("$javaTarget")
             freeCompilerArgs.add("-Xjdk-release=$javaTarget")
@@ -97,21 +101,6 @@ kotlin {
     }
 }
 
-application {
-    mainClass.set("io.ktor.server.netty.EngineMain")
-}
-
-distributions {
-    main {
-        contents {
-            from("${layout.buildDirectory.get().asFile}/libs") {
-                rename("${rootProject.name}-jvm", rootProject.name)
-                into("lib")
-            }
-        }
-    }
-}
-
 jib {
     to.image = "ghcr.io/kyoripowered/adventure-webui/webui"
     from {
@@ -142,7 +131,7 @@ jib {
         }
     }
     container {
-        setMainClass(application.mainClass)
+        setMainClass(entryPoint)
         labels.put(
             "org.opencontainers.image.description",
             """A Web UI for working with Adventure components. 
@@ -165,14 +154,6 @@ tasks {
         rootProject.indraGit.applyVcsInformationToManifest(manifest)
     }
 
-    named<JavaExec>("run") {
-        if (isDevelopment()) {
-            jvmArgs("-Dio.ktor.development=true")
-        }
-
-        classpath(named<Jar>("jvmJar"))
-    }
-
     named<AbstractCopyTask>("jvmProcessResources") {
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
 
@@ -186,13 +167,11 @@ tasks {
         }
     }
 
-    // Implicit task dependency issue?
-    distTar {
-        dependsOn("allMetadataJar", "jsJar")
-    }
-
-    distZip {
-        dependsOn("allMetadataJar", "jsJar")
+    // the kotlin plugin creates this task super late for some reason?
+    configureEach {
+        if (name == "jvmRun" && isDevelopment()) {
+            (this as JavaExec).jvmArgs("-Dio.ktor.development=true")
+        }
     }
 }
 
