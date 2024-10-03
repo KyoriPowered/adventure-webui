@@ -42,10 +42,8 @@ public const val PARAM_EDITOR_TOKEN: String = "token"
 /** Path for getting a short link for a MiniMessage input. */
 public const val URL_MINI_SHORTEN: String = "/mini-shorten"
 
-/** Path for getting a hostname for an in-game MiniMessage motd preview. */
-public const val URL_SETUP_MOTD_PREVIEW: String = "/setup-motd-preview"
-/** Path for getting a hostname for an in-game MiniMessage kick preview. */
-public const val URL_SETUP_KICK_PREVIEW: String = "/setup-kick-preview"
+/** Path for getting a hostname for an in-game MiniMessage preview. */
+public const val URL_IN_GAME_PREVIEW: String = "/in-game-preview"
 
 /** Path for getting the configuration of this WebUI instance */
 public const val URL_BUILD_INFO: String = "/build"

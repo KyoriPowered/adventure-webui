@@ -26,12 +26,11 @@ import net.kyori.adventure.webui.Serializers
 import net.kyori.adventure.webui.URL_API
 import net.kyori.adventure.webui.URL_BUILD_INFO
 import net.kyori.adventure.webui.URL_EDITOR
+import net.kyori.adventure.webui.URL_IN_GAME_PREVIEW
 import net.kyori.adventure.webui.URL_MINI_SHORTEN
 import net.kyori.adventure.webui.URL_MINI_TO_HTML
 import net.kyori.adventure.webui.URL_MINI_TO_JSON
 import net.kyori.adventure.webui.URL_MINI_TO_TREE
-import net.kyori.adventure.webui.URL_SETUP_KICK_PREVIEW
-import net.kyori.adventure.webui.URL_SETUP_MOTD_PREVIEW
 import net.kyori.adventure.webui.jvm.appendComponent
 import net.kyori.adventure.webui.jvm.getConfigString
 import net.kyori.adventure.webui.jvm.minimessage.editor.installEditor
@@ -49,6 +48,7 @@ import net.kyori.adventure.webui.jvm.minimessage.storage.BytebinStorage
 import net.kyori.adventure.webui.tryDecodeFromString
 import net.kyori.adventure.webui.websocket.Call
 import net.kyori.adventure.webui.websocket.Combined
+import net.kyori.adventure.webui.websocket.InGamePreview
 import net.kyori.adventure.webui.websocket.Packet
 import net.kyori.adventure.webui.websocket.ParseResult
 import net.kyori.adventure.webui.websocket.Placeholders
@@ -205,16 +205,14 @@ public fun Application.miniMessage() {
                 }
             }
 
-            post(URL_SETUP_MOTD_PREVIEW) {
-                val input = call.receiveText()
-                val hostname = previewManager.initializeMotdPreview(input)
-                call.respondText(hostname)
-            }
-
-            post(URL_SETUP_KICK_PREVIEW) {
-                val input = call.receiveText()
-                val hostname = previewManager.initializeKickPreview(input)
-                call.respondText(hostname)
+            post(URL_IN_GAME_PREVIEW) {
+                val request = Serializers.json.tryDecodeFromString<InGamePreview>(call.receiveText())
+                if (request != null && request.miniMessage != null && request.key != null) {
+                    val hostname = previewManager.initializePreview(request.miniMessage, request.key)
+                    call.respondText(hostname)
+                } else {
+                    call.response.status(HttpStatusCode.BadRequest)
+                }
             }
 
             get(URL_BUILD_INFO) {

@@ -17,6 +17,7 @@ import net.kyori.adventure.webui.URL_API
 import net.kyori.adventure.webui.URL_EDITOR
 import net.kyori.adventure.webui.URL_EDITOR_INPUT
 import net.kyori.adventure.webui.URL_EDITOR_OUTPUT
+import net.kyori.adventure.webui.URL_IN_GAME_PREVIEW
 import net.kyori.adventure.webui.URL_MINI_TO_HTML
 import net.kyori.adventure.webui.URL_MINI_TO_JSON
 import net.kyori.adventure.webui.URL_MINI_TO_TREE
@@ -24,6 +25,7 @@ import net.kyori.adventure.webui.editor.EditorInput
 import net.kyori.adventure.webui.tryDecodeFromString
 import net.kyori.adventure.webui.websocket.Call
 import net.kyori.adventure.webui.websocket.Combined
+import net.kyori.adventure.webui.websocket.InGamePreview
 import net.kyori.adventure.webui.websocket.Packet
 import net.kyori.adventure.webui.websocket.Placeholders
 import net.kyori.adventure.webui.websocket.Response
@@ -320,6 +322,20 @@ public fun mainLoaded() {
                             .replace(">", "&gt;")
                     bulmaToast.toast("<pre>$escaped</pre>")
                 }
+        }
+    )
+
+    var inGamePreviewKey = (1..8).map { "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".random() }.joinToString("")
+    document.getElementById("in-game-preview-button")!!.addEventListener(
+        "click",
+        {
+            window.postPacket(
+                "$URL_API$URL_IN_GAME_PREVIEW",
+                InGamePreview(miniMessage = input.value, key = inGamePreviewKey)
+            )
+                .then { response -> response.text() }
+                .then { text -> window.navigator.clipboard.writeText(text) }
+                .then { bulmaToast.toast("Minecraft Server Hostname copied to clipboard!") }
         }
     )
 

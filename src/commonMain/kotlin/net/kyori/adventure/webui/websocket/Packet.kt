@@ -28,3 +28,9 @@ public data class Combined(
     public val background: String? = null,
     public val mode: String? = null
 )
+
+@Serializable
+public data class InGamePreview(
+    public val miniMessage: String? = null,
+    public val key: String? = null
+)
