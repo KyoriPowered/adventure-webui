@@ -16,7 +16,6 @@ services:
       - "traefik.tcp.services.adventure-webui-mc.loadbalancer.server.port=25565"
       - "traefik.tcp.routers.adventure-webui-mc.rule=HostSNI(`*`)"
       - "traefik.tcp.routers.adventure-webui-mc.entrypoints=minecraft"
-      - "traefik.tcp.routers.adventure-webui-mc.tls.passthrough=true"
     networks:
       - web
 
