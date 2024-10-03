@@ -1,5 +1,6 @@
 package net.kyori.adventure.webui.jvm.minimessage.preview
 
+import io.github.reactivecircus.cache4k.Cache
 import io.ktor.network.selector.SelectorManager
 import io.ktor.network.sockets.aSocket
 import io.ktor.network.sockets.openReadChannel
@@ -24,6 +25,7 @@ import org.slf4j.LoggerFactory
 import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream
 import kotlin.coroutines.CoroutineContext
+import kotlin.time.Duration.Companion.hours
 
 /** Manager class for previewing server status. */
 public class ServerStatusPreviewManager(
@@ -34,10 +36,13 @@ public class ServerStatusPreviewManager(
     private val managerJob = SupervisorJob(application.coroutineContext.job)
     override val coroutineContext: CoroutineContext = application.coroutineContext + managerJob
 
+    private val motdPreviews = Cache.Builder<String, String>().expireAfterAccess(1.hours).build()
+    private val kickPreviews = Cache.Builder<String, String>().expireAfterAccess(1.hours).build()
+
     init {
         launch {
             // Initialise the socket.
-            val serverSocket = aSocket(SelectorManager(Dispatchers.IO)).tcp().bind("127.0.0.1", 9002)
+            val serverSocket = aSocket(SelectorManager(Dispatchers.IO)).tcp().bind("0.0.0.0", 25565)
             logger.info("Listening for pings at ${serverSocket.localAddress}")
 
             while (true) {
@@ -64,7 +69,7 @@ public class ServerStatusPreviewManager(
                             sendChannel.writeMcPacket(0) {
                                 it.writeString(
                                     GsonComponentSerializer.gson()
-                                        .serialize(MiniMessage.miniMessage().deserialize("<red>You cant join here!"))
+                                        .serialize(MiniMessage.miniMessage().deserialize(lookupKickMessage(serverAddress)))
                                 )
                             }
                         } else {
@@ -77,11 +82,15 @@ public class ServerStatusPreviewManager(
                                         LegacyComponentSerializer.legacySection()
                                             .serialize(MiniMessage.miniMessage().deserialize("<rainbow>MiniMessage"))
                                     }",
-                                    "protocol": $protocolVersion
+                                    "protocol": 1
+                                  },
+                                  "players": {
+                                    "max": 0,
+                                    "online": 0
                                   },
                                   "description": ${
                                         GsonComponentSerializer.gson().serialize(
-                                            MiniMessage.miniMessage().deserialize("<rainbow>MiniMessage is cool!")
+                                            MiniMessage.miniMessage().deserialize(lookupMotd(serverAddress))
                                         )
                                     }
                                 }""".trimIndent()
@@ -98,6 +107,33 @@ public class ServerStatusPreviewManager(
                 }
             }
         }
+    }
+
+    private fun lookupKickMessage(serverAddress: String): String {
+        return kickPreviews.get(serverAddress.split("\\.")[0]) ?: "<red>You cant join here!"
+    }
+
+    private fun lookupMotd(serverAddress: String): String {
+        return motdPreviews.get(serverAddress.split("\\.")[0]) ?: "<rainbow>MiniMessage is cool!"
+    }
+
+    public fun initializeKickPreview(input: String): String {
+        val key = generateRandomString()
+        kickPreviews.put(key, input)
+        return "$key.webui.advntr.dev"
+    }
+
+    public fun initializeMotdPreview(input: String): String {
+        val key = generateRandomString()
+        motdPreviews.put(key, input)
+        return "$key.webui.advntr.dev"
+    }
+
+    private fun generateRandomString(length: Int = 8): String {
+        val allowedChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+        return (1..length)
+            .map { allowedChars.random() }
+            .joinToString("")
     }
 
     private suspend fun ByteWriteChannel.writeMcPacket(packetId: Int, consumer: (packet: DataOutputStream) -> Unit) {
