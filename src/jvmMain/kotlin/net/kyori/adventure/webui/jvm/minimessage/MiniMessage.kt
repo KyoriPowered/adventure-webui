@@ -30,6 +30,8 @@ import net.kyori.adventure.webui.URL_MINI_SHORTEN
 import net.kyori.adventure.webui.URL_MINI_TO_HTML
 import net.kyori.adventure.webui.URL_MINI_TO_JSON
 import net.kyori.adventure.webui.URL_MINI_TO_TREE
+import net.kyori.adventure.webui.URL_SETUP_KICK_PREVIEW
+import net.kyori.adventure.webui.URL_SETUP_MOTD_PREVIEW
 import net.kyori.adventure.webui.jvm.appendComponent
 import net.kyori.adventure.webui.jvm.getConfigString
 import net.kyori.adventure.webui.jvm.minimessage.editor.installEditor
@@ -42,6 +44,7 @@ import net.kyori.adventure.webui.jvm.minimessage.hook.INSERTION_RENDER_HOOK
 import net.kyori.adventure.webui.jvm.minimessage.hook.TEXT_COLOR_RENDER_HOOK
 import net.kyori.adventure.webui.jvm.minimessage.hook.TEXT_DECORATION_RENDER_HOOK
 import net.kyori.adventure.webui.jvm.minimessage.hook.TEXT_RENDER_HOOK
+import net.kyori.adventure.webui.jvm.minimessage.preview.ServerStatusPreviewManager
 import net.kyori.adventure.webui.jvm.minimessage.storage.BytebinStorage
 import net.kyori.adventure.webui.tryDecodeFromString
 import net.kyori.adventure.webui.websocket.Call
@@ -91,6 +94,9 @@ public fun Application.miniMessage() {
     }
 
     BytebinStorage.BYTEBIN_INSTANCE = this.getConfigString("bytebinInstance")
+
+    // Initialise the server status preview manager.
+    val previewManager = ServerStatusPreviewManager(this)
 
     routing {
         // define static path to resources
@@ -197,6 +203,18 @@ public fun Application.miniMessage() {
                 } else {
                     call.response.status(HttpStatusCode.NotFound)
                 }
+            }
+
+            post(URL_SETUP_MOTD_PREVIEW) {
+                val input = call.receiveText()
+                val hostname = previewManager.initializeMotdPreview(input)
+                call.respondText(hostname)
+            }
+
+            post(URL_SETUP_KICK_PREVIEW) {
+                val input = call.receiveText()
+                val hostname = previewManager.initializeKickPreview(input)
+                call.respondText(hostname)
             }
 
             get(URL_BUILD_INFO) {
