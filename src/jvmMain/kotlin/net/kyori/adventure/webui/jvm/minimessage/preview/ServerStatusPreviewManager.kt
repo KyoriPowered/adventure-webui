@@ -110,11 +110,11 @@ public class ServerStatusPreviewManager(
     }
 
     private fun lookupKickMessage(serverAddress: String): String {
-        return kickPreviews.get(serverAddress.split("\\.")[0]) ?: "<red>You cant join here!"
+        return kickPreviews.get(serverAddress.split(".")[0]) ?: "<red>You cant join here!"
     }
 
     private fun lookupMotd(serverAddress: String): String {
-        return motdPreviews.get(serverAddress.split("\\.")[0]) ?: "<rainbow>MiniMessage is cool!"
+        return motdPreviews.get(serverAddress.split(".")[0]) ?: "<rainbow>MiniMessage is cool!"
     }
 
     public fun initializeKickPreview(input: String): String {
