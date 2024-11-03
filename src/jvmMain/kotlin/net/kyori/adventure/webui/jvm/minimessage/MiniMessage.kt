@@ -2,7 +2,6 @@ package net.kyori.adventure.webui.jvm.minimessage
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
-import io.ktor.server.application.call
 import io.ktor.server.http.content.defaultResource
 import io.ktor.server.http.content.resource
 import io.ktor.server.http.content.resources
