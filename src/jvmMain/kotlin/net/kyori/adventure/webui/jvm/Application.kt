@@ -15,7 +15,8 @@ import io.ktor.server.websocket.WebSockets
 import io.ktor.server.websocket.pingPeriod
 import io.ktor.server.websocket.timeout
 import io.ktor.websocket.WebSocketDeflateExtension
-import java.time.Duration
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 public fun Application.main() {
     install(Compression) {
@@ -36,8 +37,8 @@ public fun Application.main() {
     }
 
     install(WebSockets) {
-        pingPeriod = Duration.ofSeconds(15)
-        timeout = Duration.ofSeconds(5)
+        pingPeriod = 15.seconds
+        timeout = 5.seconds
 
         extensions { install(WebSocketDeflateExtension) }
     }

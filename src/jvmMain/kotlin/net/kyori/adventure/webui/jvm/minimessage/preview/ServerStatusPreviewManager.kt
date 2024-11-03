@@ -8,7 +8,9 @@ import io.ktor.network.sockets.openWriteChannel
 import io.ktor.server.application.Application
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.ByteWriteChannel
-import io.ktor.utils.io.close
+import io.ktor.utils.io.readByte
+import io.ktor.utils.io.readFully
+import io.ktor.utils.io.readShort
 import io.ktor.utils.io.writeByte
 import io.ktor.utils.io.writeFully
 import kotlinx.coroutines.CoroutineScope
@@ -97,7 +99,7 @@ public class ServerStatusPreviewManager(
                             }
                         }
 
-                        sendChannel.close()
+                        sendChannel.flushAndClose()
                     } catch (e: Exception) {
                         logger.error("An unknown error occurred whilst responding to a ping from ${socket.remoteAddress}", e)
                     }
@@ -157,11 +159,11 @@ public class ServerStatusPreviewManager(
         var value = int
         while (true) {
             if ((value and 0x7F.inv()) == 0) {
-                writeByte(value)
+                writeByte(value.toByte())
                 return
             }
 
-            writeByte((value and 0x7F) or 0x80)
+            writeByte(((value and 0x7F) or 0x80).toByte())
 
             value = value ushr 7
         }
