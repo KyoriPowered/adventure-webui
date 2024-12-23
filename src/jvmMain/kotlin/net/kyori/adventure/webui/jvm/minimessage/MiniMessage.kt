@@ -6,6 +6,7 @@ import io.ktor.server.http.content.defaultResource
 import io.ktor.server.http.content.resource
 import io.ktor.server.http.content.resources
 import io.ktor.server.http.content.static
+import io.ktor.server.http.content.staticResources
 import io.ktor.server.request.receiveText
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
@@ -53,6 +54,7 @@ import net.kyori.adventure.webui.websocket.ParseResult
 import net.kyori.adventure.webui.websocket.Placeholders
 import net.kyori.adventure.webui.websocket.Response
 import java.time.Instant
+import net.kyori.adventure.webui.jvm.minimessage.hook.SHADOW_COLOR_RENDER_HOOK
 
 private val startedAt = Instant.now()
 
@@ -87,6 +89,7 @@ public fun Application.miniMessage() {
         component(INSERTION_RENDER_HOOK)
         component(COMPONENT_CLASS_RENDER_HOOK)
         component(TEXT_COLOR_RENDER_HOOK)
+        component(SHADOW_COLOR_RENDER_HOOK)
         component(TEXT_DECORATION_RENDER_HOOK)
         component(FONT_RENDER_HOOK)
         component(TEXT_RENDER_HOOK, 500) // content needs to be set last

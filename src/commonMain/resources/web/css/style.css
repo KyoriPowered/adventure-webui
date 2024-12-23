@@ -4,6 +4,7 @@
 }
 .mc-font {
     font-family: "Minecraft", monospace;
+    text-shadow: 3px 3px hsl(0, 0%, 24%);
 }
 .mono-font {
     font-family: monospace, monospace;
