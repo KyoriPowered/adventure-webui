@@ -155,7 +155,7 @@
     background-color: rgba(1, 1, 1, 0);
 }
 #output-pre.mode-hologram span {
-    text-shadow: none !important;
+    text-shadow: none;
 }
 #output-pre.mode-hologram > div {
     background-color: rgba(1, 1, 1, 0.4);
