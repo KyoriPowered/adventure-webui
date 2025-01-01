@@ -1,5 +1,5 @@
 [versions]
-adventure = "4.17.0"
+adventure = "4.18.0"
 kotlin = "2.1.0"
 ktlint = "1.0.1"
 ktor = "3.0.1"
