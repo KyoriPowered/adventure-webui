@@ -2,7 +2,7 @@ version: '3.7'
 
 services:
   webui:
-    image: ghcr.io/kyoripowered/adventure-webui/webui:latest
+    image: ghcr.io/kyoripowered/adventure-webui/webui:latest@sha256:b6cc64d10a6ed81c9e1bd85dc9edc119ee7781997c042b46f98ac58a43c12518
     labels:
       - "traefik.enable=true"
       - "traefik.http.services.adventure-webui.loadbalancer.server.port=8080"
