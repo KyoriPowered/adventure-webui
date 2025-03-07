@@ -9,6 +9,9 @@
 .mono-font {
     font-family: monospace, monospace;
 }
+.no-shadow {
+    text-shadow: none !important;
+}
 @font-face {
     font-family: "Minecraft";
     src: url("../font/1_Minecraft-Regular.woff") format("woff");
@@ -274,6 +277,9 @@ input.placeholder-key:invalid {
     .navbar {
         background-color: #F5F5F5;
     }
+    .footer {
+        background-color: #E6E6E6;
+    }
 }
 @media (prefers-color-scheme: dark) {
     section.modal-card-body {
@@ -285,4 +291,7 @@ input.placeholder-key:invalid {
     table.table td, table.table th {
         border-width: 0 0 1px;
     }
+}
+.footer {
+    padding-bottom: 3rem;
 }
