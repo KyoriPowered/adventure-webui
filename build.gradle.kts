@@ -10,6 +10,7 @@ plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.kotlinx.serialization)
     alias(libs.plugins.spotless)
+    `java-base`
 }
 
 val javaTarget = 21
