@@ -60,7 +60,9 @@ kotlin {
             mainClass = entryPoint
         }
         compilerOptions {
-            jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.fromTarget("$javaTarget")
+            jvmTarget =
+                org.jetbrains.kotlin.gradle.dsl.JvmTarget
+                    .fromTarget("$javaTarget")
             freeCompilerArgs.add("-Xjdk-release=$javaTarget")
         }
     }
@@ -164,8 +166,16 @@ tasks {
         filesMatching("application.conf") {
             expand(
                 "jsScriptFile" to "${rootProject.name}.js",
-                "miniMessageVersion" to libs.adventure.minimessage.get().versionConstraint.requiredVersion,
-                "commitHash" to rootProject.extensions.getByType<IndraGitExtension>().commit()?.name.orEmpty(),
+                "miniMessageVersion" to
+                    libs.adventure.minimessage
+                        .get()
+                        .versionConstraint.requiredVersion,
+                "commitHash" to
+                    rootProject.extensions
+                        .getByType<IndraGitExtension>()
+                        .commit()
+                        ?.name
+                        .orEmpty(),
             )
         }
     }

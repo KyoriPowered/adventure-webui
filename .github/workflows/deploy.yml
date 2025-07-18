@@ -26,10 +26,6 @@ jobs:
           gradle_warning_mode: "all"
       - name: "build for production"
         run: "./gradlew build"
-      - name: "setup / ssh"
-        uses: "webfactory/ssh-agent@v0.9.1"
-        with:
-          ssh-private-key: "${{ secrets.DOCKER_HOST_SSH_KEY }}"
       - name: "setup / login to ghcr"
         uses: "docker/login-action@v3.4.0"
         with:
@@ -38,9 +34,3 @@ jobs:
           password: "${{ secrets.GITHUB_TOKEN }}"
       - name: "publish / docker image"
         run: "./gradlew jib -Djib.console=plain"
-      - name: "publish / deploy to production"
-        env:
-          DOCKER_HOST: "${{ secrets.DOCKER_HOST }}"
-        run: |
-          echo ${{ secrets.DOCKER_HOST_SSH_SIG }} > ~/.ssh/known_hosts
-          docker stack deploy --with-registry-auth --compose-file=docker-compose.yml adventure-webui
