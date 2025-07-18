@@ -43,4 +43,4 @@ jobs:
             type=sha,enable=true,format=short,prefix=${{ github.head_ref || github.ref_name }}-,suffix=-${{ steps.timestamp.outputs.timestamp }}
             type=raw,value=latest,enable={{is_default_branch}}
       - name: "publish / docker image"
-        run: "./gradlew jib -Djib.console=plain -Djib.to.tags=${{ steps.meta.outputs.tags }} -Djib.container.labels=${{ steps.meta.outputs.labels }}"
+        run: "./gradlew jib -Djib.console=plain -Djib.to.tags=$(echo \"${{ steps.meta.outputs.tags }}\" | tr '\n' ',') -Djib.container.labels=$(echo \"${{ steps.meta.outputs.labels }}\" | tr '\n' ',')"
