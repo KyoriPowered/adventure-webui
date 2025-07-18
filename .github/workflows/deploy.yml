@@ -32,12 +32,15 @@ jobs:
           registry: "ghcr.io"
           username: "${{ github.actor }}"
           password: "${{ secrets.GITHUB_TOKEN }}"
+      - name: Get timestamp
+        id: timestamp
+        run: echo "timestamp=$(date +%s)" >> $GITHUB_OUTPUT
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@v5
         with:
           tags: |
-            type=sha,enable=true,format=short,prefix=${{ env.BRANCH_NAME }}-,suffix=-${{ steps.timestamp.outputs.timestamp }}
+            type=sha,enable=true,format=short,prefix=${{ github.head_ref || github.ref_name }}-,suffix=-${{ steps.timestamp.outputs.timestamp }}
             type=raw,value=latest,enable={{is_default_branch}}
       - name: "publish / docker image"
         run: "./gradlew jib -Djib.console=plain -Djib.to.tags=${{ steps.meta.outputs.tags }} -Djib.container.labels=${{ steps.meta.outputs.labels }}"
