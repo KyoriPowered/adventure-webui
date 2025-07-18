@@ -3,6 +3,7 @@
 import net.kyori.indra.git.IndraGitExtension
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
+import java.time.Instant
 
 plugins {
     alias(libs.plugins.indra.git)
@@ -107,7 +108,6 @@ kotlin {
 }
 
 jib {
-    to.image = "ghcr.io/kyoripowered/adventure-webui/webui"
     from {
         image = "azul/zulu-openjdk-alpine:$javaTarget-jre"
         platforms {
@@ -142,6 +142,14 @@ jib {
             """A Web UI for working with Adventure components.
             Built with Adventure ${libs.versions.adventure.get()}, from webui commit ${indraGit.commit()?.name ?: "<unknown>"}""",
         )
+    }
+    to {
+        image = "ghcr.io/kyoripowered/adventure-webui/webui"
+        tags =
+            setOf(
+                "latest",
+                "${indraGit.branchName()}-${indraGit.commit()?.name()?.take(7)}-${Instant.now().epochSecond}",
+            )
     }
 }
 
