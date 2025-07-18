@@ -325,7 +325,7 @@ public fun mainLoaded() {
         }
     )
 
-    var inGamePreviewKey = (1..8).map { "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".random() }.joinToString("")
+    val inGamePreviewKey = (1..8).map { "abcdefghijklmnopqrstuvwxyz0123456789".random() }.joinToString("")
     document.getElementById("in-game-preview-button")!!.addEventListener(
         "click",
         {

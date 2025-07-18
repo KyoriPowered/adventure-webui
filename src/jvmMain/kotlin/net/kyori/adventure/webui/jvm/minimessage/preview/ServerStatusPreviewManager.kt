@@ -6,6 +6,7 @@ import io.ktor.network.sockets.aSocket
 import io.ktor.network.sockets.openReadChannel
 import io.ktor.network.sockets.openWriteChannel
 import io.ktor.server.application.Application
+import io.ktor.util.toLowerCasePreservingASCIIRules
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.ByteWriteChannel
 import io.ktor.utils.io.readByte
@@ -62,7 +63,7 @@ public class ServerStatusPreviewManager(
                         // handshake
                         val handshakePacket = receiveChannel.readMcPacket()
                         val protocolVersion = handshakePacket.readVarInt()
-                        val serverAddress = handshakePacket.readUtf8String()
+                        val serverAddress = handshakePacket.readUtf8String().toLowerCasePreservingASCIIRules()
                         val serverPort = handshakePacket.readShort()
                         val nextState = handshakePacket.readVarInt()
 
@@ -132,7 +133,7 @@ public class ServerStatusPreviewManager(
     }
 
     public fun initializePreview(input: String, key: String): String {
-        previews.put(key, input)
+        previews.put(key.toLowerCasePreservingASCIIRules(), input)
         return "$key.webui.advntr.dev"
     }
 
