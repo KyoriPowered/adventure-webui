@@ -24,23 +24,11 @@ jobs:
           runtime_version: 21
           publishing_branch_regex: "main"
           gradle_warning_mode: "all"
-      - name: "build for production"
-        run: "./gradlew build"
       - name: "setup / login to ghcr"
         uses: "docker/login-action@v3.4.0"
         with:
           registry: "ghcr.io"
           username: "${{ github.actor }}"
           password: "${{ secrets.GITHUB_TOKEN }}"
-      - name: Get timestamp
-        id: timestamp
-        run: echo "timestamp=$(date +%s)" >> $GITHUB_OUTPUT
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          tags: |
-            type=sha,enable=true,format=short,prefix=${{ github.head_ref || github.ref_name }}-,suffix=-${{ steps.timestamp.outputs.timestamp }}
-            type=raw,value=latest,enable={{is_default_branch}}
       - name: "publish / docker image"
-        run: "./gradlew jib -Djib.console=plain -Djib.to.tags=$(echo \"${{ steps.meta.outputs.tags }}\" | tr '\n' ',') -Djib.container.labels=$(echo \"${{ steps.meta.outputs.labels }}\" | tr '\n' ',')"
+        run: ./gradlew jib -Djib.console=plain --stacktrace
