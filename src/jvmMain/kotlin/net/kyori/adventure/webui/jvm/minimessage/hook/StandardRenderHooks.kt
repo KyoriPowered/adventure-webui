@@ -3,6 +3,7 @@ package net.kyori.adventure.webui.jvm.minimessage.hook
 import kotlinx.html.classes
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TextComponent
+import net.kyori.adventure.text.event.ClickEvent
 import net.kyori.adventure.text.event.HoverEvent
 import net.kyori.adventure.text.format.ShadowColor
 import net.kyori.adventure.text.format.TextDecoration
@@ -33,7 +34,16 @@ public val HOVER_EVENT_RENDER_HOOK: ComponentRenderHook = { component ->
 public val CLICK_EVENT_RENDER_HOOK: ComponentRenderHook = { component ->
     component.clickEvent()?.let { clickEvent ->
         addData(DATA_CLICK_EVENT_ACTION, clickEvent.action().toString())
-        addData(DATA_CLICK_EVENT_VALUE, clickEvent.value())
+        addData(
+            DATA_CLICK_EVENT_VALUE,
+            when (val payload = clickEvent.payload()) {
+                is ClickEvent.Payload.Text -> payload.value()
+                is ClickEvent.Payload.Int -> payload.integer().toString()
+                is ClickEvent.Payload.Custom -> payload.nbt().string()
+                is ClickEvent.Payload.Dialog -> "Payload.Dialog"
+                else -> error("Unknown click event payload type: $payload")
+            }
+        )
     }
 
     true
