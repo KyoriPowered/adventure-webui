@@ -19,13 +19,13 @@ jobs:
     steps:
       - name: "setup env"
         id: "setup"
-        uses: "KyoriPowered/ci-cookbook/actions/setup-java-env@2025.10.17"
+        uses: "KyoriPowered/ci-cookbook/actions/setup-java-env@e77e68e0bee07333adf9ea66f8da5fa1e1363003" # 2025.10.17
         with:
           runtime_version: 21
           publishing_branch_regex: "main"
           gradle_warning_mode: "all"
       - name: "setup / login to ghcr"
-        uses: "docker/login-action@v3.5.0"
+        uses: "docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef" # v3.6.0
         with:
           registry: "ghcr.io"
           username: "${{ github.actor }}"
