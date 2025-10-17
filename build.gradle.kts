@@ -144,7 +144,7 @@ jib {
         )
     }
     to {
-        image = "ghcr.io/kyoripowered/adventure-webui/webui"
+        image = "ghcr.io/papermc/adventure-webui/webui"
         tags =
             setOf(
                 "latest",
