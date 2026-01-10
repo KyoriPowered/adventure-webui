@@ -5,11 +5,11 @@ ktlint = "1.7.0"
 ktor = "3.2.3"
 
 [plugins]
-indra-git = { id = "net.kyori.indra.git", version = "3.2.0" }
+indra-git = { id = "net.kyori.indra.git", version = "4.0.0" }
 jib = { id = "com.google.cloud.tools.jib", version = "3.5.2" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinx-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin"}
-spotless = { id = "com.diffplug.spotless", version = "7.2.1" }
+spotless = { id = "com.diffplug.spotless", version = "8.1.0" }
 
 [libraries]
 adventure-minimessage = { group = "net.kyori", name = "adventure-text-minimessage", version.ref = "adventure" }
