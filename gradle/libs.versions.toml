@@ -2,7 +2,7 @@
 adventure = "4.26.1"
 kotlin = "2.3.0"
 ktlint = "1.7.0"
-ktor = "3.2.3"
+ktor = "3.3.3"
 
 [plugins]
 indra-git = { id = "net.kyori.indra.git", version = "3.2.0" }
