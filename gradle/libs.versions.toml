@@ -1,12 +1,12 @@
 [versions]
 adventure = "4.26.1"
-kotlin = "2.2.20"
+kotlin = "2.3.0"
 ktlint = "1.7.0"
 ktor = "3.2.3"
 
 [plugins]
 indra-git = { id = "net.kyori.indra.git", version = "3.2.0" }
-jib = { id = "com.google.cloud.tools.jib", version = "3.4.5" }
+jib = { id = "com.google.cloud.tools.jib", version = "3.5.2" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinx-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin"}
 spotless = { id = "com.diffplug.spotless", version = "7.2.1" }
